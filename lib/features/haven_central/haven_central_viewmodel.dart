@@ -72,15 +72,15 @@ class HavenCentralViewModel extends ChangeNotifier {
     Task(
         title: 'Fix fence',
         isDone: false,
-        dueDate: DateTime.now().subtract(Duration(days: 2))),
+        dueDate: DateTime.now().subtract(const Duration(days: 2))),
     Task(
         title: 'Order feed',
         isDone: false,
-        dueDate: DateTime.now().add(Duration(days: 3))),
+        dueDate: DateTime.now().add(const Duration(days: 3))),
     Task(
         title: 'Clean coop',
         isDone: true,
-        dueDate: DateTime.now().subtract(Duration(days: 5))),
+        dueDate: DateTime.now().subtract(const Duration(days: 5))),
   ];
 
   // Health score

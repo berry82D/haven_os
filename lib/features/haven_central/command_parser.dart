@@ -5,9 +5,9 @@ class CommandParser {
   static String parse(String input, HavenCentralViewModel model) {
     final lower = input.toLowerCase().trim();
 
-    // Matches "add 50 to groceries" or "add income 200"
-    final addMatch = RegExp(r'add\s+(\d+\.?\d*)\s+(?:to\s+)?(.+)', caseSensitive: false)
-        .firstMatch(lower);
+    final addMatch =
+        RegExp(r'add\s+(\d+\.?\d*)\s+(?:to\s+)?(.+)', caseSensitive: false)
+            .firstMatch(lower);
     if (addMatch != null) {
       final amount = double.tryParse(addMatch.group(1)!) ?? 0.0;
       final category = addMatch.group(2)!.trim();
@@ -21,7 +21,9 @@ class CommandParser {
     }
 
     if (lower.contains('overdue') && lower.contains('task')) {
-      final overdue = model.tasks.where((t) => !t.isDone && t.dueDate.isBefore(DateTime.now())).toList();
+      final overdue = model.tasks
+          .where((t) => !t.isDone && t.dueDate.isBefore(DateTime.now()))
+          .toList();
       if (overdue.isEmpty) return '🎉 No overdue tasks!';
       return '⚠️ Overdue tasks:\n${overdue.map((t) => '• ${t.title}').join('\n')}';
     }
@@ -33,14 +35,14 @@ class CommandParser {
     if (lower == 'help' || lower == '?') {
       return '''
 Available commands:
-• "Add $50 to groceries" – adds expense
-• "Add income $200" – adds income
+• "Add \$50 to groceries" – adds expense
+• "Add income \$200" – adds income
 • "Show overdue tasks"
 • "Farm status"
 • "Help"
 ''';
     }
 
-    return '🤖 I didn’t understand. Try "Help" for commands.';
+    return '🤖 I didn\'t understand. Try "Help" for commands.';
   }
 }
