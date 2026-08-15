@@ -5,9 +5,11 @@ import 'package:haven_os/core/constants/colors.dart';
 import 'package:haven_os/core/theme/haven_theme.dart';
 import 'package:haven_os/features/auth/presentation/sign_in_screen.dart';
 import 'package:haven_os/features/auth/widgets/auth_guard.dart';
-import 'package:haven_os/features/cfo/widgets/cfo_screen.dart'; // ✅ only one import
+import 'package:haven_os/features/cfo/widgets/cfo_screen.dart';
 import 'package:haven_os/features/haven/widgets/haven_screen.dart';
-import 'package:haven_os/features/home/widgets/home_screen.dart';
+// 👇 NEW IMPORT FOR HAVEN CENTRAL
+import 'package:haven_os/features/haven_central/haven_central_screen.dart';
+import 'package:haven_os/features/haven_central/haven_central_viewmodel.dart'; // 👈 also add this
 import 'package:haven_os/features/homestead/widgets/homestead_screen.dart';
 import 'package:haven_os/features/settings/widgets/settings_screen.dart';
 import 'package:haven_os/services/app_state.dart';
@@ -80,6 +82,8 @@ class _HavenOSAppState extends State<HavenOSApp> with WidgetsBindingObserver {
             ],
           ),
         ),
+        // 👇 NEW PROVIDER FOR HAVEN CENTRAL
+        ChangeNotifierProvider(create: (_) => HavenCentralViewModel()),
       ],
       child: MaterialApp(
         title: 'Haven_OS',
@@ -155,7 +159,8 @@ class HavenTabs extends StatelessWidget {
       child: Scaffold(
         body: TabBarView(
           children: [
-            HomeScreen(),
+            // 👇 REPLACED HomeScreen() WITH HavenCentralScreen()
+            const HavenCentralScreen(), // <-- THIS IS THE CHANGE
             CfoScreen(),
             HomesteadScreen(),
             HavenScreen(),
