@@ -9,9 +9,8 @@ class CfoScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Use AppState's finance data (stub) – replace with real data later
     final appState = Provider.of<AppState>(context);
-    final transactions = appState.myTransactions; // empty list for now
+    final transactions = appState.myTransactions;
 
     return Scaffold(
       appBar: AppBar(
@@ -24,7 +23,6 @@ class CfoScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Summary Cards
             Row(
               children: [
                 _buildSummaryCard(
@@ -61,8 +59,6 @@ class CfoScreen extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 24),
-
-            // Monthly chart
             const Text(
               'Monthly Overview',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -114,8 +110,6 @@ class CfoScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 24),
-
-            // Recent transactions (from AppState stub – will be empty)
             const Text(
               'Recent Transactions',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -141,6 +135,7 @@ class CfoScreen extends StatelessWidget {
                       itemCount: transactions.length,
                       itemBuilder: (context, index) {
                         final tx = transactions[index];
+                        // ✅ FIXED: changed tx.title to tx.category
                         return ListTile(
                           leading: Icon(
                             tx.type == 'income'
@@ -149,7 +144,7 @@ class CfoScreen extends StatelessWidget {
                             color:
                                 tx.type == 'income' ? Colors.green : Colors.red,
                           ),
-                          title: Text(tx.title),
+                          title: Text(tx.category ?? 'Unnamed'),
                           subtitle: Text(
                               '${tx.category} • ${tx.date.day}/${tx.date.month}'),
                           trailing: Text(
@@ -181,9 +176,9 @@ class CfoScreen extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
+          color: color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: color.withOpacity(0.3)),
+          border: Border.all(color: color.withValues(alpha: 0.3)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

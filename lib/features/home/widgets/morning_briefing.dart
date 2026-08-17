@@ -1,44 +1,36 @@
-// lib/features/home/widgets/timeline_screen.dart
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:haven_os/services/app_state.dart';
 
-class TimelineScreen extends StatelessWidget {
-  const TimelineScreen({super.key});
+class MorningBriefing extends StatelessWidget {
+  const MorningBriefing({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final appState = Provider.of<AppState>(context);
-    final events = appState.timelineEvents;
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('📅 Timeline'),
-        backgroundColor: Colors.teal.shade700,
-        foregroundColor: Colors.white,
-        elevation: 2,
-      ),
-      body: events.isEmpty
-          ? const Center(
-              child: Text('No events yet.'),
-            )
-          : ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: events.length,
-              itemBuilder: (context, index) {
-                final event = events[index];
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 8),
-                  child: ListTile(
-                    leading: Icon(Icons.event, color: Colors.teal.shade700),
-                    title: Text(event.title ?? 'Event'),
-                    subtitle: Text(event.date?.toString() ?? ''),
-                    trailing:
-                        Icon(Icons.chevron_right, color: Colors.grey.shade400),
-                  ),
-                );
-              },
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.sunny, color: Colors.amber, size: 28),
+                const SizedBox(width: 8),
+                const Text(
+                  'Good Morning!',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+              ],
             ),
+            const SizedBox(height: 12),
+            const Text(
+              'Your household is doing well today!',
+              style: TextStyle(fontSize: 16),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

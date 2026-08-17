@@ -69,7 +69,7 @@ class BillsTab extends StatelessWidget {
         ),
         title: Text(bill.name),
         subtitle: Text(
-          '\$${bill.amount.toStringAsFixed(2)} • Due ${bill.dueDate.month}/${bill.dueDate.day}',
+          '\$${bill.amount.toStringAsFixed(2)} • Due ${bill.dueDate.month}/${bill.dueDate.day} • ${bill.category}',
         ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
@@ -131,94 +131,123 @@ class BillsTab extends StatelessWidget {
     DateTime selectedDate = DateTime.now();
     String selectedCategory = 'Utilities';
 
+    // Show dialog with StatefulBuilder to handle date picker updates
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Add Bill'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: nameController,
-              decoration: const InputDecoration(labelText: 'Bill Name'),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: amountController,
-              decoration:
-                  const InputDecoration(labelText: 'Amount', prefixText: '\$'),
-              keyboardType: TextInputType.number,
-            ),
-            const SizedBox(height: 8),
-            Row(
+      builder: (_) => StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            title: const Text('Add Bill'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                const Text('Due Date: '),
-                TextButton(
-                  onPressed: () async {
-                    final date = await showDatePicker(
-                      context: context,
-                      initialDate: selectedDate,
-                      firstDate: DateTime.now(),
-                      lastDate: DateTime.now().add(const Duration(days: 365)),
-                    );
-                    if (date != null) {
-                      // We'll handle this with setState but we need StatefulBuilder
-                    }
+                TextField(
+                  controller: nameController,
+                  decoration: const InputDecoration(
+                    labelText: 'Bill Name',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: amountController,
+                  decoration: const InputDecoration(
+                    labelText: 'Amount',
+                    prefixText: '\$',
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.number,
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    const Text('Due Date: '),
+                    TextButton(
+                      onPressed: () async {
+                        final date = await showDatePicker(
+                          context: context,
+                          initialDate: selectedDate,
+                          firstDate: DateTime.now(),
+                          lastDate:
+                              DateTime.now().add(const Duration(days: 365)),
+                        );
+                        if (date != null) {
+                          setState(() {
+                            selectedDate = date;
+                          });
+                        }
+                      },
+                      child: Text(
+                        '${selectedDate.month}/${selectedDate.day}/${selectedDate.year}',
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                DropdownButtonFormField<String>(
+                  value: selectedCategory,
+                  decoration: const InputDecoration(
+                    labelText: 'Category',
+                    border: OutlineInputBorder(),
+                  ),
+                  items: const [
+                    DropdownMenuItem(
+                        value: 'Utilities', child: Text('Utilities')),
+                    DropdownMenuItem(value: 'Rent', child: Text('Rent')),
+                    DropdownMenuItem(
+                        value: 'Insurance', child: Text('Insurance')),
+                    DropdownMenuItem(value: 'Phone', child: Text('Phone')),
+                    DropdownMenuItem(
+                        value: 'Internet', child: Text('Internet')),
+                    DropdownMenuItem(value: 'Other', child: Text('Other')),
+                  ],
+                  onChanged: (value) {
+                    setState(() {
+                      selectedCategory = value!;
+                    });
                   },
-                  child: Text(
-                      '${selectedDate.month}/${selectedDate.day}/${selectedDate.year}'),
                 ),
               ],
             ),
-            const SizedBox(height: 8),
-            DropdownButtonFormField<String>(
-              value: selectedCategory,
-              decoration: const InputDecoration(labelText: 'Category'),
-              items: const [
-                DropdownMenuItem(value: 'Utilities', child: Text('Utilities')),
-                DropdownMenuItem(value: 'Rent', child: Text('Rent')),
-                DropdownMenuItem(value: 'Insurance', child: Text('Insurance')),
-                DropdownMenuItem(value: 'Phone', child: Text('Phone')),
-                DropdownMenuItem(value: 'Internet', child: Text('Internet')),
-                DropdownMenuItem(value: 'Other', child: Text('Other')),
-              ],
-              onChanged: (value) => selectedCategory = value!,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              final name = nameController.text.trim();
-              final amount = double.tryParse(amountController.text.trim());
-              if (name.isNotEmpty && amount != null && amount > 0) {
-                appState.addBill(Bill(
-                  id: DateTime.now().millisecondsSinceEpoch.toString(),
-                  name: name,
-                  amount: amount,
-                  dueDate: selectedDate,
-                  isPaid: false,
-                  category: selectedCategory,
-                  userId: appState.currentUser!.id,
-                ));
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Added bill: $name')),
-                );
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                      content: Text('Please enter valid name and amount')),
-                );
-              }
-            },
-            child: const Text('Add'),
-          ),
-        ],
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () {
+                  final name = nameController.text.trim();
+                  final amount = double.tryParse(amountController.text.trim());
+                  if (name.isNotEmpty && amount != null && amount > 0) {
+                    // Get current user ID
+                    final userId = appState.currentUser?.id ?? 'unknown';
+
+                    appState.addBill(Bill(
+                      id: DateTime.now().millisecondsSinceEpoch.toString(),
+                      name: name,
+                      amount: amount,
+                      dueDate: selectedDate,
+                      isPaid: false,
+                      category: selectedCategory,
+                      userId: userId,
+                    ));
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Added bill: $name')),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Please enter valid name and amount'),
+                      ),
+                    );
+                  }
+                },
+                child: const Text('Add'),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

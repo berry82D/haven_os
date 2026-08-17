@@ -4,7 +4,8 @@ class Bill {
   final double amount;
   final DateTime dueDate;
   bool isPaid;
-  final String userId; // added
+  final String userId;
+  final String category; // 👈 added
 
   Bill({
     required this.id,
@@ -13,6 +14,7 @@ class Bill {
     required this.dueDate,
     required this.isPaid,
     this.userId = '',
+    this.category = 'Utilities', // default
   });
 
   Map<String, dynamic> toJson() => {
@@ -22,6 +24,7 @@ class Bill {
         'dueDate': dueDate.toIso8601String(),
         'isPaid': isPaid,
         'userId': userId,
+        'category': category,
       };
 
   factory Bill.fromJson(Map<String, dynamic> json) => Bill(
@@ -31,5 +34,6 @@ class Bill {
         dueDate: DateTime.parse(json['dueDate']),
         isPaid: json['isPaid'],
         userId: json['userId'] ?? '',
+        category: json['category'] ?? 'Utilities',
       );
 }

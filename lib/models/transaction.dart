@@ -1,6 +1,4 @@
-﻿import 'package:flutter/material.dart';
-
-enum TransactionType { income, expense }
+﻿enum TransactionType { income, expense }
 
 class Account {
   final String id;

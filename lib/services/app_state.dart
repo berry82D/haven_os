@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-// Import your real models
+// Import your models
 import 'package:haven_os/models/user_account.dart';
 import 'package:haven_os/models/transaction.dart';
 import 'package:haven_os/models/bill.dart';
@@ -39,24 +39,28 @@ class AppState extends ChangeNotifier {
   bool _isTeen = false;
   UserAccount? _currentUser;
 
+  // --- Bills list ---
+  List<Bill> _bills = [];
+  List<Bill> get myBills => _bills;
+
   // --- Getters ---
   bool get isLocked => _isLocked;
   bool get isPinVerified => _pinVerified;
   bool get isChildAccount => _isChild;
   bool get isTeenAccount => _isTeen;
   UserAccount? get currentUser => _currentUser;
-  bool get isParentAccount =>
-      _currentUser?.role == UserRole.Adult ||
-      _currentUser?.role == UserRole.Parent;
+
+  // ✅ FIXED: removed UserRole.parent
+  bool get isParentAccount => _currentUser?.role == UserRole.adult;
+
   bool get isPinEnabled => _pinVerified;
   bool get pinVerified => _pinVerified;
   bool get learningMode => _isChild;
 
-  // Data getters – return empty lists so the app doesn't crash
+  // Data getters – return empty lists
   List<Transaction> get myTransactions => [];
   List<Transaction> get transactions => [];
-  List<Bill> get myBills => [];
-  List<Bill> get bills => [];
+  List<Bill> get bills => _bills;
   List<Animal> get myAnimals => [];
   List<Animal> get animals => [];
   List<Task> get myTasks => [];
@@ -77,7 +81,7 @@ class AppState extends ChangeNotifier {
       };
   String get briefing => 'Good morning! No updates.';
 
-  // HealthScore – returns a proper HealthScore object
+  // HealthScore
   HealthScore get healthScore => HealthScore(
         score: 85,
         level: 'Good',
@@ -102,7 +106,7 @@ class AppState extends ChangeNotifier {
       id: '1',
       name: 'Test User',
       householdId: 'household_1',
-      role: UserRole.Adult,
+      role: UserRole.adult,
     );
     notifyListeners();
   }
@@ -121,11 +125,11 @@ class AppState extends ChangeNotifier {
     }
     UserRole userRole;
     if (role == 'Child') {
-      userRole = UserRole.Child;
+      userRole = UserRole.child;
     } else if (role == 'Teen') {
-      userRole = UserRole.Teen;
+      userRole = UserRole.teen;
     } else {
-      userRole = UserRole.Adult;
+      userRole = UserRole.adult;
     }
     _currentUser = UserAccount(
       id: '1',
@@ -198,13 +202,38 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  // --- All data methods (stubs) ---
+  // --- BILL METHODS ---
+  void addBill(Bill bill) {
+    _bills.insert(0, bill);
+    notifyListeners();
+  }
+
+  void deleteBill(String id) {
+    _bills.removeWhere((bill) => bill.id == id);
+    notifyListeners();
+  }
+
+  void toggleBillPaid(String id) {
+    final index = _bills.indexWhere((bill) => bill.id == id);
+    if (index != -1) {
+      final bill = _bills[index];
+      _bills[index] = Bill(
+        id: bill.id,
+        name: bill.name,
+        amount: bill.amount,
+        dueDate: bill.dueDate,
+        isPaid: !bill.isPaid,
+        userId: bill.userId,
+        category: bill.category,
+      );
+      notifyListeners();
+    }
+  }
+
+  // --- DATA METHODS (stubs) ---
   void addTransaction(Transaction transaction) {}
   void updateTransaction(Transaction transaction) {}
   void deleteTransaction(String id) {}
-  void toggleBillPaid(String id) {}
-  void deleteBill(String id) {}
-  void addBill(Bill bill) {}
   void addAnimal(Animal animal) {}
   void updateAnimal(Animal animal) {}
   void deleteAnimal(String id) {}

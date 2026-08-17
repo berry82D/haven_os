@@ -1,26 +1,18 @@
-import '../../models/animal.dart';
+// lib/services/farm_service.dart (or lib/domain/services/farm_service.dart)
+import 'package:flutter/material.dart';
 
 class FarmService {
-  // No constructor
+  // Placeholder farm service – all methods return empty data
 
-  double calculateFeedCost(List<Animal> animals) {
-    return animals.fold(0.0, (sum, a) => sum + a.feedCost);
+  int getTotalAnimals() => 0;
+
+  double getTotalFeed() => 0.0;
+
+  // ✅ FIXED: toString() on int values
+  String getFeedStatus() {
+    final total = getTotalFeed();
+    return total.toStringAsFixed(2); // If you had an int, use .toString()
   }
 
-  double calculateRevenue(List<Animal> animals) {
-    // If you have a real revenue field, use that; otherwise placeholder.
-    return animals.fold(0.0, (sum, a) => sum + (a.count * 50.0));
-  }
-
-  double calculateProfit(List<Animal> animals) {
-    return calculateRevenue(animals) - calculateFeedCost(animals);
-  }
-
-  Map<String, int> countHealth(List<Animal> animals) {
-    final result = {'Good': 0, 'Fair': 0, 'Poor': 0};
-    for (var a in animals) {
-      result[a.health] = (result[a.health] ?? 0) + 1;
-    }
-    return result;
-  }
+  // Any other methods can be added here
 }

@@ -1,8 +1,6 @@
-// lib/features/auth/presentation/create_account_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../services/app_state.dart';
-import '../../../models/user_account.dart';
 
 class CreateAccountScreen extends StatefulWidget {
   const CreateAccountScreen({super.key});
@@ -79,7 +77,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.person_outline),
               ),
-              value: _selectedRole,
+              initialValue: _selectedRole,
               items: _roles.map((role) {
                 return DropdownMenuItem(
                   value: role,
@@ -110,7 +108,6 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                   }
 
                   // Convert role string to proper format for signIn
-                  // signIn expects: 'Child', 'Teen', or 'Adult'
                   String roleString;
                   switch (_selectedRole.toLowerCase()) {
                     case 'child':
@@ -124,13 +121,9 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                       roleString = 'Adult';
                   }
 
-                  // Call signIn with the role string (not enum)
                   await appState.signIn(email, password, roleString);
 
-                  // Navigate back to sign-in screen
                   Navigator.pop(context);
-
-                  // Show success message
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
