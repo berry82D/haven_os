@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'services/app_state.dart';
 import 'features/auth/presentation/sign_in_screen.dart';
-import 'features/haven_central/haven_central_screen.dart'; // Use Haven Central instead of HomeScreen
+import 'features/haven_central/haven_central_screen.dart';
+import 'features/haven_central/haven_central_viewmodel.dart'; // ← added
 import 'features/cfo/widgets/cfo_screen.dart';
 import 'features/homestead/widgets/homestead_screen.dart';
 import 'features/haven/widgets/haven_screen.dart';
@@ -14,8 +15,9 @@ void main() {
   runApp(
     MultiProvider(
       providers: [
-        // ✅ Only ONE AppState instance, using initialize()
         ChangeNotifierProvider(create: (_) => AppState()..initialize()),
+        ChangeNotifierProvider(
+            create: (_) => HavenCentralViewModel()), // ← added
       ],
       child: const HavenOSApp(),
     ),
@@ -29,8 +31,7 @@ class HavenOSApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Haven OS',
-      theme: ThemeData(
-          primarySwatch: Colors.teal), // Use teal like your other screens
+      theme: ThemeData(primarySwatch: Colors.teal),
       debugShowCheckedModeBanner: false,
       home: const AuthGate(),
     );
@@ -46,12 +47,10 @@ class AuthGate extends StatelessWidget {
     if (appState.currentUser == null) {
       return const SignInScreen();
     }
-    // Use HavenCentralScreen as the main home (your unified dashboard)
-    return const HavenTabs(); // or direct to HavenCentralScreen if you want
+    return const HavenTabs();
   }
 }
 
-// HavenTabs widget (copied from your original main.dart – keep the 5 tabs)
 class HavenTabs extends StatelessWidget {
   const HavenTabs({super.key});
 
@@ -72,7 +71,6 @@ class HavenTabs extends StatelessWidget {
               icon: const Icon(Icons.exit_to_app),
               onPressed: () {
                 appState.logout();
-                Navigator.pushReplacementNamed(context, '/auth');
               },
             ),
           ],
@@ -92,7 +90,6 @@ class HavenTabs extends StatelessWidget {
               icon: const Icon(Icons.exit_to_app),
               onPressed: () {
                 appState.logout();
-                Navigator.pushReplacementNamed(context, '/auth');
               },
             ),
           ],
@@ -104,9 +101,9 @@ class HavenTabs extends StatelessWidget {
     return DefaultTabController(
       length: 5,
       child: Scaffold(
-        body: TabBarView(
-          children: const [
-            HavenCentralScreen(), // Home tab – your unified dashboard
+        body: const TabBarView(
+          children: [
+            HavenCentralScreen(),
             CfoScreen(),
             HomesteadScreen(),
             HavenScreen(),
