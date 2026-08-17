@@ -5,6 +5,14 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 // Import your real models
 import 'package:haven_os/models/user_account.dart';
+import 'package:haven_os/models/transaction.dart';
+import 'package:haven_os/models/bill.dart';
+import 'package:haven_os/models/animal.dart';
+import 'package:haven_os/models/task.dart';
+import 'package:haven_os/models/loan.dart';
+import 'package:haven_os/models/feed_delivery.dart';
+import 'package:haven_os/models/timeline_event.dart';
+import 'package:haven_os/models/join_request.dart';
 
 // Stub HealthScore class
 class HealthScore {
@@ -37,25 +45,27 @@ class AppState extends ChangeNotifier {
   bool get isChildAccount => _isChild;
   bool get isTeenAccount => _isTeen;
   UserAccount? get currentUser => _currentUser;
-  bool get isParentAccount => _currentUser?.role == UserRole.administrator;
+  bool get isParentAccount =>
+      _currentUser?.role == UserRole.Adult ||
+      _currentUser?.role == UserRole.Parent;
   bool get isPinEnabled => _pinVerified;
   bool get pinVerified => _pinVerified;
   bool get learningMode => _isChild;
 
-  // Data getters – return empty lists
-  List<dynamic> get myTransactions => [];
-  List<dynamic> get transactions => [];
-  List<dynamic> get myBills => [];
-  List<dynamic> get bills => [];
-  List<dynamic> get myAnimals => [];
-  List<dynamic> get animals => [];
-  List<dynamic> get myTasks => [];
-  List<dynamic> get tasks => [];
-  List<dynamic> get loans => [];
-  List<dynamic> get feedDeliveries => [];
-  List<dynamic> get timelineEvents => [];
-  List<dynamic> get myTimelineEvents => [];
-  List<dynamic> get joinRequests => [];
+  // Data getters – return empty lists so the app doesn't crash
+  List<Transaction> get myTransactions => [];
+  List<Transaction> get transactions => [];
+  List<Bill> get myBills => [];
+  List<Bill> get bills => [];
+  List<Animal> get myAnimals => [];
+  List<Animal> get animals => [];
+  List<Task> get myTasks => [];
+  List<Task> get tasks => [];
+  List<Loan> get loans => [];
+  List<FeedDelivery> get feedDeliveries => [];
+  List<TimelineEvent> get timelineEvents => [];
+  List<TimelineEvent> get myTimelineEvents => [];
+  List<JoinRequest> get joinRequests => [];
 
   // Finance stub
   dynamic get finance => {
@@ -65,7 +75,7 @@ class AppState extends ChangeNotifier {
         'savings': 0,
         'categories': <String, double>{},
       };
-  String get briefing => 'Good morning! Your household is doing well.';
+  String get briefing => 'Good morning! No updates.';
 
   // HealthScore – returns a proper HealthScore object
   HealthScore get healthScore => HealthScore(
@@ -88,12 +98,11 @@ class AppState extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     _isChild = prefs.getBool(_isChildKey) ?? false;
     _isTeen = prefs.getBool(_isTeenKey) ?? false;
-    // Create UserAccount with required parameters
     _currentUser = UserAccount(
       id: '1',
       name: 'Test User',
       householdId: 'household_1',
-      role: UserRole.administrator,
+      role: UserRole.Adult,
     );
     notifyListeners();
   }
@@ -110,14 +119,13 @@ class AppState extends ChangeNotifier {
       _isChild = false;
       _isTeen = false;
     }
-    // Convert string role to UserRole enum
     UserRole userRole;
     if (role == 'Child') {
-      userRole = UserRole.child;
+      userRole = UserRole.Child;
     } else if (role == 'Teen') {
-      userRole = UserRole.teen;
+      userRole = UserRole.Teen;
     } else {
-      userRole = UserRole.administrator;
+      userRole = UserRole.Adult;
     }
     _currentUser = UserAccount(
       id: '1',
@@ -191,16 +199,16 @@ class AppState extends ChangeNotifier {
   }
 
   // --- All data methods (stubs) ---
-  void addTransaction(dynamic transaction) {}
-  void updateTransaction(dynamic transaction) {}
+  void addTransaction(Transaction transaction) {}
+  void updateTransaction(Transaction transaction) {}
   void deleteTransaction(String id) {}
   void toggleBillPaid(String id) {}
   void deleteBill(String id) {}
-  void addBill(dynamic bill) {}
-  void addAnimal(dynamic animal) {}
-  void updateAnimal(dynamic animal) {}
+  void addBill(Bill bill) {}
+  void addAnimal(Animal animal) {}
+  void updateAnimal(Animal animal) {}
   void deleteAnimal(String id) {}
-  void addTask(dynamic task) {}
+  void addTask(Task task) {}
   void toggleTaskDone(String id) {}
   void setLearningMode(bool value) {}
   void refresh() {}
@@ -208,12 +216,6 @@ class AppState extends ChangeNotifier {
   void clearTimelineEvents() {}
   void approveJoinRequest(String id) {}
   void rejectJoinRequest(String id) {}
-  Future<void> promoteToParent(String userId) async {
-    // For demo, just log or show that it worked
-    // In real app, save to shared_preferences or database
-    notifyListeners();
-  }
-
-  // Returns a list (not a Future) – wrap in Future.value in the UI
+  void promoteToParent(String userId) {}
   List<UserAccount> getHouseholdMembers() => [];
 }

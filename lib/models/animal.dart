@@ -3,20 +3,22 @@ class Animal {
   final String name;
   final String type;
   final int count;
-  final String health;
-  final double feedCost;
-  final double? revenue;
-  final String userId; // NEW
+  final String healthStatus;
+  final int health; // added
+  final double feedCost; // added
+  final double revenue; // added
+  final String userId; // added
 
   Animal({
     required this.id,
     required this.name,
     required this.type,
     required this.count,
-    required this.health,
-    required this.feedCost,
-    this.revenue,
-    required this.userId,
+    required this.healthStatus,
+    this.health = 100,
+    this.feedCost = 0.0,
+    this.revenue = 0.0,
+    this.userId = '',
   });
 
   Map<String, dynamic> toJson() => {
@@ -24,23 +26,22 @@ class Animal {
         'name': name,
         'type': type,
         'count': count,
+        'healthStatus': healthStatus,
         'health': health,
         'feedCost': feedCost,
         'revenue': revenue,
         'userId': userId,
       };
 
-  factory Animal.fromJson(Map<String, dynamic> json) {
-    return Animal(
-      id: json['id'],
-      name: json['name'],
-      type: json['type'],
-      count: json['count'],
-      health: json['health'],
-      feedCost: (json['feedCost'] as num).toDouble(),
-      revenue:
-          json['revenue'] != null ? (json['revenue'] as num).toDouble() : null,
-      userId: json['userId'] ?? '',
-    );
-  }
+  factory Animal.fromJson(Map<String, dynamic> json) => Animal(
+        id: json['id'],
+        name: json['name'],
+        type: json['type'],
+        count: json['count'],
+        healthStatus: json['healthStatus'],
+        health: json['health'] ?? 100,
+        feedCost: json['feedCost']?.toDouble() ?? 0.0,
+        revenue: json['revenue']?.toDouble() ?? 0.0,
+        userId: json['userId'] ?? '',
+      );
 }
