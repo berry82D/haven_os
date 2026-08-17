@@ -1,5 +1,5 @@
 // lib/domain/services/health_score_service.dart
-import 'package:flutter/material.dart';
+
 import 'package:haven_os/models/task.dart';
 
 class HealthScoreService {

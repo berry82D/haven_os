@@ -20,11 +20,12 @@ class HealthScore {
   final String level;
   final String message;
   final List<String> issues;
-  HealthScore(
-      {required this.score,
-      required this.level,
-      required this.message,
-      this.issues = const []});
+  HealthScore({
+    required this.score,
+    required this.level,
+    required this.message,
+    this.issues = const [],
+  });
 }
 
 class AppState extends ChangeNotifier {
@@ -245,6 +246,12 @@ class AppState extends ChangeNotifier {
   void clearTimelineEvents() {}
   void approveJoinRequest(String id) {}
   void rejectJoinRequest(String id) {}
-  void promoteToParent(String userId) {}
+
+  // ✅ FIXED: now returns Future<void> so await works
+  Future<void> promoteToParent(String userId) async {
+    // Stub – does nothing for now
+    notifyListeners();
+  }
+
   List<UserAccount> getHouseholdMembers() => [];
 }

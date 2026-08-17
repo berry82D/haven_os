@@ -1,3 +1,4 @@
+// lib/features/cfo/widgets/bills_tab.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:haven_os/core/constants/colors.dart';
@@ -131,7 +132,6 @@ class BillsTab extends StatelessWidget {
     DateTime selectedDate = DateTime.now();
     String selectedCategory = 'Utilities';
 
-    // Show dialog with StatefulBuilder to handle date picker updates
     showDialog(
       context: context,
       builder: (_) => StatefulBuilder(
@@ -185,7 +185,8 @@ class BillsTab extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 DropdownButtonFormField<String>(
-                  value: selectedCategory,
+                  // ✅ FIXED: single colon
+                  initialValue: selectedCategory,
                   decoration: const InputDecoration(
                     labelText: 'Category',
                     border: OutlineInputBorder(),
@@ -219,9 +220,7 @@ class BillsTab extends StatelessWidget {
                   final name = nameController.text.trim();
                   final amount = double.tryParse(amountController.text.trim());
                   if (name.isNotEmpty && amount != null && amount > 0) {
-                    // Get current user ID
                     final userId = appState.currentUser?.id ?? 'unknown';
-
                     appState.addBill(Bill(
                       id: DateTime.now().millisecondsSinceEpoch.toString(),
                       name: name,

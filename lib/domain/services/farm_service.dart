@@ -1,4 +1,5 @@
-﻿import 'package:haven_os/models/animal.dart';
+﻿// lib/domain/services/farm_service.dart
+import 'package:haven_os/models/animal.dart';
 
 class FarmService {
   double calculateFeedCost(List<Animal> animals) {
@@ -6,7 +7,7 @@ class FarmService {
   }
 
   double calculateRevenue(List<Animal> animals) {
-    return animals.fold(0.0, (s, a) => s + (a.revenue ?? 0));
+    return animals.fold(0.0, (s, a) => s + a.revenue);
   }
 
   double calculateProfit(List<Animal> animals) {

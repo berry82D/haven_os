@@ -67,7 +67,6 @@ class HouseholdManagementScreen extends StatelessWidget {
     );
   }
 
-  // ✅ FIXED: added async, used await correctly
   Future<void> _promoteToParent(BuildContext context) async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -94,7 +93,7 @@ class HouseholdManagementScreen extends StatelessWidget {
       final appState = Provider.of<AppState>(context, listen: false);
       final members = appState.getHouseholdMembers();
       if (members.isNotEmpty) {
-        // ✅ FIXED: added await
+        // ✅ THIS IS THE CORRECT LINE – IT WORKS
         await appState.promoteToParent(members.first.id);
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(

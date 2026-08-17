@@ -1,6 +1,4 @@
-// lib/services/farm_service.dart (or lib/domain/services/farm_service.dart)
-import 'package:flutter/material.dart';
-
+// lib/services/farm_service.dart
 class FarmService {
   // Placeholder farm service – all methods return empty data
 
@@ -11,8 +9,6 @@ class FarmService {
   // ✅ FIXED: toString() on int values
   String getFeedStatus() {
     final total = getTotalFeed();
-    return total.toStringAsFixed(2); // If you had an int, use .toString()
+    return total.toStringAsFixed(2);
   }
-
-  // Any other methods can be added here
 }

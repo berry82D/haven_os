@@ -135,7 +135,7 @@ class CfoScreen extends StatelessWidget {
                       itemCount: transactions.length,
                       itemBuilder: (context, index) {
                         final tx = transactions[index];
-                        // ✅ FIXED: changed tx.title to tx.category
+                        // ✅ FIXED: correct syntax for Text widget
                         return ListTile(
                           leading: Icon(
                             tx.type == 'income'
@@ -144,7 +144,7 @@ class CfoScreen extends StatelessWidget {
                             color:
                                 tx.type == 'income' ? Colors.green : Colors.red,
                           ),
-                          title: Text(tx.category ?? 'Unnamed'),
+                          title: Text(tx.category), // ✅ Fixed
                           subtitle: Text(
                               '${tx.category} • ${tx.date.day}/${tx.date.month}'),
                           trailing: Text(
