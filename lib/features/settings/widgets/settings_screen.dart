@@ -50,6 +50,28 @@ class SettingsScreen extends StatelessWidget {
           ),
           const SizedBox(height: 24),
 
+          // --- Security Section (NEW) ---
+          const Text(
+            'Security',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 8),
+          Card(
+            child: FutureBuilder<bool>(
+              future: appState.hasPin(),
+              builder: (context, snapshot) {
+                final hasPin = snapshot.data ?? false;
+                return SwitchListTile(
+                  title: const Text('Enable Password Lock'),
+                  subtitle: const Text('Require password to unlock the app'),
+                  value: hasPin,
+                  onChanged: (_) => _togglePassword(context, appState),
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 24),
+
           // Preferences Section
           const Text(
             'Preferences',
@@ -103,14 +125,12 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  // Helper to show snackbar
   void _showSnackbar(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
     );
   }
 
-  // Reset confirmation dialog
   Future<void> _confirmReset(BuildContext context) async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -156,6 +176,72 @@ class SettingsScreen extends StatelessWidget {
           );
         }
       }
+    }
+  }
+
+  // --- Password toggle with strong validation ---
+  Future<void> _togglePassword(BuildContext context, AppState appState) async {
+    final hasPin = await appState.hasPin();
+    if (hasPin) {
+      await appState.disablePin();
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Password disabled')),
+        );
+      }
+    } else {
+      final passwordController = TextEditingController();
+      String? errorText;
+
+      await showDialog(
+        context: context,
+        builder: (_) => StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return AlertDialog(
+              title: const Text('Set Password'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: passwordController,
+                    obscureText: true,
+                    keyboardType: TextInputType.visiblePassword,
+                    decoration: InputDecoration(
+                      labelText: 'New Password',
+                      errorText: errorText,
+                      helperText: 'Min 8 chars, 1 upper, 1 lower, 1 number',
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () async {
+                    final password = passwordController.text.trim();
+                    final error = AppState.validatePassword(password);
+                    if (error != null) {
+                      setStateDialog(() => errorText = error);
+                      return;
+                    }
+                    await appState.enablePin(password);
+                    if (context.mounted) {
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Password enabled')),
+                      );
+                    }
+                  },
+                  child: const Text('Save'),
+                ),
+              ],
+            );
+          },
+        ),
+      );
     }
   }
 }

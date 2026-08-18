@@ -2,8 +2,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'dart:convert';
 
-// Import your models
 import 'package:haven_os/models/user_account.dart';
 import 'package:haven_os/models/transaction.dart';
 import 'package:haven_os/models/bill.dart';
@@ -14,7 +14,45 @@ import 'package:haven_os/models/feed_delivery.dart';
 import 'package:haven_os/models/timeline_event.dart';
 import 'package:haven_os/models/join_request.dart';
 
-// Stub HealthScore class
+// ===== ApprovalRequest model =====
+class ApprovalRequest {
+  final String id;
+  final String description;
+  final double amount;
+  final String userId;
+  final DateTime timestamp;
+  final bool isIncome;
+
+  ApprovalRequest({
+    required this.id,
+    required this.description,
+    required this.amount,
+    required this.userId,
+    required this.timestamp,
+    this.isIncome = false,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'description': description,
+        'amount': amount,
+        'userId': userId,
+        'timestamp': timestamp.toIso8601String(),
+        'isIncome': isIncome,
+      };
+
+  factory ApprovalRequest.fromJson(Map<String, dynamic> json) =>
+      ApprovalRequest(
+        id: json['id'],
+        description: json['description'],
+        amount: json['amount'],
+        userId: json['userId'],
+        timestamp: DateTime.parse(json['timestamp']),
+        isIncome: json['isIncome'] ?? false,
+      );
+}
+
+// ===== Stub HealthScore =====
 class HealthScore {
   final int score;
   final String level;
@@ -28,10 +66,13 @@ class HealthScore {
   });
 }
 
+// ===== AppState =====
 class AppState extends ChangeNotifier {
   static const String _pinKey = 'app_pin';
   static const String _isChildKey = 'is_child';
   static const String _isTeenKey = 'is_teen';
+  static const String _transactionsKey = 'transactions';
+  static const String _pendingRequestsKey = 'pending_requests';
 
   final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
   bool _isLocked = false;
@@ -40,9 +81,9 @@ class AppState extends ChangeNotifier {
   bool _isTeen = false;
   UserAccount? _currentUser;
 
-  // --- Bills list ---
+  List<Transaction> _transactions = [];
   List<Bill> _bills = [];
-  List<Bill> get myBills => _bills;
+  List<ApprovalRequest> _pendingRequests = [];
 
   // --- Getters ---
   bool get isLocked => _isLocked;
@@ -50,18 +91,18 @@ class AppState extends ChangeNotifier {
   bool get isChildAccount => _isChild;
   bool get isTeenAccount => _isTeen;
   UserAccount? get currentUser => _currentUser;
-
-  // ✅ FIXED: removed UserRole.parent
   bool get isParentAccount => _currentUser?.role == UserRole.adult;
-
   bool get isPinEnabled => _pinVerified;
   bool get pinVerified => _pinVerified;
   bool get learningMode => _isChild;
 
-  // Data getters – return empty lists
-  List<Transaction> get myTransactions => [];
-  List<Transaction> get transactions => [];
+  List<Transaction> get transactions => _transactions;
+  List<Transaction> get myTransactions => _transactions;
   List<Bill> get bills => _bills;
+  List<Bill> get myBills => _bills;
+  List<ApprovalRequest> get pendingRequests => _pendingRequests;
+
+  // --- Other stubs ---
   List<Animal> get myAnimals => [];
   List<Animal> get animals => [];
   List<Task> get myTasks => [];
@@ -72,7 +113,6 @@ class AppState extends ChangeNotifier {
   List<TimelineEvent> get myTimelineEvents => [];
   List<JoinRequest> get joinRequests => [];
 
-  // Finance stub
   dynamic get finance => {
         'income': 0,
         'expenses': 0,
@@ -81,15 +121,12 @@ class AppState extends ChangeNotifier {
         'categories': <String, double>{},
       };
   String get briefing => 'Good morning! No updates.';
-
-  // HealthScore
   HealthScore get healthScore => HealthScore(
         score: 85,
         level: 'Good',
         message: 'Your household is doing well!',
         issues: [],
       );
-
   dynamic get learningService => null;
   dynamic get query => null;
 
@@ -98,7 +135,7 @@ class AppState extends ChangeNotifier {
     initialize();
   }
 
-  // --- Initialize ---
+  // --- Initialization ---
   Future<void> initialize() async {
     final prefs = await SharedPreferences.getInstance();
     _isChild = prefs.getBool(_isChildKey) ?? false;
@@ -109,7 +146,130 @@ class AppState extends ChangeNotifier {
       householdId: 'household_1',
       role: UserRole.adult,
     );
+    await _loadTransactions();
+    await _loadPendingRequests();
     notifyListeners();
+  }
+
+  // --- Transaction persistence ---
+  Future<void> _loadTransactions() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? jsonString = prefs.getString(_transactionsKey);
+    if (jsonString != null) {
+      try {
+        final List<dynamic> decoded = jsonDecode(jsonString);
+        _transactions =
+            decoded.map((item) => Transaction.fromJson(item)).toList();
+      } catch (_) {
+        _transactions = [];
+      }
+    } else {
+      _transactions = [];
+    }
+  }
+
+  Future<void> _saveTransactions() async {
+    final prefs = await SharedPreferences.getInstance();
+    final jsonList = _transactions.map((tx) => tx.toJson()).toList();
+    await prefs.setString(_transactionsKey, jsonEncode(jsonList));
+  }
+
+  // --- Transaction CRUD ---
+  void addTransaction(Transaction transaction) {
+    _transactions.insert(0, transaction);
+    _saveTransactions();
+    notifyListeners();
+  }
+
+  void updateTransaction(Transaction transaction) {
+    final index = _transactions.indexWhere((t) => t.id == transaction.id);
+    if (index != -1) {
+      _transactions[index] = transaction;
+      _saveTransactions();
+      notifyListeners();
+    }
+  }
+
+  void deleteTransaction(String id) {
+    _transactions.removeWhere((t) => t.id == id);
+    _saveTransactions();
+    notifyListeners();
+  }
+
+  // --- Pending requests persistence ---
+  Future<void> _loadPendingRequests() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? jsonString = prefs.getString(_pendingRequestsKey);
+    if (jsonString != null) {
+      try {
+        final List<dynamic> decoded = jsonDecode(jsonString);
+        _pendingRequests =
+            decoded.map((item) => ApprovalRequest.fromJson(item)).toList();
+      } catch (_) {
+        _pendingRequests = [];
+      }
+    } else {
+      _pendingRequests = [];
+    }
+  }
+
+  Future<void> _savePendingRequests() async {
+    final prefs = await SharedPreferences.getInstance();
+    final jsonList = _pendingRequests.map((req) => req.toJson()).toList();
+    await prefs.setString(_pendingRequestsKey, jsonEncode(jsonList));
+  }
+
+  // --- Pending requests CRUD (FIXED) ---
+  void addPendingRequest(ApprovalRequest request) {
+    _pendingRequests.insert(0, request);
+    _savePendingRequests();
+    notifyListeners();
+  }
+
+  void approveRequest(String id) {
+    final oldLength = _pendingRequests.length;
+    _pendingRequests.removeWhere((req) => req.id == id);
+    if (_pendingRequests.length != oldLength) {
+      _savePendingRequests();
+      notifyListeners();
+    }
+  }
+
+  void rejectRequest(String id) {
+    final oldLength = _pendingRequests.length;
+    _pendingRequests.removeWhere((req) => req.id == id);
+    if (_pendingRequests.length != oldLength) {
+      _savePendingRequests();
+      notifyListeners();
+    }
+  }
+
+  // --- Bills ---
+  void addBill(Bill bill) {
+    _bills.insert(0, bill);
+    notifyListeners();
+  }
+
+  void deleteBill(String id) {
+    _bills.removeWhere((bill) => bill.id == id);
+    notifyListeners();
+  }
+
+  void toggleBillPaid(String id) {
+    final index = _bills.indexWhere((bill) => bill.id == id);
+    if (index != -1) {
+      final bill = _bills[index];
+      _bills[index] = Bill(
+        id: bill.id,
+        name: bill.name,
+        amount: bill.amount,
+        dueDate: bill.dueDate,
+        isPaid: !bill.isPaid,
+        userId: bill.userId,
+        category: bill.category,
+      );
+      notifyListeners();
+    }
   }
 
   // --- Sign In ---
@@ -145,13 +305,12 @@ class AppState extends ChangeNotifier {
     return true;
   }
 
-  // --- Set current user ---
+  // --- User & PIN methods ---
   void setCurrentUser(UserAccount user) {
     _currentUser = user;
     notifyListeners();
   }
 
-  // --- Lock / Pin ---
   void lockApp() {
     _isLocked = true;
     _pinVerified = false;
@@ -167,9 +326,7 @@ class AppState extends ChangeNotifier {
     }
   }
 
-  bool needsPinReentry() {
-    return _isLocked && !_pinVerified;
-  }
+  bool needsPinReentry() => _isLocked && !_pinVerified;
 
   void setPinVerified(bool value) {
     _pinVerified = value;
@@ -203,53 +360,23 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  // --- BILL METHODS ---
-  void addBill(Bill bill) {
-    _bills.insert(0, bill);
-    notifyListeners();
+  // --- Strong password validation helper ---
+  static String? validatePassword(String password) {
+    if (password.length < 8) return 'Minimum 8 characters';
+    if (!RegExp(r'[A-Z]').hasMatch(password)) return 'Need 1 uppercase';
+    if (!RegExp(r'[a-z]').hasMatch(password)) return 'Need 1 lowercase';
+    if (!RegExp(r'[0-9]').hasMatch(password)) return 'Need 1 number';
+    return null;
   }
 
-  void deleteBill(String id) {
-    _bills.removeWhere((bill) => bill.id == id);
-    notifyListeners();
-  }
-
-  void toggleBillPaid(String id) {
-    final index = _bills.indexWhere((bill) => bill.id == id);
-    if (index != -1) {
-      final bill = _bills[index];
-      _bills[index] = Bill(
-        id: bill.id,
-        name: bill.name,
-        amount: bill.amount,
-        dueDate: bill.dueDate,
-        isPaid: !bill.isPaid,
-        userId: bill.userId,
-        category: bill.category,
-      );
-      notifyListeners();
-    }
-  }
-
-  // --- DATA METHODS (stubs) ---
-  void addTransaction(Transaction transaction) {}
-  void updateTransaction(Transaction transaction) {}
-  void deleteTransaction(String id) {}
-  void addAnimal(Animal animal) {}
-  void updateAnimal(Animal animal) {}
-  void deleteAnimal(String id) {}
-  void addTask(Task task) {}
-  void toggleTaskDone(String id) {}
+  // --- Stubs ---
   void setLearningMode(bool value) {}
   void refresh() {}
   void resetAllData() {}
   void clearTimelineEvents() {}
   void approveJoinRequest(String id) {}
   void rejectJoinRequest(String id) {}
-
-  // ✅ FIXED: now returns Future<void> so await works
   Future<void> promoteToParent(String userId) async {
-    // Stub – does nothing for now
     notifyListeners();
   }
 
