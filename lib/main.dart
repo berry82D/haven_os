@@ -4,11 +4,12 @@ import 'package:provider/provider.dart';
 import 'services/app_state.dart';
 import 'features/auth/presentation/sign_in_screen.dart';
 import 'features/haven_central/haven_central_screen.dart';
-import 'features/haven_central/haven_central_viewmodel.dart'; // ← added
+import 'features/haven_central/haven_central_viewmodel.dart';
 import 'features/cfo/widgets/cfo_screen.dart';
 import 'features/homestead/widgets/homestead_screen.dart';
 import 'features/haven/widgets/haven_screen.dart';
 import 'features/settings/widgets/settings_screen.dart';
+import 'features/teen/widgets/teen_dashboard.dart'; // ✅ New import
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,8 +17,7 @@ void main() {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AppState()..initialize()),
-        ChangeNotifierProvider(
-            create: (_) => HavenCentralViewModel()), // ← added
+        ChangeNotifierProvider(create: (_) => HavenCentralViewModel()),
       ],
       child: const HavenOSApp(),
     ),
@@ -94,7 +94,7 @@ class HavenTabs extends StatelessWidget {
             ),
           ],
         ),
-        body: const Center(child: Text('Teen dashboard coming soon...')),
+        body: const TeenDashboard(), // ✅ Now uses real dashboard
       );
     }
 

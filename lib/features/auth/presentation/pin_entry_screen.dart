@@ -1,74 +1,44 @@
 // lib/features/auth/presentation/pin_entry_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:haven_os/core/constants/colors.dart';
 import 'package:haven_os/services/app_state.dart';
 
-class PinEntryScreen extends StatefulWidget {
+class PinEntryScreen extends StatelessWidget {
   const PinEntryScreen({super.key});
 
   @override
-  State<PinEntryScreen> createState() => _PinEntryScreenState();
-}
-
-class _PinEntryScreenState extends State<PinEntryScreen> {
-  final TextEditingController _passwordController = TextEditingController();
-  String _error = '';
-
-  Future<void> _unlock() async {
-    final appState = context.read<AppState>();
-    final password = _passwordController.text.trim();
-    if (password.isEmpty) {
-      setState(() => _error = 'Enter password');
-      return;
-    }
-    try {
-      await appState.unlockApp(password);
-      if (appState.isPinVerified) {
-        if (context.mounted) Navigator.of(context).pop(); // close overlay
-      } else {
-        setState(() => _error = 'Wrong password');
-      }
-    } catch (e) {
-      setState(() => _error = 'Error');
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final appState = Provider.of<AppState>(context);
+
+    if (appState.isPinVerified) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Navigator.pushReplacementNamed(context, '/home');
+      });
+      return const SizedBox();
+    }
+
     return Scaffold(
-      backgroundColor: Colors.black87,
+      backgroundColor: HavenColors.cream,
       body: Center(
-        child: Card(
-          margin: const EdgeInsets.all(32),
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  '🔐 Enter Password',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: _passwordController,
-                  obscureText: true,
-                  keyboardType: TextInputType.visiblePassword,
-                  decoration: InputDecoration(
-                    labelText: 'Password',
-                    errorText: _error.isNotEmpty ? _error : null,
-                    border: const OutlineInputBorder(),
-                  ),
-                  onSubmitted: (_) => _unlock(),
-                ),
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: _unlock,
-                  child: const Text('Unlock'),
-                ),
-              ],
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.lock_outline, size: 80, color: HavenColors.muted),
+            const SizedBox(height: 24),
+            const Text(
+              'Enter PIN to unlock',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
-          ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: () {
+                appState.unlockApp();
+                Navigator.pushReplacementNamed(context, '/home');
+              },
+              child: const Text('Unlock (demo)'),
+            ),
+          ],
         ),
       ),
     );

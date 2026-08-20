@@ -2,6 +2,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:haven_os/services/app_state.dart';
+import 'package:haven_os/services/auth_service.dart';
+import 'package:haven_os/services/backup_service.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -50,7 +52,7 @@ class SettingsScreen extends StatelessWidget {
           ),
           const SizedBox(height: 24),
 
-          // --- Security Section (NEW) ---
+          // Security Section
           const Text(
             'Security',
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
@@ -58,7 +60,7 @@ class SettingsScreen extends StatelessWidget {
           const SizedBox(height: 8),
           Card(
             child: FutureBuilder<bool>(
-              future: appState.hasPin(),
+              future: AuthService.hasPin(appState.currentUser?.id ?? ''),
               builder: (context, snapshot) {
                 final hasPin = snapshot.data ?? false;
                 return SwitchListTile(
@@ -72,30 +74,38 @@ class SettingsScreen extends StatelessWidget {
           ),
           const SizedBox(height: 24),
 
-          // Preferences Section
-          const Text(
-            'Preferences',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          Card(
-            child: SwitchListTile(
-              title: const Text('Child Mode'),
-              subtitle: const Text('Enable simplified interface'),
-              value: appState.isChildAccount,
-              onChanged: (_) {
-                _showSnackbar(context, 'Child mode toggle coming soon');
-              },
-            ),
-          ),
-          const SizedBox(height: 24),
-
           // Data Section
           const Text(
             'Data',
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
+
+          // ---- Export Data ----
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.save_alt, color: Colors.blue),
+              title: const Text('Export Data'),
+              subtitle: const Text('Save all data as JSON backup'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => _exportData(context, appState),
+            ),
+          ),
+          const SizedBox(height: 8),
+
+          // ---- Import Data ----
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.restore, color: Colors.orange),
+              title: const Text('Import Data'),
+              subtitle: const Text('Restore from JSON backup'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => _importData(context, appState),
+            ),
+          ),
+          const SizedBox(height: 8),
+
+          // ---- Reset All Data ----
           Card(
             child: ListTile(
               leading: const Icon(Icons.delete_sweep, color: Colors.red),
@@ -131,6 +141,60 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
+  Future<void> _togglePassword(BuildContext context, AppState appState) async {
+    final hasPin = await AuthService.hasPin(appState.currentUser?.id ?? '');
+    if (hasPin) {
+      await appState.disablePin();
+      _showSnackbar(context, 'Password lock disabled');
+    } else {
+      // Show dialog to set password
+      final controller = TextEditingController();
+      final confirmController = TextEditingController();
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text('Set Password'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: controller,
+                obscureText: true,
+                decoration: const InputDecoration(labelText: 'Password'),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: confirmController,
+                obscureText: true,
+                decoration:
+                    const InputDecoration(labelText: 'Confirm Password'),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                if (controller.text == confirmController.text &&
+                    controller.text.isNotEmpty) {
+                  await appState.enablePin(controller.text);
+                  Navigator.pop(context);
+                  _showSnackbar(context, 'Password lock enabled');
+                } else {
+                  _showSnackbar(context, 'Passwords do not match or are empty');
+                }
+              },
+              child: const Text('Enable'),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
   Future<void> _confirmReset(BuildContext context) async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -157,7 +221,7 @@ class SettingsScreen extends StatelessWidget {
     if (confirmed == true) {
       try {
         final appState = Provider.of<AppState>(context, listen: false);
-        appState.resetAllData();
+        await appState.resetAllData(); // ✅ Fixed 'await'
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -170,7 +234,7 @@ class SettingsScreen extends StatelessWidget {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('❌ Error resetting data: $e'),
+              content: Text('Error resetting data: $e'),
               backgroundColor: Colors.red,
             ),
           );
@@ -179,69 +243,80 @@ class SettingsScreen extends StatelessWidget {
     }
   }
 
-  // --- Password toggle with strong validation ---
-  Future<void> _togglePassword(BuildContext context, AppState appState) async {
-    final hasPin = await appState.hasPin();
-    if (hasPin) {
-      await appState.disablePin();
+  Future<void> _exportData(BuildContext context, AppState appState) async {
+    try {
+      final data = BackupService.buildBackupData(
+        transactions: appState.transactions,
+        animals: appState.animals,
+        bills: appState.bills,
+        tasks: appState.tasks,
+        timelineEvents: appState.timelineEvents,
+        loans: appState.loans,
+        feedDeliveries: appState.feedDeliveries,
+        budgets: appState.budgets,
+        accounts: await AuthService.loadAccounts(),
+        households: appState.households,
+        joinRequests: appState.joinRequests,
+        guardianRelationships: appState.guardianRelationships,
+      );
+      await BackupService.exportBackup(data);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Password disabled')),
+          const SnackBar(
+              content: Text('Backup exported!'), backgroundColor: Colors.green),
         );
       }
-    } else {
-      final passwordController = TextEditingController();
-      String? errorText;
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text('Export error: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
 
-      await showDialog(
-        context: context,
-        builder: (_) => StatefulBuilder(
-          builder: (context, setStateDialog) {
-            return AlertDialog(
-              title: const Text('Set Password'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: passwordController,
-                    obscureText: true,
-                    keyboardType: TextInputType.visiblePassword,
-                    decoration: InputDecoration(
-                      labelText: 'New Password',
-                      errorText: errorText,
-                      helperText: 'Min 8 chars, 1 upper, 1 lower, 1 number',
-                    ),
-                  ),
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Cancel'),
-                ),
-                TextButton(
-                  onPressed: () async {
-                    final password = passwordController.text.trim();
-                    final error = AppState.validatePassword(password);
-                    if (error != null) {
-                      setStateDialog(() => errorText = error);
-                      return;
-                    }
-                    await appState.enablePin(password);
-                    if (context.mounted) {
-                      Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Password enabled')),
-                      );
-                    }
-                  },
-                  child: const Text('Save'),
-                ),
-              ],
-            );
-          },
+  Future<void> _importData(BuildContext context, AppState appState) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Import Data?'),
+        content: const Text(
+          'This will REPLACE all current data with the backup file.\n\n'
+          'Current accounts, transactions, animals, bills, tasks, loans, feed deliveries, budgets, '
+          'and household data will be lost.\n\n'
+          'Are you sure you want to continue?',
         ),
-      );
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Import', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+    if (confirm != true) return;
+
+    try {
+      final data = await BackupService.importBackup();
+      await appState.restoreFromBackup(data);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text('Data imported!'), backgroundColor: Colors.green),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text('Import error: $e'), backgroundColor: Colors.red),
+        );
+      }
     }
   }
 }
