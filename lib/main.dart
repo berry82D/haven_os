@@ -3,13 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'services/app_state.dart';
 import 'features/auth/presentation/sign_in_screen.dart';
+import 'features/auth/presentation/create_account_screen.dart';
 import 'features/haven_central/haven_central_screen.dart';
 import 'features/haven_central/haven_central_viewmodel.dart';
 import 'features/cfo/widgets/cfo_screen.dart';
 import 'features/homestead/widgets/homestead_screen.dart';
 import 'features/haven/widgets/haven_screen.dart';
 import 'features/settings/widgets/settings_screen.dart';
-import 'features/teen/widgets/teen_dashboard.dart'; // ✅ New import
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,6 +34,12 @@ class HavenOSApp extends StatelessWidget {
       theme: ThemeData(primarySwatch: Colors.teal),
       debugShowCheckedModeBanner: false,
       home: const AuthGate(),
+      // ✅ This fixes the red "/home" error
+      routes: {
+        '/home': (context) => const HavenTabs(),
+        '/auth': (context) => const SignInScreen(),
+        '/create-account': (context) => const CreateAccountScreen(),
+      },
     );
   }
 }
@@ -69,9 +75,7 @@ class HavenTabs extends StatelessWidget {
           actions: [
             IconButton(
               icon: const Icon(Icons.exit_to_app),
-              onPressed: () {
-                appState.logout();
-              },
+              onPressed: () => appState.logout(),
             ),
           ],
         ),
@@ -88,13 +92,11 @@ class HavenTabs extends StatelessWidget {
           actions: [
             IconButton(
               icon: const Icon(Icons.exit_to_app),
-              onPressed: () {
-                appState.logout();
-              },
+              onPressed: () => appState.logout(),
             ),
           ],
         ),
-        body: const TeenDashboard(), // ✅ Now uses real dashboard
+        body: const Center(child: Text('Teen dashboard coming soon...')),
       );
     }
 

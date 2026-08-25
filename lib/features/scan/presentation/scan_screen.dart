@@ -1,44 +1,46 @@
 // lib/features/scan/presentation/scan_screen.dart
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:haven_os/core/constants/colors.dart';
+import 'package:haven_os/features/scan/presentation/preview_screen.dart';
 
-class ScanScreen extends StatefulWidget {
+class ScanScreen extends StatelessWidget {
   const ScanScreen({super.key});
 
-  @override
-  State<ScanScreen> createState() => _ScanScreenState();
-}
-
-class _ScanScreenState extends State<ScanScreen> {
-  String _result = '';
-  bool _isScanning = false;
-
-  Future<void> _scan() async {
-    setState(() => _isScanning = true);
-    try {
-      final picker = ImagePicker();
-      final image = await picker.pickImage(source: ImageSource.camera);
-      if (image == null) {
-        setState(() => _isScanning = false);
+  Future<void> _pickImage(BuildContext context, ImageSource source) async {
+    if (source == ImageSource.camera) {
+      final status = await Permission.camera.request();
+      if (!status.isGranted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Camera permission required')),
+        );
         return;
       }
+    } else {
+      final status = await Permission.photos.request();
+      if (!status.isGranted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Gallery permission required')),
+        );
+        return;
+      }
+    }
 
-      final inputImage = InputImage.fromFile(File(image.path));
-      final recognizer = TextRecognizer();
-      final recognizedText = await recognizer.processImage(inputImage);
-      await recognizer.close();
+    final picker = ImagePicker();
+    final XFile? image = await picker.pickImage(
+      source: source,
+      maxWidth: 1200,
+      maxHeight: 1200,
+    );
 
-      setState(() {
-        _result = recognizedText.text;
-        _isScanning = false;
-      });
-    } catch (e) {
-      setState(() {
-        _result = 'Error: $e';
-        _isScanning = false;
-      });
+    if (image != null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => PreviewScreen(imagePath: image.path),
+        ),
+      );
     }
   }
 
@@ -46,32 +48,69 @@ class _ScanScreenState extends State<ScanScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('📷 Scan'),
-        backgroundColor: Colors.teal.shade700,
-        foregroundColor: Colors.white,
+        title: const Text('Scan Receipt'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        foregroundColor: HavenColors.dark,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
+      body: Center(
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            ElevatedButton.icon(
-              onPressed: _isScanning ? null : _scan,
-              icon:
-                  Icon(_isScanning ? Icons.hourglass_empty : Icons.camera_alt),
-              label: Text(_isScanning ? 'Scanning...' : 'Scan Receipt'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.teal,
-                foregroundColor: Colors.white,
-              ),
+            const Icon(
+              Icons.receipt_long,
+              size: 80,
+              color: HavenColors.muted,
             ),
             const SizedBox(height: 24),
-            Expanded(
-              child: SingleChildScrollView(
-                child: Text(
-                  _result.isEmpty ? 'Scanned text will appear here.' : _result,
-                  style: const TextStyle(fontSize: 16),
-                ),
+            const Text(
+              'Scan a receipt or text',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w500,
+                color: HavenColors.dark,
               ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Take a photo or choose from gallery',
+              style: TextStyle(
+                fontSize: 14,
+                color: HavenColors.muted,
+              ),
+            ),
+            const SizedBox(height: 40),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: () => _pickImage(context, ImageSource.camera),
+                  icon: const Icon(Icons.camera_alt),
+                  label: const Text('Camera'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: HavenColors.green,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 14,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                ElevatedButton.icon(
+                  onPressed: () => _pickImage(context, ImageSource.gallery),
+                  icon: const Icon(Icons.photo_library),
+                  label: const Text('Gallery'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: HavenColors.mutedGreen,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 14,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),

@@ -1,4 +1,3 @@
-// lib/features/auth/presentation/sign_in_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:haven_os/core/constants/colors.dart';
@@ -7,6 +6,7 @@ import 'package:haven_os/services/auth_service.dart';
 import 'package:haven_os/services/app_state.dart';
 import 'package:haven_os/features/auth/presentation/account_selector.dart';
 import 'package:haven_os/features/auth/presentation/create_account_screen.dart';
+import 'package:haven_os/main.dart'; // ✅ Added for HavenTabs
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -100,7 +100,13 @@ class _SignInScreenState extends State<SignInScreen> {
         appState.setCurrentUser(user);
         appState.setPinVerified(true);
         _passwordController.clear();
-        Navigator.pushReplacementNamed(context, '/home');
+
+        // ✅ FIX: Replace the entire stack with HavenTabs
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (_) => const HavenTabs()),
+          (route) => false,
+        );
       }
     } else {
       final remaining = await AuthService.getRemainingAttempts(userId);
