@@ -1,18 +1,9 @@
+// lib/models/user_account.dart
 import 'package:haven_os/core/enums/learning_mode.dart';
 
-enum UserRole {
-  administrator,
-  adult,
-  teen,
-  child,
-}
+enum UserRole { administrator, adult, teen, child }
 
-enum AccountType {
-  parent,
-  adult,
-  teen,
-  child,
-}
+enum AccountType { parent, adult, teen, child }
 
 class UserAccount {
   final String id;
@@ -24,17 +15,17 @@ class UserAccount {
   final bool useBiometrics;
   final bool autoLogin;
   final Map<String, bool> permissions;
-
-  // NEW: per-account School Help settings. Previously these lived
-  // as global fields on AppState, meaning every account on a device
-  // shared one setting — wrong once multiple kids at different ages
-  // use the same install. Defaults match AppState's old global
-  // defaults (LearningMode.standard, SchoolAgeGroup index 1, false)
-  // so existing behavior is unchanged for accounts that don't set
-  // these explicitly.
   final LearningMode learningMode;
   final SchoolAgeGroup schoolAgeGroup;
   final bool allowFinalAnswers;
+
+  // ===== PREFERENCES =====
+  final String weightUnit; // 'lb' or 'kg'
+  final String temperatureUnit; // 'C' or 'F'
+  final String currencySymbol; // '$', '€', '£', '¥'
+  final String dateFormat; // 'MM/dd/yyyy' or 'dd/MM/yyyy'
+  final String languageCode; // 'en', 'es', etc. (future use)
+  // =========================
 
   UserAccount({
     required this.id,
@@ -46,9 +37,14 @@ class UserAccount {
     this.useBiometrics = false,
     this.autoLogin = true,
     this.permissions = const {},
-    this.learningMode = LearningMode.standard, // NEW
-    this.schoolAgeGroup = SchoolAgeGroup.older, // NEW
-    this.allowFinalAnswers = false, // NEW
+    this.learningMode = LearningMode.standard,
+    this.schoolAgeGroup = SchoolAgeGroup.older,
+    this.allowFinalAnswers = false,
+    this.weightUnit = 'lb',
+    this.temperatureUnit = 'C',
+    this.currencySymbol = '\$',
+    this.dateFormat = 'MM/dd/yyyy',
+    this.languageCode = 'en',
   });
 
   bool get isChild => role == UserRole.child || type == AccountType.child;
@@ -67,9 +63,15 @@ class UserAccount {
         'useBiometrics': useBiometrics,
         'autoLogin': autoLogin,
         'permissions': permissions,
-        'learningMode': learningMode.index, // NEW
-        'schoolAgeGroup': schoolAgeGroup.index, // NEW
-        'allowFinalAnswers': allowFinalAnswers, // NEW
+        'learningMode': learningMode.index,
+        'schoolAgeGroup': schoolAgeGroup.index,
+        'allowFinalAnswers': allowFinalAnswers,
+        // preferences
+        'weightUnit': weightUnit,
+        'temperatureUnit': temperatureUnit,
+        'currencySymbol': currencySymbol,
+        'dateFormat': dateFormat,
+        'languageCode': languageCode,
       };
 
   factory UserAccount.fromJson(Map<String, dynamic> json) {
@@ -83,11 +85,14 @@ class UserAccount {
       useBiometrics: json['useBiometrics'] ?? false,
       autoLogin: json['autoLogin'] ?? true,
       permissions: Map<String, bool>.from(json['permissions'] ?? {}),
-      learningMode: // NEW
-          LearningMode.values[json['learningMode'] ?? 0],
-      schoolAgeGroup: // NEW
-          SchoolAgeGroup.values[json['schoolAgeGroup'] ?? 1],
-      allowFinalAnswers: json['allowFinalAnswers'] ?? false, // NEW
+      learningMode: LearningMode.values[json['learningMode'] ?? 0],
+      schoolAgeGroup: SchoolAgeGroup.values[json['schoolAgeGroup'] ?? 1],
+      allowFinalAnswers: json['allowFinalAnswers'] ?? false,
+      weightUnit: json['weightUnit'] ?? 'lb',
+      temperatureUnit: json['temperatureUnit'] ?? 'C',
+      currencySymbol: json['currencySymbol'] ?? '\$',
+      dateFormat: json['dateFormat'] ?? 'MM/dd/yyyy',
+      languageCode: json['languageCode'] ?? 'en',
     );
   }
 }

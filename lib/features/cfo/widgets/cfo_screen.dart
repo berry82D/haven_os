@@ -32,14 +32,13 @@ class CfoScreen extends StatelessWidget {
         title: const Text('💰 CFO Dashboard'),
         backgroundColor: Colors.teal,
         foregroundColor: Colors.white,
+        // ❌ No add button here – view‑only
       ),
-      // ✅ Fix: wrap body in SingleChildScrollView to prevent overflow
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ---- Summary Cards ----
             Row(
               children: [
                 _buildSummaryCard(
@@ -80,8 +79,6 @@ class CfoScreen extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 24),
-
-            // ---- Monthly Overview Chart ----
             const Text(
               'Monthly Overview',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -132,19 +129,15 @@ class CfoScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-
-            // ---- Collapsible Transactions ----
             const Text(
               'Recent Transactions',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             if (transactions.isEmpty)
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 20),
-                  child: Text('No transactions yet'),
-                ),
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 20),
+                child: Center(child: Text('No transactions yet')),
               )
             else
               Column(
@@ -168,7 +161,6 @@ class CfoScreen extends StatelessWidget {
                     ),
                 ],
               ),
-            // Small spacer to ensure no overflow at the bottom
             const SizedBox(height: 20),
           ],
         ),
@@ -228,7 +220,6 @@ class CfoScreen extends StatelessWidget {
     );
   }
 
-  // ---- Navigate to filtered transactions ----
   void _navigateToTransactions(BuildContext context, String filterType) {
     Navigator.push(
       context,
@@ -238,7 +229,6 @@ class CfoScreen extends StatelessWidget {
     );
   }
 
-  // ---- Build Summary Card ----
   Widget _buildSummaryCard({
     required String title,
     required double amount,
@@ -285,7 +275,6 @@ class CfoScreen extends StatelessWidget {
     );
   }
 
-  // ---- Build Bar Chart Groups ----
   List<BarChartGroupData> _buildBarGroups(List<Transaction> transactions) {
     final now = DateTime.now();
     final months = List.generate(6, (i) {
@@ -333,7 +322,7 @@ class CfoScreen extends StatelessWidget {
   }
 }
 
-// ---- Filtered Transactions Screen ----
+// ---- Filtered Transactions Screen (view‑only) ----
 class _FilteredTransactionsScreen extends StatelessWidget {
   final String filterType;
 
@@ -388,9 +377,7 @@ class _FilteredTransactionsScreen extends StatelessWidget {
           ),
           Expanded(
             child: filtered.isEmpty
-                ? const Center(
-                    child: Text('No transactions found'),
-                  )
+                ? const Center(child: Text('No transactions found'))
                 : ListView.builder(
                     itemCount: filtered.length,
                     itemBuilder: (context, index) {
@@ -403,7 +390,8 @@ class _FilteredTransactionsScreen extends StatelessWidget {
                         ),
                         title: Text(tx.description),
                         subtitle: Text(
-                            '${tx.category} • ${tx.date.day}/${tx.date.month}'),
+                          '${tx.category} • ${tx.date.day}/${tx.date.month}',
+                        ),
                         trailing: Text(
                           '\$${tx.amount.abs().toStringAsFixed(2)}',
                           style: TextStyle(

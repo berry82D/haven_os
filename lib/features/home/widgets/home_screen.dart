@@ -81,13 +81,18 @@ class HomeScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: HavenColors.cream,
-      body: SafeArea(
+      body: RefreshIndicator(
+        onRefresh: () async {
+          await appState.initialize();
+          appState.refresh();
+        },
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
+          physics: const AlwaysScrollableScrollPhysics(),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ---- Date & notifications ----
+              // ---- Date and notifications ----
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -124,17 +129,42 @@ class HomeScreen extends StatelessWidget {
               const TimelineWidget(),
               const SizedBox(height: 20),
 
-              // ---- ⭐ SINGLE ADD ENTRY POINT ⭐ ----
+              // ---- ⭐ LARGE INCOME / EXPENSE BUTTONS ⭐ ----
               Row(
                 children: [
-                  _buildQuickAction(
-                    icon: Icons.add,
-                    label: 'Add',
-                    color: HavenColors.green,
-                    onTap: () => _showAddTransactionDialog(context, appState),
+                  Expanded(
+                    child: _buildLargeActionButton(
+                      icon: Icons.arrow_upward,
+                      label: 'Add Income',
+                      color: Colors.green,
+                      onTap: () => _showAddTransactionDialog(
+                        context,
+                        appState,
+                        initialType: TransactionType.income,
+                      ),
+                    ),
                   ),
                   const SizedBox(width: 12),
-                  _buildQuickAction(
+                  Expanded(
+                    child: _buildLargeActionButton(
+                      icon: Icons.arrow_downward,
+                      label: 'Add Expense',
+                      color: Colors.red,
+                      onTap: () => _showAddTransactionDialog(
+                        context,
+                        appState,
+                        initialType: TransactionType.expense,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+
+              // ---- Secondary actions (Scan, Tasks, Animals) ----
+              Row(
+                children: [
+                  _buildSmallQuickAction(
                     icon: Icons.document_scanner,
                     label: 'Scan',
                     color: Colors.purple,
@@ -148,14 +178,14 @@ class HomeScreen extends StatelessWidget {
                     },
                   ),
                   const SizedBox(width: 12),
-                  _buildQuickAction(
+                  _buildSmallQuickAction(
                     icon: Icons.checklist_outlined,
                     label: 'Tasks',
                     color: Colors.blue,
                     onTap: () => _showAddTaskDialog(context, appState),
                   ),
                   const SizedBox(width: 12),
-                  _buildQuickAction(
+                  _buildSmallQuickAction(
                     icon: Icons.pets,
                     label: 'Animals',
                     color: Colors.orange,
@@ -178,18 +208,45 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  String _getFormattedDate() {
-    final now = DateTime.now();
-    final day = _getDayOfWeek(now.weekday);
-    return '$day, ${now.month}/${now.day}/${now.year}';
+  // ─── Large action button (Income / Expense) ──────────────────────────
+
+  Widget _buildLargeActionButton({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 18),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: color.withValues(alpha: 0.3), width: 1.5),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: color, size: 32),
+            const SizedBox(height: 6),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: color,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
-  String _getDayOfWeek(int weekday) {
-    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    return days[weekday - 1];
-  }
+  // ─── Small quick action (Scan, Tasks, Animals) ──────────────────────
 
-  Widget _buildQuickAction({
+  Widget _buildSmallQuickAction({
     required IconData icon,
     required String label,
     required Color color,
@@ -206,7 +263,7 @@ class HomeScreen extends StatelessWidget {
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.04),
-                blurRadius: 8,
+                blurRadius: 6,
                 offset: const Offset(0, 2),
               ),
             ],
@@ -218,8 +275,9 @@ class HomeScreen extends StatelessWidget {
               Text(
                 label,
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: 12,
                   color: HavenColors.muted,
+                  fontWeight: FontWeight.w500,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -228,6 +286,19 @@ class HomeScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  // ─── Helpers (unchanged) ─────────────────────────────────────────────
+
+  String _getFormattedDate() {
+    final now = DateTime.now();
+    final day = _getDayOfWeek(now.weekday);
+    return '$day, ${now.month}/${now.day}/${now.year}';
+  }
+
+  String _getDayOfWeek(int weekday) {
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    return days[weekday - 1];
   }
 
   Widget _buildDailyStory(AppState appState) {
@@ -295,14 +366,18 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  // ---- UNIFIED ADD TRANSACTION DIALOG (with OCR) ----
-  void _showAddTransactionDialog(BuildContext context, AppState appState) {
+  // ---- Add Transaction Dialog (unified) ----
+  void _showAddTransactionDialog(
+    BuildContext context,
+    AppState appState, {
+    TransactionType initialType = TransactionType.expense,
+  }) {
     final descriptionController = TextEditingController();
     final amountController = TextEditingController();
     String selectedCategory = 'Other';
     Account selectedAccount = Account(id: 'default', name: 'Default');
     DateTime selectedDate = DateTime.now();
-    TransactionType selectedType = TransactionType.expense;
+    TransactionType selectedType = initialType;
 
     showDialog(
       context: context,
@@ -321,12 +396,14 @@ class HomeScreen extends StatelessWidget {
           ];
 
           return AlertDialog(
-            title: const Text('Add Transaction'),
+            title: Text(initialType == TransactionType.income
+                ? 'Add Income'
+                : 'Add Expense'),
             content: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // ---- Scan button ----
+                  // Scan button inside dialog
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton.icon(
@@ -391,7 +468,7 @@ class HomeScreen extends StatelessWidget {
                     items: categoryItems,
                     onChanged: (value) {
                       if (value == '__custom__') {
-                        // Custom handling – we'll keep as 'Other' for simplicity
+                        // Keep 'Other'
                       } else {
                         setState(() => selectedCategory = value!);
                       }
