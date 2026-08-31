@@ -44,7 +44,7 @@ class Loan {
 }
 
 // ============================================================
-// HAVEN TAB CONTENT (Loan Simulator with Edit/Delete Buttons)
+// HAVEN TAB CONTENT (Loan Simulator)
 // ============================================================
 class HavenTabContent extends StatefulWidget {
   final List<Loan> loans;
@@ -414,7 +414,25 @@ class _HavenTabContentState extends State<HavenTabContent> {
 }
 
 // ============================================================
-// MAIN HOME SCREEN – with collapsible farm, edit/delete buttons
+// PAGE DEFINITIONS & REORDERABLE TABS
+// ============================================================
+
+class TabItem {
+  final String id;
+  final String label;
+  final IconData icon;
+  final Widget Function(BuildContext) builder;
+
+  const TabItem({
+    required this.id,
+    required this.label,
+    required this.icon,
+    required this.builder,
+  });
+}
+
+// ============================================================
+// MAIN HOME SCREEN – WITH OVERFLOW & REORDER
 // ============================================================
 class HavenCentralScreen extends StatefulWidget {
   final String username;
@@ -426,9 +444,11 @@ class HavenCentralScreen extends StatefulWidget {
 
 class _HavenCentralScreenState extends State<HavenCentralScreen> {
   final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
-  final PageController _pageController = PageController();
+  late PageController _pageController;
   int _selectedIndex = 0;
+  List<String> _tabOrder = [];
 
+  // ---------- DATA ----------
   List<Transaction> _transactions = [];
   List<Loan> _loans = [];
   String _unit = 'kg';
@@ -441,494 +461,8 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
 
   String get _userPrefix => 'user_${widget.username}_';
 
-  // ============================================================
-  // DATA LOAD / SAVE
-  // ============================================================
-  Future<void> _loadData() async {
-    final prefs = await SharedPreferences.getInstance();
-    _unit = prefs.getString('${_userPrefix}unit') ?? 'kg';
-    final farmJson = prefs.getString('${_userPrefix}farmItems');
-    if (farmJson != null) {
-      final Map<String, dynamic> decoded = jsonDecode(farmJson);
-      _farmItems = decoded.map((key, value) => MapEntry(key, value.toDouble()));
-    }
-    final txJson = prefs.getString('${_userPrefix}transactions');
-    if (txJson != null) {
-      final List<dynamic> decoded = jsonDecode(txJson);
-      _transactions = decoded.map((e) => Transaction.fromJson(e)).toList();
-    }
-    final loansJson = prefs.getString('${_userPrefix}loans');
-    if (loansJson != null) {
-      final List<dynamic> decoded = jsonDecode(loansJson);
-      _loans = decoded.map((e) => Loan.fromJson(e)).toList();
-    }
-    setState(() {});
-  }
-
-  Future<void> _saveTransactions() async {
-    final prefs = await SharedPreferences.getInstance();
-    final jsonList = _transactions.map((tx) => tx.toJson()).toList();
-    await prefs.setString('${_userPrefix}transactions', jsonEncode(jsonList));
-  }
-
-  Future<void> _saveLoans() async {
-    final prefs = await SharedPreferences.getInstance();
-    final jsonList = _loans.map((loan) => loan.toJson()).toList();
-    await prefs.setString('${_userPrefix}loans', jsonEncode(jsonList));
-  }
-
-  Future<void> _saveFarmItems() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('${_userPrefix}farmItems', jsonEncode(_farmItems));
-  }
-
-  Future<void> _saveUnit() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('${_userPrefix}unit', _unit);
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _loadData();
-  }
-
-  // ============================================================
-  // FARM HELPERS
-  // ============================================================
-  double _getDisplayValue(double kgValue) {
-    if (_unit == 'lb') return kgValue * 2.20462;
-    return kgValue;
-  }
-
-  String _getUnitLabel() => _unit;
-
-  void _updateFarmItem(String name, double delta) {
-    setState(() {
-      if (_farmItems.containsKey(name)) {
-        double newValue = _farmItems[name]! + delta;
-        if (newValue <= 0) {
-          _farmItems.remove(name);
-        } else {
-          _farmItems[name] = newValue;
-        }
-      }
-      _saveFarmItems();
-    });
-  }
-
-  void _addFarmItem(String name, double quantity) {
-    setState(() {
-      if (_farmItems.containsKey(name)) {
-        _farmItems[name] = _farmItems[name]! + quantity;
-      } else {
-        _farmItems[name] = quantity;
-      }
-      _saveFarmItems();
-    });
-  }
-
-  // ============================================================
-  // TRANSACTION HELPERS (with edit/delete)
-  // ============================================================
-  void _addTransaction(Transaction tx) {
-    setState(() {
-      _transactions.add(tx);
-      _saveTransactions();
-    });
-  }
-
-  void _editTransaction(int index, Transaction updatedTx) {
-    setState(() {
-      _transactions[index] = updatedTx;
-      _saveTransactions();
-    });
-  }
-
-  void _deleteTransaction(int index) async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Delete Transaction'),
-        content: Text(
-            'Are you sure you want to delete "${_transactions[index].description}"?'),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: Text('Cancel')),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text('Delete', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
-    );
-    if (confirm == true) {
-      setState(() {
-        _transactions.removeAt(index);
-        _saveTransactions();
-      });
-    }
-  }
-
-  void _showEditTransactionForm(int index) {
-    final tx = _transactions[index];
-    final _descCtrl = TextEditingController(text: tx.description);
-    final _placeCtrl = TextEditingController(text: tx.note ?? '');
-    final _amountCtrl = TextEditingController(text: tx.amount.toString());
-    final _notesCtrl = TextEditingController(text: tx.note ?? '');
-    DateTime _selectedDate = tx.date;
-    bool _isIncome = tx.type == TransactionType.income;
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (context) => Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-          left: 16,
-          right: 16,
-          top: 16,
-        ),
-        child: StatefulBuilder(
-          builder: (context, setState) => SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('✏️ Edit Transaction',
-                    style:
-                        TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                SizedBox(height: 16),
-                Center(
-                  child: ToggleButtons(
-                    isSelected: [_isIncome, !_isIncome],
-                    onPressed: (index) =>
-                        setState(() => _isIncome = (index == 0)),
-                    borderRadius: BorderRadius.circular(8),
-                    selectedColor: Colors.white,
-                    fillColor: _isIncome ? Colors.green : Colors.red,
-                    color: Colors.grey.shade700,
-                    children: [
-                      Padding(
-                          padding:
-                              EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                          child: Text('💰 Income')),
-                      Padding(
-                          padding:
-                              EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                          child: Text('💸 Expense')),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 16),
-                TextField(
-                    controller: _descCtrl,
-                    decoration: InputDecoration(labelText: 'Description')),
-                SizedBox(height: 12),
-                TextField(
-                    controller: _placeCtrl,
-                    decoration:
-                        InputDecoration(labelText: 'Place (e.g., Store name)')),
-                SizedBox(height: 12),
-                GestureDetector(
-                  onTap: () async {
-                    final picked = await showDatePicker(
-                      context: context,
-                      initialDate: _selectedDate,
-                      firstDate: DateTime(2020),
-                      lastDate: DateTime(2030),
-                    );
-                    if (picked != null) setState(() => _selectedDate = picked);
-                  },
-                  child: Container(
-                    padding: EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey.shade400),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                            'Date: ${_selectedDate.toLocal().toString().split(' ')[0]}'),
-                        Icon(Icons.calendar_today),
-                      ],
-                    ),
-                  ),
-                ),
-                SizedBox(height: 12),
-                TextField(
-                    controller: _amountCtrl,
-                    keyboardType: TextInputType.number,
-                    decoration: InputDecoration(labelText: 'Amount')),
-                SizedBox(height: 12),
-                TextField(
-                    controller: _notesCtrl,
-                    maxLines: 3,
-                    decoration: InputDecoration(labelText: 'Notes (optional)')),
-                SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: Text('Cancel')),
-                    ElevatedButton(
-                      onPressed: () {
-                        final amount = double.tryParse(_amountCtrl.text) ?? 0.0;
-                        if (amount <= 0 || _descCtrl.text.isEmpty) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                                content: Text(
-                                    'Please enter a description and amount')),
-                          );
-                          return;
-                        }
-                        String noteText = '';
-                        if (_placeCtrl.text.isNotEmpty)
-                          noteText += 'Place: ${_placeCtrl.text}\n';
-                        if (_notesCtrl.text.isNotEmpty)
-                          noteText += 'Notes: ${_notesCtrl.text}';
-                        String? finalNote = noteText.isEmpty ? null : noteText;
-                        final updatedTx = Transaction(
-                          id: tx.id,
-                          amount: amount,
-                          category: 'General',
-                          date: _selectedDate,
-                          note: finalNote,
-                          type: _isIncome
-                              ? TransactionType.income
-                              : TransactionType.expense,
-                          description: _descCtrl.text,
-                          userId: tx.userId,
-                          account: tx.account,
-                          cleared: tx.cleared,
-                        );
-                        _editTransaction(index, updatedTx);
-                        Navigator.pop(context);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Transaction updated!')),
-                        );
-                      },
-                      child: Text('Save Changes'),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 20),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _addLoan(Loan loan) {
-    _saveLoans();
-  }
-
-  void _editLoan(int index, Loan updatedLoan) {
-    setState(() {
-      _loans[index] = updatedLoan;
-      _saveLoans();
-    });
-  }
-
-  void _deleteLoan(int index) {
-    // The list is already updated in the child, just save
-    _saveLoans();
-  }
-
-  // ============================================================
-  // LOGOUT
-  // ============================================================
-  Future<void> _logout() async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Logout'),
-        content: Text('Are you sure you want to log out?'),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: Text('Cancel')),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text('Logout', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
-    );
-    if (confirm != true) return;
-    await _secureStorage.delete(key: 'auth_username');
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => const SignInScreen()),
-    );
-  }
-
-  // ============================================================
-  // ADD TRANSACTION FORM
-  // ============================================================
-  void _showAddTransaction(BuildContext context) {
-    final _descCtrl = TextEditingController();
-    final _placeCtrl = TextEditingController();
-    final _amountCtrl = TextEditingController();
-    final _notesCtrl = TextEditingController();
-    DateTime _selectedDate = DateTime.now();
-    bool _isIncome = true;
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (context) => Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-          left: 16,
-          right: 16,
-          top: 16,
-        ),
-        child: StatefulBuilder(
-          builder: (context, setState) => SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(
-                  child: ToggleButtons(
-                    isSelected: [_isIncome, !_isIncome],
-                    onPressed: (index) =>
-                        setState(() => _isIncome = (index == 0)),
-                    borderRadius: BorderRadius.circular(8),
-                    selectedColor: Colors.white,
-                    fillColor: _isIncome ? Colors.green : Colors.red,
-                    color: Colors.grey.shade700,
-                    children: [
-                      Padding(
-                          padding:
-                              EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                          child: Text('💰 Income')),
-                      Padding(
-                          padding:
-                              EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                          child: Text('💸 Expense')),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 20),
-                TextField(
-                    controller: _descCtrl,
-                    decoration: InputDecoration(labelText: 'Description')),
-                SizedBox(height: 12),
-                TextField(
-                    controller: _placeCtrl,
-                    decoration:
-                        InputDecoration(labelText: 'Place (e.g., Store name)')),
-                SizedBox(height: 12),
-                GestureDetector(
-                  onTap: () async {
-                    final picked = await showDatePicker(
-                      context: context,
-                      initialDate: _selectedDate,
-                      firstDate: DateTime(2020),
-                      lastDate: DateTime(2030),
-                    );
-                    if (picked != null) setState(() => _selectedDate = picked);
-                  },
-                  child: Container(
-                    padding: EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey.shade400),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                            'Date: ${_selectedDate.toLocal().toString().split(' ')[0]}'),
-                        Icon(Icons.calendar_today),
-                      ],
-                    ),
-                  ),
-                ),
-                SizedBox(height: 12),
-                TextField(
-                    controller: _amountCtrl,
-                    keyboardType: TextInputType.number,
-                    decoration: InputDecoration(labelText: 'Amount')),
-                SizedBox(height: 12),
-                TextField(
-                    controller: _notesCtrl,
-                    maxLines: 3,
-                    decoration: InputDecoration(labelText: 'Notes (optional)')),
-                SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: Text('Cancel')),
-                    ElevatedButton(
-                      onPressed: () {
-                        final amount = double.tryParse(_amountCtrl.text) ?? 0.0;
-                        if (amount <= 0 || _descCtrl.text.isEmpty) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                                content: Text(
-                                    'Please enter a description and amount')),
-                          );
-                          return;
-                        }
-                        String noteText = '';
-                        if (_placeCtrl.text.isNotEmpty)
-                          noteText += 'Place: ${_placeCtrl.text}\n';
-                        if (_notesCtrl.text.isNotEmpty)
-                          noteText += 'Notes: ${_notesCtrl.text}';
-                        String? finalNote = noteText.isEmpty ? null : noteText;
-                        final newTx = Transaction(
-                          id: DateTime.now().millisecondsSinceEpoch.toString(),
-                          amount: amount,
-                          category: 'General',
-                          date: _selectedDate,
-                          note: finalNote,
-                          type: _isIncome
-                              ? TransactionType.income
-                              : TransactionType.expense,
-                          description: _descCtrl.text,
-                          userId: widget.username,
-                          account: Account(id: 'default', name: 'Default'),
-                          cleared: ClearedStatus.uncleared,
-                        );
-                        _addTransaction(newTx);
-                        Navigator.pop(context);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                              content: Text(
-                                  '${_isIncome ? "Income" : "Expense"} added!')),
-                        );
-                      },
-                      child: Text('Save'),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 20),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ============================================================
-  // TAB 0: HOME (with collapsible farm + edit/delete buttons)
-  // ============================================================
-  Widget _buildHomeTab() {
+  // ---------- TAB BUILDERS ----------
+  Widget _buildHomeTab(BuildContext context) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -1003,14 +537,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                     context,
                     MaterialPageRoute(
                       builder: (context) => KitchenScreen(
-                        onSaveTransaction: (tx) {
-                          _addTransaction(tx);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content: Text(
-                                    '🧠 Kitchen Brain: Transaction saved!')),
-                          );
-                        },
+                        transactions: _transactions, // ✅ FIXED
                       ),
                     ),
                   );
@@ -1030,8 +557,6 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
             ],
           ),
           SizedBox(height: 16),
-
-          // ---------- COLLAPSIBLE FARM STATUS ----------
           ExpansionTile(
             title: Text('Farm Status',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
@@ -1068,7 +593,6 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
               SizedBox(height: 8),
             ],
           ),
-
           SizedBox(height: 16),
           Text('Recent Transactions',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
@@ -1092,7 +616,6 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                             horizontal: 8.0, vertical: 4.0),
                         child: Row(
                           children: [
-                            // Income/Expense indicator
                             Icon(
                               tx.type == TransactionType.income
                                   ? Icons.arrow_upward
@@ -1103,7 +626,6 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                               size: 20,
                             ),
                             SizedBox(width: 8),
-                            // Details
                             Expanded(
                               flex: 2,
                               child: Column(
@@ -1121,7 +643,6 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                                 ],
                               ),
                             ),
-                            // Edit & Delete buttons
                             IconButton(
                               icon: Icon(Icons.edit,
                                   color: Colors.blue.shade700, size: 20),
@@ -1147,10 +668,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
     );
   }
 
-  // ============================================================
-  // TAB 1: CFO (unchanged)
-  // ============================================================
-  Widget _buildCfoTab() {
+  Widget _buildCfoTab(BuildContext context) {
     double totalIncome = 0;
     double totalExpense = 0;
     for (var tx in _transactions) {
@@ -1451,10 +969,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
     );
   }
 
-  // ============================================================
-  // TAB 2: HOMESTEAD (unchanged)
-  // ============================================================
-  Widget _buildHomesteadTab() {
+  Widget _buildHomesteadTab(BuildContext context) {
     final _newItemNameCtrl = TextEditingController();
     final _newItemQtyCtrl = TextEditingController();
 
@@ -1583,10 +1098,13 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
     );
   }
 
-  // ============================================================
-  // TAB 4: SETTINGS (unchanged)
-  // ============================================================
-  Widget _buildSettingsTab() {
+  Widget _buildKitchenTab(BuildContext context) {
+    return KitchenScreen(
+      transactions: _transactions, // ✅ FIXED
+    );
+  }
+
+  Widget _buildSettingsTab(BuildContext context) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -1696,11 +1214,718 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
     );
   }
 
+  // ---------- TAB DEFINITIONS (FIXED: removed const from each TabItem) ----------
+  List<TabItem> get _allTabs => [
+        TabItem(
+          // ✅ fixed
+          id: 'home',
+          label: 'Home',
+          icon: Icons.home,
+          builder: _buildHomeTab,
+        ),
+        TabItem(
+          id: 'cfo',
+          label: 'CFO',
+          icon: Icons.attach_money,
+          builder: _buildCfoTab,
+        ),
+        TabItem(
+          id: 'homestead',
+          label: 'Homestead',
+          icon: Icons.agriculture,
+          builder: _buildHomesteadTab,
+        ),
+        TabItem(
+          id: 'haven',
+          label: 'Haven',
+          icon: Icons.psychology,
+          builder: _buildHavenTab,
+        ),
+        TabItem(
+          id: 'kitchen',
+          label: 'Kitchen',
+          icon: Icons.kitchen,
+          builder: _buildKitchenTab,
+        ),
+        TabItem(
+          id: 'settings',
+          label: 'Settings',
+          icon: Icons.settings,
+          builder: _buildSettingsTab,
+        ),
+      ];
+
+  // Wrapper for Haven tab because it's a stateful widget with parameters
+  Widget _buildHavenTab(BuildContext context) {
+    return HavenTabContent(
+      loans: _loans,
+      onAddLoan: _addLoan,
+      onDeleteLoan: _deleteLoan,
+      onEditLoan: _editLoan,
+    );
+  }
+
   // ============================================================
-  // BUILD – SWIPEABLE PAGEVIEW
+  // DATA LOAD/SAVE
+  // ============================================================
+  Future<void> _loadData() async {
+    final prefs = await SharedPreferences.getInstance();
+    _unit = prefs.getString('${_userPrefix}unit') ?? 'kg';
+    final farmJson = prefs.getString('${_userPrefix}farmItems');
+    if (farmJson != null) {
+      final Map<String, dynamic> decoded = jsonDecode(farmJson);
+      _farmItems = decoded.map((key, value) => MapEntry(key, value.toDouble()));
+    }
+    final txJson = prefs.getString('${_userPrefix}transactions');
+    if (txJson != null) {
+      final List<dynamic> decoded = jsonDecode(txJson);
+      _transactions = decoded.map((e) => Transaction.fromJson(e)).toList();
+    }
+    final loansJson = prefs.getString('${_userPrefix}loans');
+    if (loansJson != null) {
+      final List<dynamic> decoded = jsonDecode(loansJson);
+      _loans = decoded.map((e) => Loan.fromJson(e)).toList();
+    }
+    setState(() {});
+  }
+
+  Future<void> _saveTransactions() async {
+    final prefs = await SharedPreferences.getInstance();
+    final jsonList = _transactions.map((tx) => tx.toJson()).toList();
+    await prefs.setString('${_userPrefix}transactions', jsonEncode(jsonList));
+  }
+
+  Future<void> _saveLoans() async {
+    final prefs = await SharedPreferences.getInstance();
+    final jsonList = _loans.map((loan) => loan.toJson()).toList();
+    await prefs.setString('${_userPrefix}loans', jsonEncode(jsonList));
+  }
+
+  Future<void> _saveFarmItems() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('${_userPrefix}farmItems', jsonEncode(_farmItems));
+  }
+
+  Future<void> _saveUnit() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('${_userPrefix}unit', _unit);
+  }
+
+  // ============================================================
+  // TAB ORDER LOAD/SAVE
+  // ============================================================
+  Future<void> _loadTabOrder() async {
+    final prefs = await SharedPreferences.getInstance();
+    final orderJson = prefs.getString('${_userPrefix}tab_order');
+    if (orderJson != null) {
+      final List<dynamic> decoded = jsonDecode(orderJson);
+      setState(() {
+        _tabOrder = decoded.map((e) => e.toString()).toList();
+        final allIds = _allTabs.map((t) => t.id).toList();
+        for (var id in allIds) {
+          if (!_tabOrder.contains(id)) {
+            _tabOrder.add(id);
+          }
+        }
+        _tabOrder = _tabOrder.where((id) => allIds.contains(id)).toList();
+      });
+    } else {
+      setState(() {
+        _tabOrder = _allTabs.map((t) => t.id).toList();
+      });
+    }
+    _pageController = PageController(initialPage: _selectedIndex);
+  }
+
+  Future<void> _saveTabOrder() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('${_userPrefix}tab_order', jsonEncode(_tabOrder));
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData().then((_) => _loadTabOrder());
+  }
+
+  // ============================================================
+  // HELPERS
+  // ============================================================
+  double _getDisplayValue(double kgValue) {
+    if (_unit == 'lb') return kgValue * 2.20462;
+    return kgValue;
+  }
+
+  String _getUnitLabel() => _unit;
+
+  void _updateFarmItem(String name, double delta) {
+    setState(() {
+      if (_farmItems.containsKey(name)) {
+        double newValue = _farmItems[name]! + delta;
+        if (newValue <= 0) {
+          _farmItems.remove(name);
+        } else {
+          _farmItems[name] = newValue;
+        }
+      }
+      _saveFarmItems();
+    });
+  }
+
+  void _addFarmItem(String name, double quantity) {
+    setState(() {
+      if (_farmItems.containsKey(name)) {
+        _farmItems[name] = _farmItems[name]! + quantity;
+      } else {
+        _farmItems[name] = quantity;
+      }
+      _saveFarmItems();
+    });
+  }
+
+  void _addTransaction(Transaction tx) {
+    setState(() {
+      _transactions.add(tx);
+      _saveTransactions();
+    });
+  }
+
+  void _editTransaction(int index, Transaction updatedTx) {
+    setState(() {
+      _transactions[index] = updatedTx;
+      _saveTransactions();
+    });
+  }
+
+  void _deleteTransaction(int index) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Delete Transaction'),
+        content: Text(
+            'Are you sure you want to delete "${_transactions[index].description}"?'),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+    if (confirm == true) {
+      setState(() {
+        _transactions.removeAt(index);
+        _saveTransactions();
+      });
+    }
+  }
+
+  void _showEditTransactionForm(int index) {
+    final tx = _transactions[index];
+    final _descCtrl = TextEditingController(text: tx.description);
+    final _placeCtrl = TextEditingController(text: tx.note ?? '');
+    final _amountCtrl = TextEditingController(text: tx.amount.toString());
+    final _notesCtrl = TextEditingController(text: tx.note ?? '');
+    DateTime _selectedDate = tx.date;
+    bool _isIncome = tx.type == TransactionType.income;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+          left: 16,
+          right: 16,
+          top: 16,
+        ),
+        child: StatefulBuilder(
+          builder: (context, setState) => SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('✏️ Edit Transaction',
+                    style:
+                        TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                SizedBox(height: 16),
+                Center(
+                  child: ToggleButtons(
+                    isSelected: [_isIncome, !_isIncome],
+                    onPressed: (index) =>
+                        setState(() => _isIncome = (index == 0)),
+                    borderRadius: BorderRadius.circular(8),
+                    selectedColor: Colors.white,
+                    fillColor: _isIncome ? Colors.green : Colors.red,
+                    color: Colors.grey.shade700,
+                    children: [
+                      Padding(
+                          padding:
+                              EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                          child: Text('💰 Income')),
+                      Padding(
+                          padding:
+                              EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                          child: Text('💸 Expense')),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 16),
+                TextField(
+                    controller: _descCtrl,
+                    decoration: InputDecoration(labelText: 'Description')),
+                SizedBox(height: 12),
+                TextField(
+                    controller: _placeCtrl,
+                    decoration:
+                        InputDecoration(labelText: 'Place (e.g., Store name)')),
+                SizedBox(height: 12),
+                GestureDetector(
+                  onTap: () async {
+                    final picked = await showDatePicker(
+                      context: context,
+                      initialDate: _selectedDate,
+                      firstDate: DateTime(2020),
+                      lastDate: DateTime(2030),
+                    );
+                    if (picked != null) setState(() => _selectedDate = picked);
+                  },
+                  child: Container(
+                    padding: EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey.shade400),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                            'Date: ${_selectedDate.toLocal().toString().split(' ')[0]}'),
+                        Icon(Icons.calendar_today),
+                      ],
+                    ),
+                  ),
+                ),
+                SizedBox(height: 12),
+                TextField(
+                    controller: _amountCtrl,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(labelText: 'Amount')),
+                SizedBox(height: 12),
+                TextField(
+                    controller: _notesCtrl,
+                    maxLines: 3,
+                    decoration: InputDecoration(labelText: 'Notes (optional)')),
+                SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: Text('Cancel')),
+                    ElevatedButton(
+                      onPressed: () {
+                        final amount = double.tryParse(_amountCtrl.text) ?? 0.0;
+                        if (amount <= 0 || _descCtrl.text.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                                content: Text(
+                                    'Please enter a description and amount')),
+                          );
+                          return;
+                        }
+                        String noteText = '';
+                        if (_placeCtrl.text.isNotEmpty)
+                          noteText += 'Place: ${_placeCtrl.text}\n';
+                        if (_notesCtrl.text.isNotEmpty)
+                          noteText += 'Notes: ${_notesCtrl.text}';
+                        String? finalNote = noteText.isEmpty ? null : noteText;
+                        final updatedTx = Transaction(
+                          id: tx.id,
+                          amount: amount,
+                          category: 'General',
+                          date: _selectedDate,
+                          note: finalNote,
+                          type: _isIncome
+                              ? TransactionType.income
+                              : TransactionType.expense,
+                          description: _descCtrl.text,
+                          userId: tx.userId,
+                          account: tx.account,
+                          cleared: tx.cleared,
+                        );
+                        _editTransaction(index, updatedTx);
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Transaction updated!')),
+                        );
+                      },
+                      child: Text('Save Changes'),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 20),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _addLoan(Loan loan) {
+    _saveLoans();
+  }
+
+  void _editLoan(int index, Loan updatedLoan) {
+    setState(() {
+      _loans[index] = updatedLoan;
+      _saveLoans();
+    });
+  }
+
+  void _deleteLoan(int index) {
+    _saveLoans();
+  }
+
+  // ============================================================
+  // ADD TRANSACTION FORM
+  // ============================================================
+  void _showAddTransaction(BuildContext context) {
+    final _descCtrl = TextEditingController();
+    final _placeCtrl = TextEditingController();
+    final _amountCtrl = TextEditingController();
+    final _notesCtrl = TextEditingController();
+    DateTime _selectedDate = DateTime.now();
+    bool _isIncome = true;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+          left: 16,
+          right: 16,
+          top: 16,
+        ),
+        child: StatefulBuilder(
+          builder: (context, setState) => SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: ToggleButtons(
+                    isSelected: [_isIncome, !_isIncome],
+                    onPressed: (index) =>
+                        setState(() => _isIncome = (index == 0)),
+                    borderRadius: BorderRadius.circular(8),
+                    selectedColor: Colors.white,
+                    fillColor: _isIncome ? Colors.green : Colors.red,
+                    color: Colors.grey.shade700,
+                    children: [
+                      Padding(
+                          padding:
+                              EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                          child: Text('💰 Income')),
+                      Padding(
+                          padding:
+                              EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                          child: Text('💸 Expense')),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 20),
+                TextField(
+                    controller: _descCtrl,
+                    decoration: InputDecoration(labelText: 'Description')),
+                SizedBox(height: 12),
+                TextField(
+                    controller: _placeCtrl,
+                    decoration:
+                        InputDecoration(labelText: 'Place (e.g., Store name)')),
+                SizedBox(height: 12),
+                GestureDetector(
+                  onTap: () async {
+                    final picked = await showDatePicker(
+                      context: context,
+                      initialDate: _selectedDate,
+                      firstDate: DateTime(2020),
+                      lastDate: DateTime(2030),
+                    );
+                    if (picked != null) setState(() => _selectedDate = picked);
+                  },
+                  child: Container(
+                    padding: EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey.shade400),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                            'Date: ${_selectedDate.toLocal().toString().split(' ')[0]}'),
+                        Icon(Icons.calendar_today),
+                      ],
+                    ),
+                  ),
+                ),
+                SizedBox(height: 12),
+                TextField(
+                    controller: _amountCtrl,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(labelText: 'Amount')),
+                SizedBox(height: 12),
+                TextField(
+                    controller: _notesCtrl,
+                    maxLines: 3,
+                    decoration: InputDecoration(labelText: 'Notes (optional)')),
+                SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: Text('Cancel')),
+                    ElevatedButton(
+                      onPressed: () {
+                        final amount = double.tryParse(_amountCtrl.text) ?? 0.0;
+                        if (amount <= 0 || _descCtrl.text.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                                content: Text(
+                                    'Please enter a description and amount')),
+                          );
+                          return;
+                        }
+                        String noteText = '';
+                        if (_placeCtrl.text.isNotEmpty)
+                          noteText += 'Place: ${_placeCtrl.text}\n';
+                        if (_notesCtrl.text.isNotEmpty)
+                          noteText += 'Notes: ${_notesCtrl.text}';
+                        String? finalNote = noteText.isEmpty ? null : noteText;
+                        final newTx = Transaction(
+                          id: DateTime.now().millisecondsSinceEpoch.toString(),
+                          amount: amount,
+                          category: 'General',
+                          date: _selectedDate,
+                          note: finalNote,
+                          type: _isIncome
+                              ? TransactionType.income
+                              : TransactionType.expense,
+                          description: _descCtrl.text,
+                          userId: widget.username,
+                          account: Account(id: 'default', name: 'Default'),
+                          cleared: ClearedStatus.uncleared,
+                        );
+                        _addTransaction(newTx);
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                              content: Text(
+                                  '${_isIncome ? "Income" : "Expense"} added!')),
+                        );
+                      },
+                      child: Text('Save'),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 20),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ============================================================
+  // LOGOUT
+  // ============================================================
+  Future<void> _logout() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Logout'),
+        content: Text('Are you sure you want to log out?'),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text('Logout', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+    if (confirm != true) return;
+    await _secureStorage.delete(key: 'auth_username');
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const SignInScreen()),
+    );
+  }
+
+  // ============================================================
+  // OVERFLOW & REORDER
+  // ============================================================
+  List<TabItem> get _visibleTabs {
+    final visibleIds = _tabOrder.take(5).toList();
+    return _allTabs.where((t) => visibleIds.contains(t.id)).toList();
+  }
+
+  List<TabItem> get _hiddenTabs {
+    final visibleIds = _visibleTabs.map((t) => t.id).toList();
+    return _allTabs.where((t) => !visibleIds.contains(t.id)).toList();
+  }
+
+  List<Widget> get _pages {
+    return _tabOrder.map((id) {
+      final tab = _allTabs.firstWhere((t) => t.id == id);
+      return tab.builder(context);
+    }).toList();
+  }
+
+  void _showOverflowMenu() {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Text(
+              'All Pages',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+          ),
+          ..._hiddenTabs.map((tab) {
+            final index = _tabOrder.indexOf(tab.id);
+            return ListTile(
+              leading: Icon(tab.icon),
+              title: Text(tab.label),
+              onTap: () {
+                Navigator.pop(context);
+                setState(() {
+                  _selectedIndex = index;
+                });
+                _pageController.animateToPage(
+                  index,
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                );
+              },
+            );
+          }).toList(),
+          const SizedBox(height: 16),
+        ],
+      ),
+    );
+  }
+
+  void _showReorderDialog() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.6,
+        maxChildSize: 0.9,
+        minChildSize: 0.3,
+        expand: false,
+        builder: (context, scrollController) {
+          return StatefulBuilder(
+            builder: (context, setStateDialog) {
+              return Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Reorder Pages',
+                          style: TextStyle(
+                              fontSize: 20, fontWeight: FontWeight.bold),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            _saveTabOrder();
+                            Navigator.pop(context);
+                            setState(() {});
+                          },
+                          child: const Text('Done'),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: ReorderableListView(
+                      scrollController: scrollController,
+                      onReorderItem: (oldIndex, newIndex) {
+                        // ✅ fixed
+                        // The newIndex is already adjusted for the removed item
+                        setStateDialog(() {
+                          final item = _tabOrder.removeAt(oldIndex);
+                          _tabOrder.insert(newIndex, item);
+                        });
+                        setState(() {});
+                      },
+                      children: _tabOrder.map((id) {
+                        final tab = _allTabs.firstWhere((t) => t.id == id);
+                        return ListTile(
+                          key: Key(id),
+                          leading: Icon(tab.icon),
+                          title: Text(tab.label),
+                          trailing: const Icon(Icons.drag_handle),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ],
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  // ============================================================
+  // BUILD
   // ============================================================
   @override
   Widget build(BuildContext context) {
+    if (_tabOrder.isEmpty) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    List<BottomNavigationBarItem> navItems = [];
+    for (var tab in _visibleTabs) {
+      navItems.add(BottomNavigationBarItem(
+        icon: Icon(tab.icon),
+        label: tab.label,
+      ));
+    }
+    navItems.add(const BottomNavigationBarItem(
+      icon: Icon(Icons.more_horiz),
+      label: 'More',
+    ));
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Haven Central'),
@@ -1718,6 +1943,11 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
               );
             },
           ),
+          IconButton(
+            icon: const Icon(Icons.edit),
+            onPressed: _showReorderDialog,
+            tooltip: 'Reorder Pages',
+          ),
         ],
       ),
       body: PageView(
@@ -1727,34 +1957,21 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
             _selectedIndex = index;
           });
         },
-        children: [
-          _buildHomeTab(),
-          _buildCfoTab(),
-          _buildHomesteadTab(),
-          HavenTabContent(
-            loans: _loans,
-            onAddLoan: _addLoan,
-            onDeleteLoan: _deleteLoan,
-            onEditLoan: _editLoan,
-          ),
-          _buildSettingsTab(),
-        ],
+        children: _pages,
       ),
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
+        currentIndex: _selectedIndex < _visibleTabs.length
+            ? _selectedIndex
+            : _visibleTabs.length,
         backgroundColor: Colors.white,
         selectedItemColor: Colors.teal.shade700,
         unselectedItemColor: Colors.grey.shade600,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.attach_money), label: 'CFO'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.agriculture), label: 'Homestead'),
-          BottomNavigationBarItem(icon: Icon(Icons.psychology), label: 'Haven'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.settings), label: 'Settings'),
-        ],
+        items: navItems,
         onTap: (index) {
+          if (index == _visibleTabs.length) {
+            _showOverflowMenu();
+            return;
+          }
           setState(() {
             _selectedIndex = index;
           });
