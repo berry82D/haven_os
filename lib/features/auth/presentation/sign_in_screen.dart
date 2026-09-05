@@ -28,7 +28,7 @@ class _SignInScreenState extends State<SignInScreen> {
   }
 
   String? _validateUsername(String? value) {
-    if (value == null || value.isEmpty) return 'Username is required';
+    if (value == null || value.trim().isEmpty) return 'Username is required';
     return null;
   }
 
@@ -38,7 +38,7 @@ class _SignInScreenState extends State<SignInScreen> {
     return null;
   }
 
-  void _signIn() async {
+  Future<void> _signIn() async {
     final username = _usernameCtrl.text.trim();
     final password = _passwordCtrl.text.trim();
 
@@ -46,63 +46,100 @@ class _SignInScreenState extends State<SignInScreen> {
         _validatePassword(password) != null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-            content: Text('Please fill in all fields correctly'),
-            backgroundColor: Colors.red),
+          content: Text('Please fill in all fields correctly'),
+          backgroundColor: Colors.red,
+        ),
       );
       return;
     }
 
     setState(() => _isLoading = true);
 
-    final prefs = await SharedPreferences.getInstance();
-    final usersJson = prefs.getString('registered_users');
-    if (usersJson == null) {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final usersJson = prefs.getString('registered_users');
+
+      if (usersJson == null || usersJson.isEmpty) {
+        if (!mounted) return;
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('No accounts found. Please create one first.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
+      final users = List<Map<String, dynamic>>.from(jsonDecode(usersJson));
+
+      // Case-insensitive username match
+      final matches = users.where((u) {
+        final stored = (u['username'] ?? '').toString().trim();
+        return stored.toLowerCase() == username.toLowerCase();
+      }).toList();
+
+      if (matches.isEmpty) {
+        if (!mounted) return;
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'No account found for "$username".\n'
+              'Use the same Username you created (not email).',
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
+      final user = matches.first;
+      final salt = (user['salt'] ?? '').toString();
+      final storedHash = (user['passwordHash'] ?? '').toString();
+      final inputHash = _hashPassword(password, salt);
+
+      if (storedHash.isEmpty || storedHash != inputHash) {
+        if (!mounted) return;
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Wrong password for this username.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
+      final resolvedUsername = (user['username'] ?? username).toString();
+      await _secureStorage.write(key: 'auth_username', value: resolvedUsername);
+
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => HavenCentralScreen(username: resolvedUsername),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
       setState(() => _isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('No accounts found. Please create one.'),
-            backgroundColor: Colors.red),
+        SnackBar(
+          content: Text('Sign in error: $e'),
+          backgroundColor: Colors.red,
+        ),
       );
-      return;
     }
+  }
 
-    final users = List<Map<String, dynamic>>.from(jsonDecode(usersJson));
-    final user = users.firstWhere(
-      (u) => u['username'] == username,
-      orElse: () => {},
-    );
-
-    if (user.isEmpty) {
-      setState(() => _isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Invalid username or password'),
-            backgroundColor: Colors.red),
-      );
-      return;
-    }
-
-    final salt = user['salt'] ?? '';
-    final storedHash = user['passwordHash'] ?? '';
-    final inputHash = _hashPassword(password, salt);
-
-    if (storedHash != inputHash) {
-      setState(() => _isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Invalid username or password'),
-            backgroundColor: Colors.red),
-      );
-      return;
-    }
-
-    await _secureStorage.write(key: 'auth_username', value: username);
-    setState(() => _isLoading = false);
-
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => HavenCentralScreen(username: username)),
-    );
+  @override
+  void dispose() {
+    _usernameCtrl.dispose();
+    _passwordCtrl.dispose();
+    super.dispose();
   }
 
   @override
@@ -120,22 +157,28 @@ class _SignInScreenState extends State<SignInScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const SizedBox(height: 20),
-            const Text('Welcome to Haven OS',
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-                textAlign: TextAlign.center),
+            const Text(
+              'Welcome to Haven OS',
+              style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
             const SizedBox(height: 8),
-            const Text('Sign in to continue',
-                style: TextStyle(fontSize: 16, color: Colors.grey),
-                textAlign: TextAlign.center),
+            const Text(
+              'Sign in with your Username (not email)',
+              style: TextStyle(fontSize: 16, color: Colors.grey),
+              textAlign: TextAlign.center,
+            ),
             const SizedBox(height: 40),
             TextFormField(
               controller: _usernameCtrl,
               decoration: const InputDecoration(
-                  labelText: 'Username',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.person)),
+                labelText: 'Username',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.person),
+              ),
               autovalidateMode: AutovalidateMode.onUserInteraction,
               validator: _validateUsername,
+              textInputAction: TextInputAction.next,
             ),
             const SizedBox(height: 16),
             TextFormField(
@@ -146,15 +189,17 @@ class _SignInScreenState extends State<SignInScreen> {
                 border: const OutlineInputBorder(),
                 prefixIcon: const Icon(Icons.lock),
                 suffixIcon: IconButton(
-                  icon: Icon(_obscurePassword
-                      ? Icons.visibility_off
-                      : Icons.visibility),
+                  icon: Icon(
+                    _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                  ),
                   onPressed: () =>
                       setState(() => _obscurePassword = !_obscurePassword),
                 ),
               ),
               autovalidateMode: AutovalidateMode.onUserInteraction,
               validator: _validatePassword,
+              textInputAction: TextInputAction.done,
+              onFieldSubmitted: (_) => _isLoading ? null : _signIn(),
             ),
             const SizedBox(height: 8),
             Align(
@@ -174,14 +219,18 @@ class _SignInScreenState extends State<SignInScreen> {
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
               child: _isLoading
                   ? const SizedBox(
                       height: 20,
                       width: 20,
                       child: CircularProgressIndicator(
-                          strokeWidth: 2, color: Colors.white))
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
                   : const Text('Sign In', style: TextStyle(fontSize: 18)),
             ),
             const SizedBox(height: 16),
@@ -190,8 +239,10 @@ class _SignInScreenState extends State<SignInScreen> {
               children: [
                 const Text("Don't have an account?"),
                 TextButton(
-                  onPressed: () => Navigator.push(context,
-                      MaterialPageRoute(builder: (_) => const SignUpScreen())),
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const SignUpScreen()),
+                  ),
                   child: const Text('Create One'),
                 ),
               ],
