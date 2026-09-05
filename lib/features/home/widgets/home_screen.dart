@@ -176,7 +176,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             : TransactionType.expense,
                         description: _descCtrl.text,
                         userId: 'user1',
-                        account: Account(id: 'default', name: 'Default'),
+                        account: Account('Default'),
                         cleared: ClearedStatus.uncleared,
                       );
 

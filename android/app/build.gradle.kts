@@ -1,8 +1,11 @@
+// android/app/build.gradle.kts
 plugins {
     id("com.android.application")
     id("kotlin-android")
-    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
+    
+    // 🔥 Add the Google Services plugin (THIS LINE)
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -20,10 +23,7 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.example.haven_os"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
@@ -32,8 +32,6 @@ android {
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
         }
     }
@@ -41,4 +39,14 @@ android {
 
 flutter {
     source = "../.."
+}
+
+// 🔥 Optional but recommended: Firebase BoM helps keep Firebase SDK versions aligned
+dependencies {
+    // Firebase Bill of Materials (BoM) – ensures all Firebase SDK versions are compatible
+    implementation(platform("com.google.firebase:firebase-bom:34.18.0"))
+    
+    // No need to add firebase‑core or firebase‑firestore here;
+    // the Flutter packages will pull them automatically.
+    // Adding the BoM is enough to manage versions.
 }

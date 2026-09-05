@@ -129,8 +129,7 @@ class _KitchenScreenState extends State<KitchenScreen>
     final groceryTxs = widget.transactions.where((tx) {
       return tx.category.toLowerCase() == 'groceries' &&
           tx.type == TransactionType.expense &&
-          tx.note != null &&
-          tx.note!.contains('Scanned from receipt');
+          tx.note.contains('Scanned from receipt');
     }).toList();
 
     if (groceryTxs.isEmpty) {
@@ -145,7 +144,7 @@ class _KitchenScreenState extends State<KitchenScreen>
 
     int addedCount = 0;
     for (var tx in groceryTxs) {
-      final lines = tx.note!.split('\n');
+      final lines = tx.note.split('\n');
       for (var line in lines) {
         String trimmed = line.trim();
         if (trimmed.isEmpty ||
