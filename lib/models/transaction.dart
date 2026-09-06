@@ -23,6 +23,8 @@ class Transaction {
   late String account;
   late bool cleared;
   late String householdId;
+  late String? gigIncomeId;
+
   Transaction(
       {String? id,
       String? description,
@@ -40,7 +42,8 @@ class Transaction {
       TransactionType? type,
       Account? accountObj,
       ClearedStatus? clearedStatus,
-      String? householdId})
+      String? householdId,
+      String? gigIncomeId})
       : householdId =
             (householdId?.isNotEmpty == true) ? householdId! : (userId ?? ''),
         id = id ?? DateTime.now().millisecondsSinceEpoch.toString(),
@@ -57,15 +60,8 @@ class Transaction {
         userId = userId ?? '' {
     if (this.isIncome == false && type == null) {
       final cat = this.category.toLowerCase();
-      if ([
-        'paycheck',
-        'salary',
-        'income',
-        'deposit',
-        'wage',
-        'pay',
-        'rhbarringer'
-      ].any((k) => cat.contains(k))) {
+      if (['paycheck', 'salary', 'income', 'deposit', 'wage', 'pay']
+          .any((k) => cat.contains(k))) {
         this.isIncome = true;
       }
     }
@@ -89,13 +85,16 @@ class Transaction {
     } else {
       this.cleared = false;
     }
+    this.gigIncomeId = gigIncomeId;
   }
+
   TransactionType get type =>
       isIncome ? TransactionType.income : TransactionType.expense;
   String get note => notes;
   Account get accountObj => Account(account);
   ClearedStatus get clearedStatus =>
       cleared ? ClearedStatus.reconciled : ClearedStatus.pending;
+
   Map<String, dynamic> toJson() => {
         'id': id,
         'description': description,
@@ -108,8 +107,10 @@ class Transaction {
         'userId': userId,
         'account': account,
         'cleared': cleared,
-        'householdId': householdId
+        'householdId': householdId,
+        'gigIncomeId': gigIncomeId
       };
+
   factory Transaction.fromJson(Map<String, dynamic> j) => Transaction(
       id: j['id'] ?? DateTime.now().millisecondsSinceEpoch.toString(),
       description: j['description'] ?? '',
@@ -122,7 +123,9 @@ class Transaction {
       userId: j['userId'] ?? '',
       account: j['account'] ?? 'Cash',
       cleared: j['cleared'] ?? false,
-      householdId: j['householdId'] ?? j['userId'] ?? '');
+      householdId: j['householdId'] ?? j['userId'] ?? '',
+      gigIncomeId: j['gigIncomeId']);
+
   String get formattedDate => DateFormat('MMM dd, yyyy').format(date);
   String get formattedAmount =>
       (isIncome ? '+' : '-') + '\$${amount.abs().toStringAsFixed(2)}';
