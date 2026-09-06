@@ -1,84 +1,82 @@
 ﻿# Haven OS — DEV LOG
-Live log of all changes. Append-only. One entry per push/test.
-**LAW 16 ENFORCED: Every AI must keep this log up-to-date. No push without log entry.**
+Live log — LAW 16 + LAW 17 ENFORCED
+LAW 16: Every AI must keep log up-to-date. No push without log.
+LAW 17: Every AI must READ DEV_LOG.md + CLAUDE.md BEFORE assisting.
 
 ---
 
-## 2026-09-06 — Commit 949d358 — feature/haven-central-fixes
-
-**Status:** PUSHED to origin/feature/haven-central-fixes (needed --verbose on hotspot)
-**flutter analyze:** No issues found! (91.1s)
+## 2026-09-06 — 949d358 — feature/haven-central-fixes
+**Status:** PUSHED --verbose needed
+**analyze:** No issues (91.1s)
 **Push:** b124790..949d358
-**Parent:** b124790
-**Head:** 949d358 fix: household-scope data models, fix Transaction late-field bug, fix budget spent calc, add transaction edit/delete UI
-
-### What was fixed
-1. Transaction LateInitializationError — lib/models/transaction.dart — late account/cleared not initialized — fixed
-2. Budget spent calc 0% — lib/models/budget.dart — amount < 0 but.abs() — fixed to!isIncome
-3. Household-scope — Added householdId to bill, account, category, transaction, budget — 2-phone/1-household
-4. Transaction edit/delete UI — haven_central_screen.dart
-5. Settings preserved — 387 lines
-6. Cleanup — removed stray files, added to.gitignore
-
-### Files Changed
-- lib/models/transaction.dart
-- lib/models/budget.dart
-- lib/models/bill.dart
-- lib/models/account.dart
-- lib/models/category.dart
-- lib/services/app_state.dart (preserved)
-- lib/screens/haven_central_screen.dart
-- lib/screens/settings_screen.dart (preserved)
-
-### Tech Debt
-- rhbarringer hardcoded fragile
-- Gig income not implemented
-- Forgot-password not implemented
-- Households Phase 2 & 3 pending
+**Fix:** Transaction late-field bug, budget 0% ->!isIncome, householdId all models, edit/delete UI, settings preserved
 
 ---
 
-## 2026-09-06 — Commit PENDING (46.8s) — Transaction Fix
-
-**Status:** FILE REPLACED, ANALYZED, READY TO COMMIT
-**File:** lib/models/transaction.dart
-**Change:** Removed rhbarringer from ['paycheck','salary','income','deposit','wage','pay','rhbarringer'] -> ['paycheck','salary','income','deposit','wage','pay']. Added nullable String? gigIncomeId (additive, preserves schema).
-**Why:** rhbarringer is personal employer hardcoded fragile. Need link field for gig_income.dart
-**flutter analyze:** No issues found! (46.8s) AFTER fix
-**Rule Compliance:** Rule 5 Inspect First (real file pasted), Rule 12 preserve schema
-**Next:** Commit + push, then gig_income.dart, then AppState
-
-### Law 16 Added (2026-09-06)
-**LAW 16 — LOG LAW:** Every AI (Claude, DeepSeek, Meta AI, future) MUST keep DEV_LOG.md up-to-date. Append entry for every file replaced, analyze, run, push. No push without log update. No replacement without log entry. Must include: what was wrong, what fixed, analyze result, test result, next step. Part of Claudes Laws.
-
-### Test Checklist
-- [x] flutter analyze No issues (46.8s)
-- [ ] flutter run
-- [ ] git add + commit + push --verbose
+## 2026-09-06 — 7dda27d — Transaction Fix + Law 16
+**Status:** PUSHED
+**Files:** lib/models/transaction.dart, DEV_LOG.md
+**Change:** Removed rhbarringer hack, added String? gigIncomeId additive link
+**Why:** rhbarringer fragile employer hack, need link for gig income
+**analyze:** No issues (46.8s) then (32.6s)
+**Push:** 949d358..7dda27d
+**Commit:** fix: remove rhbarringer hack, add gigIncomeId link, add Law 16 log enforcement
+**Law 16:** Every AI must keep DEV_LOG.md up-to-date, no push without log
 
 ---
 
-## LAW 16 — ENFORCEMENT FOR ALL FUTURE AIS
-- Before any file replacement, read DEV_LOG.md
-- After any file replacement, update DEV_LOG.md
-- Before any git push, ensure DEV_LOG.md updated
-- Failure to log = violation
-- Log must be complete file replacement per Rule 2 — full file, not snippet
+## 2026-09-06 — PENDING — 7dda27d+ — gig_income.dart + CLAUDE.md + Law 17
+
+**Status:** CREATING FILES — awaiting analyze + push
+**Files:**
+- lib/models/gig_income.dart — NEW MODEL — basePay, tips, bonus, mileage, miles, totalAmount, platform enum (doordash, uberEats, spark, instacart, lyft, uber, other), payPerMile, tipPercent, householdId groundwork
+- CLAUDE.md — Updated with Laws 1-17 — Law 17 = Read Before Assist
+- DEV_LOG.md — This file — updated with Law 17
+
+**Why gig_income.dart:** Currently only "$50 from DoorDash" — can't separate base/tip/bonus/mileage for tax insights. Need richer entry UI.
+
+**Why Law 17:** David: each ai helper need to read the dev log before they assist — prevents AIs repeating fixes, overwriting working code, breaking household migration. Must read DEV_LOG.md + CLAUDE.md first.
+
+**Architecture:**
+- Transaction.gigIncomeId nullable -> GigIncome.id
+- GigIncome.transactionId links back
+- householdId fallback = userId
+- totalAmount auto = base + tips + bonus if 0
+
+**analyze:** Pending
+**run:** Pending
+**Push command:** git add lib/models/gig_income.dart CLAUDE.md DEV_LOG.md && git commit -m "feat: add gig_income model richer entry, add CLAUDE.md Laws 1-17 incl Read Before Assist Law 17, update DEV_LOG.md" && git push origin feature/haven-central-fixes --verbose
+
+**Next after push:** AppState Phase 2 — add List<GigIncome> storage, JSON blob persistence, household filtering
+
+### Law 16 + 17 Enforcement
+- Before file replacement: read DEV_LOG.md + CLAUDE.md (Law 17)
+- After replacement: update DEV_LOG.md (Law 16)
+- Before push: ensure log updated (Law 16)
+- Complete file replacement per Rule 2
+- Terminal push via Set-Content @' '@
+
+### Checklist
+- [x] transaction.dart fix pushed 7dda27d
+- [x] DEV_LOG.md created via terminal
+- [x] gig_income.dart created via terminal (previous step)
+- [ ] CLAUDE.md with Laws 1-17 via terminal (this step)
+- [ ] DEV_LOG.md updated with Law 17 via terminal (this step)
+- [ ] flutter analyze
+- [ ] git status -> should show 3 files
+- [ ] git add + commit + push --verbose (all 3 together per Law 16)
 
 ---
 
 ## TEMPLATE
-## YYYY-MM-DD — Commit HASH — Branch
-**Status:** **File:** **Change:** **Why:** **flutter analyze:** **flutter run:** **Push:** **Next:**
-Test Checklist: analyze, run, push --verbose, Update DEV_LOG.md (Law 16)
-
----
+## YYYY-MM-DD — HASH — Branch
+**Status:** **File:** **Change:** **Why:** **analyze:** **run:** **Push:** **Next:** **Laws:**
 
 ## NOTES
-- Hotspot: --verbose, --no-thin, http.postBuffer 524288000
-- David Berry Sr. — NOOB MODE — AI is brains, David is idea
-- Olivia NC / North Myrtle Beach hotspot
+- Hotspot: --verbose
+- David Berry Sr. NOOB MODE — AI brains, David idea
+- Olivia NC / NMB hotspot
 - Branch: feature/haven-central-fixes
-- Last push: 949d358 -> now pending transaction fix
-- Queued: gig_income.dart, AppState, Forgot-password
-- Laws 1-16 enforced
+- Last push 7dda27d
+- Queued: AppState Phase 2, UI richer entry, Forgot-password
+- Laws 1-17 enforced — Read Before Assist mandatory
