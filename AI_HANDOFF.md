@@ -1,27 +1,30 @@
-﻿# AI_HANDOFF - See CLAUDE.md Laws 1-17 + Branch feature/haven-central-fixes HEAD 76900b6 Phase 2 complete, Phase 3 Gig Screen next
-# CLAUDE'S DEVELOPMENT RULES â€” HAVEN OS â€” NOOB MODE
-Last Updated: 2026-09-06 â€” Laws 16+17 Added per David
-Branch: feature/haven-central-fixes â€” HEAD: 7dda27d
+﻿# UNIVERSAL AI HANDOFF — Haven OS — Grok, Claude, Meta AI, DeepSeek, Gemini — ONE FILE
 
-Rule 1: Never tell David to manually find/edit â€” complete file replacements
-Rule 2: Complete file always
-Rule 3: Exact file path
-Rule 4: One file at a time, test, move on
-Rule 5: Inspect first â€” Get-Content real file
-Rule 6: Explain what is wrong
-Rule 7: Give complete replacement
-Rule 8: Stop after file, wait for test
-Rule 9: David tests: flutter analyze + flutter run
-Rule 10: Only then next file
-Rule 11: If error, STOP and diagnose
-Rule 12: Never invent constructors/fields/APIs â€” preserve original schema, additive only
-Rule 13: Preserve working functionality
-Rule 14: Do not change multiple layers at once â€” Phase1 Models, Phase2 AppState, Phase3 Firestore
-Rule 15: Do not casually delete working code
-Rule 16 LOG LAW: Every AI MUST keep DEV_LOG.md up-to-date â€” no push without log
-Rule 17 READ BEFORE ASSIST: Every AI MUST READ DEV_LOG.md + CLAUDE.md BEFORE assisting
+**Branch:** feature/haven-central-fixes
+**Current HEAD:** 85d852d (origin synced, analyze No issues at 76900b6)
+**Last 3:** 85d852d docs handoff, e6d63ba copy, 76900b6 feat GigIncome storage Phase 2 complete
+**Repo:** berry82D/haven_os
 
-Architecture: app_state.dart + SharedPreferences NOT repo/provider, householdId fallback=userId, Transaction .abs() filter !isIncome, gigIncomeId -> GigIncome.id
-Last push 7dda27d: removed rhbarringer hack, added gigIncomeId, Law 16
-David Berry Sr. 44 Olivia NC / NMB hotspot, NOOB MODE AI brains David idea
-All AIs must follow 1-17 and READ LOGS FIRST.
+## LAWS (from CLAUDE.md)
+Law 2: ONE complete file replacement only. Law 3: analyze + add + commit + push each file. Law 5: No issues before push. Law 12: householdId filtering .where((x)=>x.householdId==_currentUser?.householdId). Law 17: Read DEV_LOG + CLAUDE before coding.
+
+## DONE — Phase 2 @76900b6
+- lib/models/gig_income.dart: id,userId,householdId,date,platform(GigPlatform enum doordash,uberEats,spark,instacart,lyft,uber,other),basePay,tips,bonus,mileage,miles,totalAmount,notes,transactionId, getters totalPay, payPerMile, tipPercent, formattedDate, platformName, formattedTotal, toJson/fromJson
+- lib/core/storage/storage_service.dart: saveAll/loadAll includes List<GigIncome> gigIncomes + import
+- lib/services/app_state.dart: List<GigIncome> _gigIncomes, myGigIncomes filtered, gigIncomes getter, addGigIncome, deleteGigIncome, updateGigIncome, wired in initialize/_saveData/_seedData, pin logic intact (isPinEnabled, pinVerified, needsPinReentry, _refreshPinStatus) DO NOT BREAK
+- Analyze: No issues found! at 76900b6
+
+## NEXT — Phase 3 — File to create: lib/screens/gig_income/gig_income_screen.dart
+Requirements: Scaffold AppBar "Gig Income", Consumer<AppState> myGigIncomes sorted date desc, ListTile title platformName + formattedTotal, subtitle formattedDate + miles + payPerMile + tipPercent, trailing edit/delete, Summary card total month/miles/avg, FAB dialog with platform dropdown, date picker, basePay,tips,bonus,miles,mileage,notes, auto totalAmount=basePay+tips+bonus, save via addGigIncome/updateGigIncome with userId/currentUser.id householdId/currentUser.householdId
+
+## START COMMANDS
+git checkout feature/haven-central-fixes
+git pull origin feature/haven-central-fixes
+git log --oneline -3
+flutter analyze
+
+## UNIVERSAL PROMPT FOR ANY AI (Copy/Paste to Grok/Claude/Meta/DeepSeek/Gemini)
+Read AI_HANDOFF.md at root of berry82D/haven_os branch feature/haven-central-fixes HEAD 85d852d. Read CLAUDE.md Laws 1-17 and DEV_LOG.md. Run git log + flutter analyze. Then create ONE complete file lib/screens/gig_income/gig_income_screen.dart per Phase 3 in AI_HANDOFF.md. Law 2 full file, Law 5 analyze clean, Law 3 commit+push. No questions — all context in AI_HANDOFF.md and lib/models/gig_income.dart. Branch 85d852d is clean.
+
+## PASS-OFF CHECK
+Good AI output: shows 85d852d, analyze No issues, plan for gig_income_screen.dart, does NOT ask for GigIncome fields. Bad: asks 100 questions = did NOT read AI_HANDOFF.md.
