@@ -8,6 +8,7 @@ import 'package:haven_os/models/timeline_event.dart';
 import 'package:haven_os/models/loan.dart';
 import 'package:haven_os/models/feed_delivery.dart';
 import 'package:haven_os/models/budget.dart';
+import 'package:haven_os/models/gig_income.dart';
 
 class StorageService {
   static const String _key = 'haven_os_data';
@@ -34,6 +35,7 @@ class StorageService {
     required List<FeedDelivery> feedDeliveries,
     required List<Loan> loans,
     required List<Budget> budgets,
+    required List<GigIncome> gigIncomes,
     required int learningMode,
     required int schoolAgeGroup,
     required bool allowFinalAnswers,
@@ -48,6 +50,7 @@ class StorageService {
       'feedDeliveries': feedDeliveries.map((f) => f.toJson()).toList(),
       'loans': loans.map((l) => l.toJson()).toList(),
       'budgets': budgets.map((b) => b.toJson()).toList(),
+      'gigIncomes': gigIncomes.map((g) => g.toJson()).toList(),
       'learningMode': learningMode,
       'schoolAgeGroup': schoolAgeGroup,
       'allowFinalAnswers': allowFinalAnswers,

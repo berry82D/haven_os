@@ -20,6 +20,7 @@ import 'package:haven_os/models/household.dart';
 import 'package:haven_os/models/guardian_relationship.dart';
 import 'package:haven_os/models/join_request.dart';
 import 'package:haven_os/models/budget.dart';
+import 'package:haven_os/models/gig_income.dart';
 import 'package:haven_os/domain/services/household_service.dart';
 import 'package:haven_os/services/auth_service.dart';
 import 'package:haven_os/core/enums/learning_mode.dart';
@@ -36,6 +37,7 @@ class AppState extends ChangeNotifier {
   List<GuardianRelationship> _guardianRelationships = [];
   List<JoinRequest> _joinRequests = [];
   List<Budget> _budgets = [];
+  List<GigIncome> _gigIncomes = [];
 
   LearningMode _learningMode = LearningMode.standard;
   SchoolAgeGroup _schoolAgeGroup = SchoolAgeGroup.older;
@@ -178,6 +180,13 @@ class AppState extends ChangeNotifier {
         .toList();
   }
 
+  List<GigIncome> get myGigIncomes {
+    if (_currentUser == null) return [];
+    return _gigIncomes
+        .where((g) => g.householdId == _currentUser!.householdId)
+        .toList();
+  }
+
   List<Transaction> get transactions => _transactions;
   List<Animal> get animals => _animals;
   List<Bill> get bills => _bills;
@@ -190,6 +199,7 @@ class AppState extends ChangeNotifier {
   List<GuardianRelationship> get guardianRelationships =>
       _guardianRelationships;
   List<Budget> get budgets => _budgets;
+  List<GigIncome> get gigIncomes => _gigIncomes;
 
   LearningMode get learningMode => _learningMode;
   SchoolAgeGroup get schoolAgeGroup => _schoolAgeGroup;
@@ -295,6 +305,10 @@ class AppState extends ChangeNotifier {
       _budgets =
           (data['budgets'] as List?)?.map((j) => Budget.fromJson(j)).toList() ??
               [];
+      _gigIncomes = (data['gigIncomes'] as List?)
+              ?.map((j) => GigIncome.fromJson(j))
+              .toList() ??
+          [];
       _households = (data['households'] as List?)
               ?.map((j) => Household.fromJson(j))
               .toList() ??
@@ -326,6 +340,7 @@ class AppState extends ChangeNotifier {
     _loans = [];
     _feedDeliveries = [];
     _budgets = [];
+    _gigIncomes = [];
     _households = [];
     _guardianRelationships = [];
     _joinRequests = [];
@@ -347,6 +362,7 @@ class AppState extends ChangeNotifier {
         feedDeliveries: _feedDeliveries,
         loans: _loans,
         budgets: _budgets,
+        gigIncomes: _gigIncomes,
         learningMode: _learningMode.index,
         schoolAgeGroup: _schoolAgeGroup.index,
         allowFinalAnswers: _allowFinalAnswers);
@@ -511,7 +527,6 @@ class AppState extends ChangeNotifier {
     }
   }
 
-  // FIXED - uses!isIncome not amount < 0
   double getCategorySpent(String category) {
     final now = DateTime.now();
     final startOfMonth = DateTime(now.year, now.month, 1);
@@ -547,6 +562,27 @@ class AppState extends ChangeNotifier {
         b.category == category && b.householdId == _currentUser?.householdId);
     _saveData();
     notifyListeners();
+  }
+
+  void addGigIncome(GigIncome income) {
+    _gigIncomes.add(income);
+    _saveData();
+    notifyListeners();
+  }
+
+  void deleteGigIncome(String id) {
+    _gigIncomes.removeWhere((g) => g.id == id);
+    _saveData();
+    notifyListeners();
+  }
+
+  void updateGigIncome(GigIncome updated) {
+    final i = _gigIncomes.indexWhere((g) => g.id == updated.id);
+    if (i != -1) {
+      _gigIncomes[i] = updated;
+      _saveData();
+      notifyListeners();
+    }
   }
 
   void addTimelineEvent(TimelineEvent e) {
