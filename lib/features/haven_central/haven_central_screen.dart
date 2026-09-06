@@ -990,7 +990,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
           ),
           const SizedBox(height: 20),
 
-          // Collapsible Recent Activity
+          // Collapsible Recent Activity with Edit/Delete
           Container(
             decoration: BoxDecoration(
               color: const Color(0xFF1E1E1E),
@@ -1329,6 +1329,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
     );
   }
 
+  // Transaction tile with Edit & Delete buttons
   Widget _buildActivityTile(Transaction tx) {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 4),
@@ -1357,6 +1358,8 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                   tx.description,
                   style: const TextStyle(
                       color: Colors.white, fontWeight: FontWeight.bold),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 Text(
                   '${tx.place} • ${tx.formattedDate}',
@@ -1371,6 +1374,45 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
               color: tx.isIncome ? Colors.green : Colors.red,
               fontWeight: FontWeight.bold,
             ),
+          ),
+          // EDIT BUTTON
+          IconButton(
+            icon: const Icon(Icons.edit, color: Colors.blue, size: 18),
+            onPressed: () => _showAddTransactionSheet(existingTransaction: tx),
+            tooltip: 'Edit',
+          ),
+          // DELETE BUTTON
+          IconButton(
+            icon: const Icon(Icons.delete, color: Colors.red, size: 18),
+            onPressed: () => _confirmDeleteTransaction(tx),
+            tooltip: 'Delete',
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Confirm Delete Transaction
+  void _confirmDeleteTransaction(Transaction tx) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1E1E1E),
+        title: const Text('Delete Transaction?',
+            style: TextStyle(color: Colors.white)),
+        content: Text('Delete "${tx.description}"?',
+            style: const TextStyle(color: Colors.grey)),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child:
+                  const Text('Cancel', style: TextStyle(color: Colors.grey))),
+          TextButton(
+            onPressed: () async {
+              await _firestore.deleteTransaction(tx.id);
+              Navigator.pop(ctx);
+            },
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -1838,6 +1880,8 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                       }
 
                       final newTransaction = Transaction(
+                        // 🔥 FIX: pass the existing id when editing
+                        id: existingTransaction?.id,
                         description: desc,
                         place: controllerPlace.text.trim(),
                         date: selectedDate,
