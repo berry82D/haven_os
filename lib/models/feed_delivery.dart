@@ -1,88 +1,85 @@
 class FeedDelivery {
-  final String id;
-  final DateTime date;
-  final String vendor;
-  final double fullWeight; // Total weight from ticket (lbs)
-  final double fullCost; // Total cost from ticket ($)
-  final double splitPercent; // Your share (0.5 = 50%)
-  final String materialType; // "Field Corn", "Feed Mix", etc.
-  final String? notes;
-  final String userId;
-  final String assignedTo; // "Pigs", "Pen A", "Chickens", etc.
-  final DateTime createdAt;
+  String id;
+  String householdId;
+  String type;
+  double weight;
+  String unit;
+  double? quantity;
+  String? quantityUnit;
+  DateTime date;
+  String notes;
+  // Preserve extra data from ticket parsing without breaking schema
+  double? cost;
+  String? vendor;
 
-  FeedDelivery({
-    required this.id,
-    required this.date,
-    required this.vendor,
-    required this.fullWeight,
-    required this.fullCost,
-    this.splitPercent = 0.5,
-    this.materialType = 'Field Corn',
-    this.notes,
-    required this.userId,
-    this.assignedTo = 'Pigs',
-    DateTime? createdAt,
-  }) : createdAt = createdAt ?? DateTime.now();
+  FeedDelivery(
+      {String? id,
+      required this.householdId,
+      required this.type,
+      required this.weight,
+      this.unit = 'lb',
+      this.quantity,
+      this.quantityUnit = 'bags',
+      DateTime? date,
+      this.notes = '',
+      this.cost,
+      this.vendor})
+      : id = id ?? DateTime.now().millisecondsSinceEpoch.toString(),
+        date = date ?? DateTime.now();
 
-  double get yourWeight => fullWeight * splitPercent;
-  double get yourCost => fullCost * splitPercent;
-  double get costPerLb => fullWeight > 0 ? fullCost / fullWeight : 0.0;
-  double get yourCostPerLb => yourWeight > 0 ? yourCost / yourWeight : 0.0;
-  String get formattedDate => '${date.month}/${date.day}/${date.year}';
-  String get vendorDisplay => vendor.isNotEmpty ? vendor : 'Unknown Vendor';
-
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'date': date.toIso8601String(),
-        'vendor': vendor,
-        'fullWeight': fullWeight,
-        'fullCost': fullCost,
-        'splitPercent': splitPercent,
-        'materialType': materialType,
-        'notes': notes,
-        'userId': userId,
-        'assignedTo': assignedTo,
-        'createdAt': createdAt.toIso8601String(),
-      };
-
-  factory FeedDelivery.fromJson(Map<String, dynamic> json) {
-    return FeedDelivery(
-      id: json['id'],
-      date: DateTime.parse(json['date']),
-      vendor: json['vendor'] ?? '',
-      fullWeight: (json['fullWeight'] as num).toDouble(),
-      fullCost: (json['fullCost'] as num).toDouble(),
-      splitPercent: (json['splitPercent'] as num?)?.toDouble() ?? 0.5,
-      materialType: json['materialType'] ?? 'Field Corn',
-      notes: json['notes'],
-      userId: json['userId'] ?? '',
-      assignedTo: json['assignedTo'] ?? 'Pigs',
-      createdAt:
-          json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null,
-    );
-  }
-
+  // NEW FACTORY REQUIRED BY feed_parser.dart:64 - preserves original fields
   factory FeedDelivery.fromTicket({
     required String vendor,
     required double fullWeight,
     required double fullCost,
-    DateTime? date,
-    double splitPercent = 0.5,
-    String userId = '',
-    String assignedTo = 'Pigs',
-    String materialType = 'Field Corn',
+    required DateTime date,
+    required double splitPercent,
+    required String userId,
+    required String materialType,
   }) {
+    final splitWeight = fullWeight * splitPercent;
+    final splitCost = fullCost * splitPercent;
     return FeedDelivery(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      date: date ?? DateTime.now(),
+      householdId: userId,
+      type: materialType,
+      weight: splitWeight,
+      unit: 'lb',
+      quantity: null,
+      quantityUnit: 'bags',
+      date: date,
+      notes:
+          '$vendor - Original: ${fullWeight}lb \$$fullCost split ${(splitPercent * 100).toStringAsFixed(0)}%',
+      cost: splitCost,
       vendor: vendor,
-      fullWeight: fullWeight,
-      fullCost: fullCost,
-      splitPercent: splitPercent,
-      userId: userId,
-      assignedTo: assignedTo,
-      materialType: materialType,
     );
   }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'householdId': householdId,
+        'type': type,
+        'weight': weight,
+        'unit': unit,
+        'quantity': quantity,
+        'quantityUnit': quantityUnit,
+        'date': date.toIso8601String(),
+        'notes': notes,
+        'cost': cost,
+        'vendor': vendor,
+      };
+
+  factory FeedDelivery.fromJson(Map<String, dynamic> j) => FeedDelivery(
+        id: j['id'],
+        householdId: j['householdId'] ?? j['userId'] ?? '',
+        type: j['type'] ?? 'Feed',
+        weight: (j['weight'] ?? 0).toDouble(),
+        unit: j['unit'] ?? 'lb',
+        quantity:
+            j['quantity'] != null ? (j['quantity'] as num).toDouble() : null,
+        quantityUnit: j['quantityUnit'] ?? 'bags',
+        date: DateTime.parse(j['date']),
+        notes: j['notes'] ?? '',
+        cost: j['cost'] != null ? (j['cost'] as num).toDouble() : null,
+        vendor: j['vendor'],
+      );
 }

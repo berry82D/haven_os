@@ -19,6 +19,7 @@ class Loan {
   final LoanType type;
   final double? remainingBalance;
   final String userId;
+  final String householdId;
 
   Loan({
     required this.id,
@@ -32,7 +33,10 @@ class Loan {
     this.type = LoanType.other,
     this.remainingBalance,
     required this.userId,
-  });
+    String? householdId,
+  }) : householdId = (householdId != null && householdId.isNotEmpty)
+            ? householdId
+            : userId;
 
   double get totalPaid => monthlyPayment * termMonths;
   double get totalInterest => totalPaid - principal;
@@ -54,6 +58,7 @@ class Loan {
         'type': type.index,
         'remainingBalance': remainingBalance,
         'userId': userId,
+        'householdId': householdId,
       };
 
   factory Loan.fromJson(Map<String, dynamic> json) {
@@ -71,6 +76,7 @@ class Loan {
           ? (json['remainingBalance'] as num).toDouble()
           : null,
       userId: json['userId'] ?? '',
+      householdId: json['householdId'] ?? json['userId'] ?? '',
     );
   }
 }

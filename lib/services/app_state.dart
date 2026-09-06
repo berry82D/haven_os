@@ -25,7 +25,6 @@ import 'package:haven_os/services/auth_service.dart';
 import 'package:haven_os/core/enums/learning_mode.dart';
 
 class AppState extends ChangeNotifier {
-  // ---- Data ----
   List<Transaction> _transactions = [];
   List<Animal> _animals = [];
   List<Bill> _bills = [];
@@ -38,16 +37,13 @@ class AppState extends ChangeNotifier {
   List<JoinRequest> _joinRequests = [];
   List<Budget> _budgets = [];
 
-  // ---- Learning settings ----
   LearningMode _learningMode = LearningMode.standard;
   SchoolAgeGroup _schoolAgeGroup = SchoolAgeGroup.older;
   bool _allowFinalAnswers = false;
 
-  // ---- Current User ----
   UserAccount? _currentUser;
   UserAccount? get currentUser => _currentUser;
 
-  // ---- PIN cache ----
   bool _currentUserHasPin = false;
   bool get isPinEnabled => _currentUserHasPin;
 
@@ -58,7 +54,6 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ---- PIN & Session State ----
   bool _pinVerifiedForUserId = false;
   String? _verifiedUserId;
   DateTime? _sessionStartTime;
@@ -93,16 +88,13 @@ class AppState extends ChangeNotifier {
     if (pinVerified) {
       if (_sessionStartTime != null) {
         final elapsed = DateTime.now().difference(_sessionStartTime!);
-        if (elapsed > const Duration(minutes: 5)) {
-          return true;
-        }
+        if (elapsed > const Duration(minutes: 5)) return true;
       }
       return false;
     }
     return true;
   }
 
-  // ---- User & Session ----
   void setCurrentUser(UserAccount user) {
     _currentUser = user;
     _pinVerifiedForUserId = false;
@@ -141,42 +133,51 @@ class AppState extends ChangeNotifier {
       _currentUser?.role == UserRole.administrator ||
       _currentUser?.role == UserRole.adult;
 
-  // ---- Filtered Getters ----
   List<Transaction> get myTransactions {
     if (_currentUser == null) return [];
-    return _transactions.where((t) => t.userId == _currentUser!.id).toList();
+    return _transactions
+        .where((t) => t.householdId == _currentUser!.householdId)
+        .toList();
   }
 
   List<Animal> get myAnimals {
     if (_currentUser == null) return [];
-    return _animals.where((a) => a.userId == _currentUser!.id).toList();
+    return _animals
+        .where((a) => a.householdId == _currentUser!.householdId)
+        .toList();
   }
 
   List<Bill> get myBills {
     if (_currentUser == null) return [];
-    return _bills.where((b) => b.userId == _currentUser!.id).toList();
+    return _bills
+        .where((b) => b.householdId == _currentUser!.householdId)
+        .toList();
   }
 
   List<Task> get myTasks => _tasks;
-
   List<TimelineEvent> get myTimelineEvents => _timelineEvents;
 
   List<FeedDelivery> get myFeedDeliveries {
     if (_currentUser == null) return [];
-    return _feedDeliveries.where((f) => f.userId == _currentUser!.id).toList();
+    return _feedDeliveries
+        .where((f) => f.householdId == _currentUser!.householdId)
+        .toList();
   }
 
   List<Loan> get myLoans {
     if (_currentUser == null) return [];
-    return _loans.where((l) => l.userId == _currentUser!.id).toList();
+    return _loans
+        .where((l) => l.householdId == _currentUser!.householdId)
+        .toList();
   }
 
   List<Budget> get myBudgets {
     if (_currentUser == null) return [];
-    return _budgets.where((b) => b.userId == _currentUser!.id).toList();
+    return _budgets
+        .where((b) => b.householdId == _currentUser!.householdId)
+        .toList();
   }
 
-  // ---- Unfiltered getters ----
   List<Transaction> get transactions => _transactions;
   List<Animal> get animals => _animals;
   List<Bill> get bills => _bills;
@@ -190,7 +191,6 @@ class AppState extends ChangeNotifier {
       _guardianRelationships;
   List<Budget> get budgets => _budgets;
 
-  // ---- Learning ----
   LearningMode get learningMode => _learningMode;
   SchoolAgeGroup get schoolAgeGroup => _schoolAgeGroup;
   bool get allowFinalAnswers => _allowFinalAnswers;
@@ -213,7 +213,6 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ---- Services ----
   final FinanceService finance = FinanceService();
   final FarmService farm = FarmService();
   final StorageService storage = StorageService();
@@ -223,15 +222,11 @@ class AppState extends ChangeNotifier {
   BriefingService get briefing => BriefingService(finance, farm);
   QueryService get query => const QueryService();
   LearningService get learningService => LearningService(
-        ageGroup: _schoolAgeGroup,
-        allowFinalAnswers: _allowFinalAnswers,
-      );
+      ageGroup: _schoolAgeGroup, allowFinalAnswers: _allowFinalAnswers);
 
-  // ---- State ----
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
-  // ---- Household & Join Requests ----
   Future<void> loadHouseholdsAndRequests() async {
     _households = await HouseholdService.loadHouseholds();
     _joinRequests = await HouseholdService.loadRequests();
@@ -244,22 +239,17 @@ class AppState extends ChangeNotifier {
     await loadHouseholdsAndRequests();
   }
 
-  Future<void> requestJoinHousehold({
-    required String householdName,
-    String? message,
-  }) async {
+  Future<void> requestJoinHousehold(
+      {required String householdName, String? message}) async {
     if (_currentUser == null) return;
     final household = await HouseholdService.getHouseholdByName(householdName);
-    if (household == null) {
-      throw Exception('Household not found');
-    }
+    if (household == null) throw Exception('Household not found');
     await HouseholdService.createRequest(
-      requesterUserId: _currentUser!.id,
-      requesterName: _currentUser!.name,
-      householdId: household.id,
-      householdName: household.name,
-      message: message,
-    );
+        requesterUserId: _currentUser!.id,
+        requesterName: _currentUser!.name,
+        householdId: household.id,
+        householdName: household.name,
+        message: message);
     await loadHouseholdsAndRequests();
   }
 
@@ -275,14 +265,11 @@ class AppState extends ChangeNotifier {
     await loadHouseholdsAndRequests();
   }
 
-  // ---- Initialization ----
   Future<void> initialize() async {
     _isLoading = true;
     notifyListeners();
-
     await storage.migrateIfNeeded();
     final data = await storage.loadAll();
-
     if (data.isNotEmpty) {
       _transactions = (data['transactions'] as List?)
               ?.map((j) => Transaction.fromJson(j))
@@ -326,7 +313,6 @@ class AppState extends ChangeNotifier {
     } else {
       _seedData();
     }
-
     _refreshPinStatus();
     _isLoading = false;
     notifyListeners();
@@ -350,27 +336,22 @@ class AppState extends ChangeNotifier {
     _saveData();
   }
 
-  void _migrateLegacyData() {
-    // No-op – kept for compatibility
-  }
-
+  void _migrateLegacyData() {}
   Future<void> _saveData() async {
     await storage.saveAll(
-      transactions: _transactions,
-      animals: _animals,
-      bills: _bills,
-      tasks: _tasks,
-      timelineEvents: _timelineEvents,
-      feedDeliveries: _feedDeliveries,
-      loans: _loans,
-      budgets: _budgets,
-      learningMode: _learningMode.index,
-      schoolAgeGroup: _schoolAgeGroup.index,
-      allowFinalAnswers: _allowFinalAnswers,
-    );
+        transactions: _transactions,
+        animals: _animals,
+        bills: _bills,
+        tasks: _tasks,
+        timelineEvents: _timelineEvents,
+        feedDeliveries: _feedDeliveries,
+        loans: _loans,
+        budgets: _budgets,
+        learningMode: _learningMode.index,
+        schoolAgeGroup: _schoolAgeGroup.index,
+        allowFinalAnswers: _allowFinalAnswers);
   }
 
-  // ---- Transaction CRUD ----
   void addTransaction(Transaction tx) {
     _transactions.add(tx);
     _saveData();
@@ -384,15 +365,14 @@ class AppState extends ChangeNotifier {
   }
 
   void updateTransaction(Transaction updated) {
-    final index = _transactions.indexWhere((t) => t.id == updated.id);
-    if (index != -1) {
-      _transactions[index] = updated;
+    final i = _transactions.indexWhere((t) => t.id == updated.id);
+    if (i != -1) {
+      _transactions[i] = updated;
       _saveData();
       notifyListeners();
     }
   }
 
-  // ---- Animal CRUD ----
   void addAnimal(Animal animal) {
     _animals.add(animal);
     _saveData();
@@ -406,15 +386,14 @@ class AppState extends ChangeNotifier {
   }
 
   void updateAnimal(Animal updated) {
-    final index = _animals.indexWhere((a) => a.id == updated.id);
-    if (index != -1) {
-      _animals[index] = updated;
+    final i = _animals.indexWhere((a) => a.id == updated.id);
+    if (i != -1) {
+      _animals[i] = updated;
       _saveData();
       notifyListeners();
     }
   }
 
-  // ---- Bill CRUD ----
   void addBill(Bill bill) {
     _bills.add(bill);
     _saveData();
@@ -428,33 +407,32 @@ class AppState extends ChangeNotifier {
   }
 
   void updateBill(Bill updated) {
-    final index = _bills.indexWhere((b) => b.id == updated.id);
-    if (index != -1) {
-      _bills[index] = updated;
+    final i = _bills.indexWhere((b) => b.id == updated.id);
+    if (i != -1) {
+      _bills[i] = updated;
       _saveData();
       notifyListeners();
     }
   }
 
   void toggleBillPaid(String id) {
-    final index = _bills.indexWhere((b) => b.id == id);
-    if (index != -1) {
-      final old = _bills[index];
-      _bills[index] = Bill(
-        id: old.id,
-        name: old.name,
-        amount: old.amount,
-        dueDate: old.dueDate,
-        isPaid: !old.isPaid,
-        category: old.category,
-        userId: old.userId,
-      );
+    final i = _bills.indexWhere((b) => b.id == id);
+    if (i != -1) {
+      final old = _bills[i];
+      _bills[i] = Bill(
+          id: old.id,
+          name: old.name,
+          amount: old.amount,
+          dueDate: old.dueDate,
+          isPaid: !old.isPaid,
+          category: old.category,
+          userId: old.userId,
+          householdId: old.householdId);
       _saveData();
       notifyListeners();
     }
   }
 
-  // ---- Task CRUD ----
   void addTask(Task task) {
     _tasks.add(task);
     _saveData();
@@ -468,33 +446,31 @@ class AppState extends ChangeNotifier {
   }
 
   void updateTask(Task updated) {
-    final index = _tasks.indexWhere((t) => t.id == updated.id);
-    if (index != -1) {
-      _tasks[index] = updated;
+    final i = _tasks.indexWhere((t) => t.id == updated.id);
+    if (i != -1) {
+      _tasks[i] = updated;
       _saveData();
       notifyListeners();
     }
   }
 
   void toggleTaskCompletion(String id) {
-    final index = _tasks.indexWhere((t) => t.id == id);
-    if (index != -1) {
-      final old = _tasks[index];
-      _tasks[index] = Task(
-        id: old.id,
-        title: old.title,
-        isCompleted: !old.isCompleted,
-        priority: old.priority,
-        isDone: !old.isDone,
-      );
+    final i = _tasks.indexWhere((t) => t.id == id);
+    if (i != -1) {
+      final old = _tasks[i];
+      _tasks[i] = Task(
+          id: old.id,
+          title: old.title,
+          isCompleted: !old.isCompleted,
+          priority: old.priority,
+          isDone: !old.isDone);
       _saveData();
       notifyListeners();
     }
   }
 
-  // ---- Feed Delivery CRUD ----
-  void addFeedDelivery(FeedDelivery delivery) {
-    _feedDeliveries.add(delivery);
+  void addFeedDelivery(FeedDelivery d) {
+    _feedDeliveries.add(d);
     _saveData();
     notifyListeners();
   }
@@ -505,16 +481,15 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  void updateFeedDelivery(FeedDelivery updated) {
-    final index = _feedDeliveries.indexWhere((f) => f.id == updated.id);
-    if (index != -1) {
-      _feedDeliveries[index] = updated;
+  void updateFeedDelivery(FeedDelivery u) {
+    final i = _feedDeliveries.indexWhere((f) => f.id == u.id);
+    if (i != -1) {
+      _feedDeliveries[i] = u;
       _saveData();
       notifyListeners();
     }
   }
 
-  // ---- Loan CRUD ----
   void addLoan(Loan loan) {
     _loans.add(loan);
     _saveData();
@@ -528,15 +503,15 @@ class AppState extends ChangeNotifier {
   }
 
   void updateLoan(Loan updated) {
-    final index = _loans.indexWhere((l) => l.id == updated.id);
-    if (index != -1) {
-      _loans[index] = updated;
+    final i = _loans.indexWhere((l) => l.id == updated.id);
+    if (i != -1) {
+      _loans[i] = updated;
       _saveData();
       notifyListeners();
     }
   }
 
-  // ---- Budget CRUD ----
+  // FIXED - uses!isIncome not amount < 0
   double getCategorySpent(String category) {
     final now = DateTime.now();
     final startOfMonth = DateTime(now.year, now.month, 1);
@@ -544,10 +519,10 @@ class AppState extends ChangeNotifier {
     return _transactions
         .where((t) =>
             t.category == category &&
-            t.userId == _currentUser?.id &&
+            t.householdId == _currentUser?.householdId &&
             t.date.isAfter(startOfMonth) &&
             t.date.isBefore(endOfMonth) &&
-            t.amount < 0)
+            !t.isIncome)
         .fold(0.0, (sum, t) => sum + t.amount.abs());
   }
 
@@ -558,28 +533,26 @@ class AppState extends ChangeNotifier {
   }
 
   void updateBudget(Budget updated) {
-    final index = _budgets.indexWhere(
-        (b) => b.category == updated.category && b.userId == updated.userId);
-    if (index != -1) {
-      _budgets[index] = updated;
+    final i = _budgets.indexWhere((b) =>
+        b.category == updated.category && b.householdId == updated.householdId);
+    if (i != -1) {
+      _budgets[i] = updated;
       _saveData();
       notifyListeners();
     }
   }
 
   void deleteBudget(String category) {
-    _budgets.removeWhere(
-        (b) => b.category == category && b.userId == _currentUser?.id);
+    _budgets.removeWhere((b) =>
+        b.category == category && b.householdId == _currentUser?.householdId);
     _saveData();
     notifyListeners();
   }
 
-  // ---- Timeline ----
-  void addTimelineEvent(TimelineEvent event) {
-    _timelineEvents.insert(0, event);
-    if (_timelineEvents.length > 100) {
+  void addTimelineEvent(TimelineEvent e) {
+    _timelineEvents.insert(0, e);
+    if (_timelineEvents.length > 100)
       _timelineEvents = _timelineEvents.take(100).toList();
-    }
     _saveData();
     notifyListeners();
   }
@@ -590,16 +563,11 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ---- PIN Management ----
   Future<void> enablePin(String pin) async {
-    if (_currentUser == null) {
-      throw Exception('No user logged in');
-    }
+    if (_currentUser == null) throw Exception('No user logged in');
     await AuthService.setPin(_currentUser!.id, pin);
-    final updatedUser = await AuthService.getCurrentUser();
-    if (updatedUser != null) {
-      _currentUser = updatedUser;
-    }
+    final u = await AuthService.getCurrentUser();
+    if (u != null) _currentUser = u;
     _pinVerifiedForUserId = false;
     _verifiedUserId = null;
     _sessionStartTime = null;
@@ -609,14 +577,10 @@ class AppState extends ChangeNotifier {
   }
 
   Future<void> disablePin() async {
-    if (_currentUser == null) {
-      throw Exception('No user logged in');
-    }
+    if (_currentUser == null) throw Exception('No user logged in');
     await AuthService.removePin(_currentUser!.id);
-    final updatedUser = await AuthService.getCurrentUser();
-    if (updatedUser != null) {
-      _currentUser = updatedUser;
-    }
+    final u = await AuthService.getCurrentUser();
+    if (u != null) _currentUser = u;
     _pinVerifiedForUserId = false;
     _verifiedUserId = null;
     _sessionStartTime = null;
@@ -625,7 +589,6 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ---- Reset ----
   Future<void> resetAllData() async {
     await storage.clearAll();
     await AuthService.clearAll();
@@ -634,18 +597,15 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ---- Restore from Backup ----
   Future<void> restoreFromBackup(Map<String, dynamic> data) async {
     _saveData();
     notifyListeners();
   }
 
-  // ---- Refresh ----
   void refresh() {
     notifyListeners();
   }
 
-  // ---- Additional methods ----
   Future<List<UserAccount>> getHouseholdMembers(String householdId) async {
     final accounts = await AuthService.loadAccounts();
     return accounts.where((a) => a.householdId == householdId).toList();
@@ -655,16 +615,15 @@ class AppState extends ChangeNotifier {
     final user = await AuthService.getUserById(userId);
     if (user != null) {
       final updated = UserAccount(
-        id: user.id,
-        householdId: user.householdId,
-        name: user.name,
-        type: AccountType.parent,
-        role: UserRole.administrator,
-        hasPin: user.hasPin,
-        useBiometrics: user.useBiometrics,
-        autoLogin: user.autoLogin,
-        permissions: user.permissions,
-      );
+          id: user.id,
+          householdId: user.householdId,
+          name: user.name,
+          type: AccountType.parent,
+          role: UserRole.administrator,
+          hasPin: user.hasPin,
+          useBiometrics: user.useBiometrics,
+          autoLogin: user.autoLogin,
+          permissions: user.permissions);
       await AuthService.updateUser(updated);
       notifyListeners();
     }

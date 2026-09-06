@@ -4,10 +4,11 @@ class Animal {
   final String type;
   final int count;
   final String healthStatus;
-  final int health; // added
-  final double feedCost; // added
-  final double revenue; // added
-  final String userId; // added
+  final int health;
+  final double feedCost;
+  final double revenue;
+  final String userId;
+  final String householdId;
 
   Animal({
     required this.id,
@@ -19,7 +20,10 @@ class Animal {
     this.feedCost = 0.0,
     this.revenue = 0.0,
     this.userId = '',
-  });
+    String? householdId,
+  }) : householdId = (householdId != null && householdId.isNotEmpty)
+            ? householdId
+            : userId;
 
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -31,6 +35,7 @@ class Animal {
         'feedCost': feedCost,
         'revenue': revenue,
         'userId': userId,
+        'householdId': householdId,
       };
 
   factory Animal.fromJson(Map<String, dynamic> json) => Animal(
@@ -43,5 +48,6 @@ class Animal {
         feedCost: json['feedCost']?.toDouble() ?? 0.0,
         revenue: json['revenue']?.toDouble() ?? 0.0,
         userId: json['userId'] ?? '',
+        householdId: json['householdId'] ?? json['userId'] ?? '',
       );
 }
