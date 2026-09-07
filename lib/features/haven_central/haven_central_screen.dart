@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -10,6 +10,7 @@ import 'package:fl_chart/fl_chart.dart';
 import '../../models/transaction.dart';
 import '../../models/budget.dart';
 import '../../services/firestore_service.dart';
+import '../../screens/gig_income/gig_income_screen.dart';
 
 const List<String> transactionCategories = [
   'General',
@@ -82,7 +83,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
 
   Widget _buildHomeTab(
       List<Transaction> transactions, List<Task> tasks, List<Budget> budgets) {
-    final upcomingTasks = tasks.where((t) => !t.isDone).take(5).toList();
+    final upcomingTasks = tasks.where((t) =>!t.isDone).take(5).toList();
     final insights = _generateAIInsights(transactions, budgets);
     return Container(
         color: const Color(0xFF121212),
@@ -169,7 +170,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                 child: Text('No tasks yet. Add one!',
                     style: TextStyle(color: Colors.grey)))
           else
-            ...upcomingTasks.map((task) => _buildTaskTile(task)),
+           ...upcomingTasks.map((task) => _buildTaskTile(task)),
           const SizedBox(height: 16),
           Container(
               padding: const EdgeInsets.all(16),
@@ -190,7 +191,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                               color: Colors.white))
                     ]),
                     const SizedBox(height: 8),
-                    ...insights.map((text) => Padding(
+                   ...insights.map((text) => Padding(
                         padding: const EdgeInsets.symmetric(vertical: 4),
                         child: Text(text,
                             style: const TextStyle(
@@ -210,25 +211,25 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
     final totalIncome =
         transactions.where((t) => t.isIncome).fold(0.0, (s, t) => s + t.amount);
     final totalExpense = transactions
-        .where((t) => !t.isIncome)
-        .fold(0.0, (s, t) => s + t.amount);
+       .where((t) =>!t.isIncome)
+       .fold(0.0, (s, t) => s + t.amount);
     final net = totalIncome - totalExpense;
     final catExp = <String, double>{};
-    for (final t in transactions.where((t) => !t.isIncome)) {
-      catExp[t.category] = (catExp[t.category] ?? 0) + t.amount;
+    for (final t in transactions.where((t) =>!t.isIncome)) {
+      catExp[t.category] = (catExp[t.category]?? 0) + t.amount;
     }
     if (catExp.isNotEmpty) {
-      final topCat = catExp.entries.reduce((a, b) => a.value > b.value ? a : b);
+      final topCat = catExp.entries.reduce((a, b) => a.value > b.value? a : b);
       insights.add(
           '💡 Your top spending category is **${topCat.key}** (${topCat.value.toStringAsFixed(0)}).');
     }
     if (transactions.isNotEmpty) {
       final earliest = transactions
-          .map((t) => t.date)
-          .reduce((a, b) => a.isBefore(b) ? a : b);
+         .map((t) => t.date)
+         .reduce((a, b) => a.isBefore(b)? a : b);
       final latest = transactions
-          .map((t) => t.date)
-          .reduce((a, b) => a.isAfter(b) ? a : b);
+         .map((t) => t.date)
+         .reduce((a, b) => a.isAfter(b)? a : b);
       final months = (latest.year - earliest.year) * 12 +
           (latest.month - earliest.month) +
           1;
@@ -253,10 +254,10 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
           budgets.where((b) => b.month == monthKey).toList();
       for (final budget in relevantBudgets) {
         final spent = transactions
-            .where((t) => !t.isIncome && t.category == budget.category)
-            .fold(0.0, (s, t) => s + t.amount);
+           .where((t) =>!t.isIncome && t.category == budget.category)
+           .fold(0.0, (s, t) => s + t.amount);
         final percent =
-            budget.limit > 0 ? (spent / budget.limit * 100).clamp(0, 100) : 0;
+            budget.limit > 0? (spent / budget.limit * 100).clamp(0, 100) : 0;
         if (percent >= 80) {
           insights.add(
               '⚠ You\'ve used ${percent.toStringAsFixed(0)}% of your "${budget.category}" budget (\$${spent.toStringAsFixed(0)} of \$${budget.limit.toStringAsFixed(0)}). Consider cutting back.');
@@ -328,8 +329,8 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                   if (name.isEmpty) return;
                   final newItem = {
                     'name': name,
-                    'quantity': qty ?? 0,
-                    'weight': weight ?? 0,
+                    'quantity': qty?? 0,
+                    'weight': weight?? 0,
                     'unit': unit
                   };
                   await _firestore.saveFarmItem(newItem);
@@ -345,8 +346,8 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                     const Text('Add', style: TextStyle(color: Colors.black))),
           ]),
           const SizedBox(height: 16),
-          ...farmItems
-              .map((item) => Container(
+         ...farmItems
+             .map((item) => Container(
                   margin: const EdgeInsets.symmetric(vertical: 4),
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
@@ -361,7 +362,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                                 style: const TextStyle(color: Colors.white))),
                         Row(children: [
                           Text(
-                              '${item['weight'] != null && item['weight'] != 0 ? "${item['weight']} ${item['unit'] ?? unit} • " : ""}${item['quantity']} qty',
+                              '${item['weight']!= null && item['weight']!= 0? "${item['weight']} ${item['unit']?? unit} • " : ""}${item['quantity']} qty',
                               style: const TextStyle(color: Colors.white)),
                           IconButton(
                               icon: const Icon(Icons.delete,
@@ -371,19 +372,19 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                               }),
                         ]),
                       ])))
-              .toList(),
+             .toList(),
         ]));
   }
 
   Widget _buildFinancesTab(List<Transaction> transactions) {
     final incomes = transactions
-        .where((t) => t.isIncome)
-        .fold(0.0, (sum, t) => sum + t.amount);
+       .where((t) => t.isIncome)
+       .fold(0.0, (sum, t) => sum + t.amount);
     final expenses = transactions
-        .where((t) => !t.isIncome)
-        .fold(0.0, (sum, t) => sum + t.amount);
+       .where((t) =>!t.isIncome)
+       .fold(0.0, (sum, t) => sum + t.amount);
     final net = incomes - expenses;
-    final savingsRate = incomes > 0 ? (net / incomes * 100).clamp(0, 100) : 0.0;
+    final savingsRate = incomes > 0? (net / incomes * 100).clamp(0, 100) : 0.0;
     List<DateTime> monthRange = [];
     if (transactions.isNotEmpty) {
       DateTime earliest = transactions.first.date;
@@ -417,7 +418,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
       final inc =
           monthTxs.where((t) => t.isIncome).fold(0.0, (s, t) => s + t.amount);
       final exp =
-          monthTxs.where((t) => !t.isIncome).fold(0.0, (s, t) => s + t.amount);
+          monthTxs.where((t) =>!t.isIncome).fold(0.0, (s, t) => s + t.amount);
       return {
         'label': DateFormat('MMM').format(month),
         'income': inc,
@@ -426,20 +427,20 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
       };
     }).toList();
     final expenseCategories = <String, double>{};
-    for (final tx in transactions.where((t) => !t.isIncome)) {
+    for (final tx in transactions.where((t) =>!t.isIncome)) {
       expenseCategories[tx.category] =
-          (expenseCategories[tx.category] ?? 0) + tx.amount;
+          (expenseCategories[tx.category]?? 0) + tx.amount;
     }
     final categoryEntries = expenseCategories.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
+     ..sort((a, b) => b.value.compareTo(a.value));
     final topCategories = categoryEntries.take(5).toList();
     final otherTotal = categoryEntries.skip(5).fold(0.0, (s, e) => s + e.value);
     final validMonths = monthlyData
-        .where(
+       .where(
             (m) => (m['income'] as double) > 0 || (m['expense'] as double) > 0)
-        .toList();
+       .toList();
     final avgSavings = validMonths.isNotEmpty
-        ? validMonths.fold(0.0, (s, m) => s + (m['net'] as double)) /
+       ? validMonths.fold(0.0, (s, m) => s + (m['net'] as double)) /
             validMonths.length
         : 0.0;
     final projectedNet = net + avgSavings * 12;
@@ -473,7 +474,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
               const SizedBox(height: 8),
               Row(children: [
                 _buildSummaryCard('Net', '\$${net.toStringAsFixed(0)}',
-                    net >= 0 ? Colors.teal : Colors.orange),
+                    net >= 0? Colors.teal : Colors.orange),
                 const SizedBox(width: 8),
                 _buildSummaryCard('Savings Rate',
                     '${savingsRate.toStringAsFixed(1)}%', Colors.blue)
@@ -617,7 +618,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                                 height: 120,
                                 width: 120,
                                 child: PieChart(PieChartData(sections: [
-                                  ...topCategories.map((e) => PieChartSectionData(
+                                 ...topCategories.map((e) => PieChartSectionData(
                                       value: e.value,
                                       color: _categoryColor(e.key),
                                       radius: 20,
@@ -645,7 +646,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                  ...topCategories.map((e) =>
+                                 ...topCategories.map((e) =>
                                       _buildCategoryLegend(
                                           e.key, e.value, expenses)),
                                   if (otherTotal > 0)
@@ -688,16 +689,16 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                               Text('\$${projectedNet.toStringAsFixed(0)}',
                                   style: TextStyle(
                                       color: projectedNet >= 0
-                                          ? Colors.green
+                                         ? Colors.green
                                           : Colors.red,
                                       fontWeight: FontWeight.bold))
                             ]),
                         const SizedBox(height: 8),
                         LinearProgressIndicator(
-                            value: projectedNet >= 0 ? 1 : 0.5,
+                            value: projectedNet >= 0? 1 : 0.5,
                             backgroundColor: Colors.grey[800],
                             color:
-                                projectedNet >= 0 ? Colors.green : Colors.red),
+                                projectedNet >= 0? Colors.green : Colors.red),
                       ])),
               const SizedBox(height: 20),
               Container(
@@ -706,7 +707,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                       borderRadius: BorderRadius.circular(12)),
                   child: Theme(
                       data: Theme.of(context)
-                          .copyWith(dividerColor: Colors.transparent),
+                         .copyWith(dividerColor: Colors.transparent),
                       child: ExpansionTile(
                           title: const Text('📋 Recent Activity',
                               style: TextStyle(
@@ -724,9 +725,9 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                                   child: Text('No transactions yet.',
                                       style: TextStyle(color: Colors.grey)))
                             else
-                              ...transactions.reversed
-                                  .take(10)
-                                  .map((tx) => _buildActivityTile(tx))
+                             ...transactions.reversed
+                                 .take(10)
+                                 .map((tx) => _buildActivityTile(tx))
                           ]))),
               const SizedBox(height: 20),
             ]));
@@ -750,7 +751,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
               style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.tealAccent[700])),
           const SizedBox(height: 16),
-          ...loans.map((loan) {
+         ...loans.map((loan) {
             return Container(
                 margin: const EdgeInsets.symmetric(vertical: 4),
                 padding: const EdgeInsets.all(12),
@@ -795,7 +796,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
 
   Widget _buildScheduleTab(List<Task> tasks) {
     final sortedTasks = List<Task>.from(tasks)
-      ..sort((a, b) => a.dueDate.compareTo(b.dueDate));
+     ..sort((a, b) => a.dueDate.compareTo(b.dueDate));
     return Container(
         color: const Color(0xFF121212),
         child: ListView(padding: const EdgeInsets.all(16), children: [
@@ -819,7 +820,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                 child: Text('No tasks scheduled.',
                     style: TextStyle(color: Colors.grey)))
           else
-            ...sortedTasks.map((task) => _buildTaskTile(task)),
+           ...sortedTasks.map((task) => _buildTaskTile(task)),
         ]));
   }
 
@@ -860,13 +861,13 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                     'No budgets set for this month. Budgets are reflective - set based on your income and spending.',
                     style: TextStyle(color: Colors.grey)))
           else
-            ...monthBudgets.map((budget) {
+           ...monthBudgets.map((budget) {
               final spent = transactions
-                  .where((t) => !t.isIncome && t.category == budget.category)
-                  .fold(0.0, (s, t) => s + t.amount);
+                 .where((t) =>!t.isIncome && t.category == budget.category)
+                 .fold(0.0, (s, t) => s + t.amount);
               final left = budget.limit - spent;
               final percent = budget.limit > 0
-                  ? (spent / budget.limit * 100).clamp(0, 100)
+                 ? (spent / budget.limit * 100).clamp(0, 100)
                   : 0;
               return Container(
                   margin: const EdgeInsets.symmetric(vertical: 4),
@@ -896,7 +897,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                             value: percent / 100,
                             backgroundColor: Colors.grey[800],
                             color:
-                                percent > 80 ? Colors.red : Colors.tealAccent),
+                                percent > 80? Colors.red : Colors.tealAccent),
                         const SizedBox(height: 4),
                         Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -907,12 +908,12 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                                   '\$${budget.limit.toStringAsFixed(2)} limit • \$${left.toStringAsFixed(2)} left',
                                   style: TextStyle(
                                       color:
-                                          left < 0 ? Colors.red : Colors.grey))
+                                          left < 0? Colors.red : Colors.grey))
                             ]),
                         Text(
-                            '${percent.toStringAsFixed(0)}% used • ${left >= 0 ? "${((left / budget.limit) * 100).toStringAsFixed(0)}% remaining" : "Over budget"}',
+                            '${percent.toStringAsFixed(0)}% used • ${left >= 0? "${((left / budget.limit) * 100).toStringAsFixed(0)}% remaining" : "Over budget"}',
                             style: TextStyle(
-                                color: percent > 80 ? Colors.red : Colors.grey,
+                                color: percent > 80? Colors.red : Colors.grey,
                                 fontSize: 11)),
                       ]));
             }),
@@ -925,12 +926,12 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
         child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-                color: isActive ? Colors.tealAccent[700] : Colors.transparent,
+                color: isActive? Colors.tealAccent[700] : Colors.transparent,
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(color: Colors.grey[700]!)),
             child: Text(label,
                 style: TextStyle(
-                    color: isActive ? Colors.black : Colors.grey,
+                    color: isActive? Colors.black : Colors.grey,
                     fontWeight: FontWeight.bold))));
   }
 
@@ -960,15 +961,15 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
             borderRadius: BorderRadius.circular(8),
             border: Border.all(color: Colors.grey[800]!)),
         child: Row(children: [
-          Icon(task.isDone ? Icons.check_circle : Icons.pending,
-              color: task.isDone ? Colors.green : Colors.orange, size: 20),
+          Icon(task.isDone? Icons.check_circle : Icons.pending,
+              color: task.isDone? Colors.green : Colors.orange, size: 20),
           const SizedBox(width: 12),
           Expanded(
               child: Text(task.title,
                   style: TextStyle(
-                      color: task.isDone ? Colors.grey : Colors.white,
+                      color: task.isDone? Colors.grey : Colors.white,
                       decoration:
-                          task.isDone ? TextDecoration.lineThrough : null))),
+                          task.isDone? TextDecoration.lineThrough : null))),
           Text(DateFormat('h:mm a').format(task.dueDate),
               style: const TextStyle(color: Colors.grey, fontSize: 12)),
           const SizedBox(width: 8),
@@ -992,8 +993,8 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
           CircleAvatar(
               radius: 18,
               backgroundColor:
-                  tx.isIncome ? Colors.green[900] : Colors.red[900],
-              child: Text(tx.isIncome ? '+' : '-',
+                  tx.isIncome? Colors.green[900] : Colors.red[900],
+              child: Text(tx.isIncome? '+' : '-',
                   style: const TextStyle(color: Colors.white))),
           const SizedBox(width: 12),
           Expanded(
@@ -1010,7 +1011,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
               ])),
           Text(tx.formattedAmount,
               style: TextStyle(
-                  color: tx.isIncome ? Colors.green : Colors.red,
+                  color: tx.isIncome? Colors.green : Colors.red,
                   fontWeight: FontWeight.bold)),
           IconButton(
               icon: const Icon(Icons.edit, color: Colors.blue, size: 18),
@@ -1067,7 +1068,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
   }
 
   Widget _buildCategoryLegend(String label, double amount, double total) {
-    final percent = total > 0 ? (amount / total * 100) : 0;
+    final percent = total > 0? (amount / total * 100) : 0;
     return Padding(
         padding: const EdgeInsets.symmetric(vertical: 2),
         child: Row(children: [
@@ -1099,18 +1100,18 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
   }
 
   void _showAddTransactionSheet({Transaction? existingTransaction}) {
-    final isEditing = existingTransaction != null;
+    final isEditing = existingTransaction!= null;
     final controllerDescription =
-        TextEditingController(text: existingTransaction?.description ?? '');
+        TextEditingController(text: existingTransaction?.description?? '');
     final controllerPlace =
-        TextEditingController(text: existingTransaction?.place ?? '');
+        TextEditingController(text: existingTransaction?.place?? '');
     final controllerAmount = TextEditingController(
-        text: existingTransaction?.amount.toString() ?? '');
+        text: existingTransaction?.amount.toString()?? '');
     final controllerNotes =
-        TextEditingController(text: existingTransaction?.notes ?? '');
-    DateTime selectedDate = existingTransaction?.date ?? DateTime.now();
-    bool isIncome = existingTransaction?.isIncome ?? false;
-    String selectedCategory = existingTransaction?.category ?? 'General';
+        TextEditingController(text: existingTransaction?.notes?? '');
+    DateTime selectedDate = existingTransaction?.date?? DateTime.now();
+    bool isIncome = existingTransaction?.isIncome?? false;
+    String selectedCategory = existingTransaction?.category?? 'General';
     bool _isScanning = false;
 
     void _parseReceiptTextForForm(String text, TextEditingController descCtrl,
@@ -1119,9 +1120,9 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
       final matches = amountRegex.allMatches(text);
       if (matches.isNotEmpty) {
         final lastMatch = matches.last;
-        String amountStr = lastMatch.group(1) ?? '';
+        String amountStr = lastMatch.group(1)?? '';
         if (amountStr.isNotEmpty) {
-          double amount = double.tryParse(amountStr) ?? 0.0;
+          double amount = double.tryParse(amountStr)?? 0.0;
           if (amount > 0) {
             amountCtrl.text = amount.toStringAsFixed(2);
           }
@@ -1132,13 +1133,13 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
         String trimmed = line.trim();
         if (trimmed.isNotEmpty && trimmed.length > 3 && trimmed.length < 50) {
           if (!trimmed.contains('TOTAL') &&
-              !trimmed.contains('Total') &&
-              !trimmed.contains('total') &&
-              !trimmed.contains('TAX') &&
-              !trimmed.contains('Tax') &&
-              !trimmed.contains('tax') &&
-              !trimmed.contains('SUBTOTAL') &&
-              !trimmed.contains('Subtotal')) {
+             !trimmed.contains('Total') &&
+             !trimmed.contains('total') &&
+             !trimmed.contains('TAX') &&
+             !trimmed.contains('Tax') &&
+             !trimmed.contains('tax') &&
+             !trimmed.contains('SUBTOTAL') &&
+             !trimmed.contains('Subtotal')) {
             descCtrl.text = trimmed;
             break;
           }
@@ -1234,7 +1235,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                           const SizedBox(height: 16),
                           Text(
                               isEditing
-                                  ? 'Edit Transaction'
+                                 ? 'Edit Transaction'
                                   : 'Add Transaction',
                               style: const TextStyle(
                                   fontSize: 22,
@@ -1245,9 +1246,9 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                               width: double.infinity,
                               child: ElevatedButton.icon(
                                   onPressed:
-                                      _isScanning ? null : _scanReceiptForForm,
+                                      _isScanning? null : _scanReceiptForForm,
                                   icon: _isScanning
-                                      ? const SizedBox(
+                                     ? const SizedBox(
                                           width: 20,
                                           height: 20,
                                           child: CircularProgressIndicator(
@@ -1256,7 +1257,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                                       : const Icon(Icons.qr_code_scanner),
                                   label: Text(
                                       _isScanning
-                                          ? 'Scanning...'
+                                         ? 'Scanning...'
                                           : '📸 Scan Receipt',
                                       style: const TextStyle(fontSize: 16)),
                                   style: ElevatedButton.styleFrom(
@@ -1278,7 +1279,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                                             vertical: 12),
                                         decoration: BoxDecoration(
                                             color: isIncome
-                                                ? Colors.green
+                                               ? Colors.green
                                                 : Colors.grey[800],
                                             borderRadius:
                                                 BorderRadius.circular(10)),
@@ -1286,7 +1287,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                                             child: Text('Income',
                                                 style: TextStyle(
                                                     color: isIncome
-                                                        ? Colors.white
+                                                       ? Colors.white
                                                         : Colors.grey,
                                                     fontWeight:
                                                         FontWeight.bold)))))),
@@ -1299,16 +1300,16 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                                         padding: const EdgeInsets.symmetric(
                                             vertical: 12),
                                         decoration: BoxDecoration(
-                                            color: !isIncome
-                                                ? Colors.red
+                                            color:!isIncome
+                                               ? Colors.red
                                                 : Colors.grey[800],
                                             borderRadius:
                                                 BorderRadius.circular(10)),
                                         child: Center(
                                             child: Text('Expense',
                                                 style: TextStyle(
-                                                    color: !isIncome
-                                                        ? Colors.white
+                                                    color:!isIncome
+                                                       ? Colors.white
                                                         : Colors.grey,
                                                     fontWeight:
                                                         FontWeight.bold)))))),
@@ -1355,7 +1356,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                                             color: Colors.white)));
                               }).toList(),
                               onChanged: (newValue) {
-                                if (newValue != null) {
+                                if (newValue!= null) {
                                   selectedCategory = newValue;
                                   setState(() {});
                                 }
@@ -1382,7 +1383,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                                     initialDate: selectedDate,
                                     firstDate: DateTime(2020),
                                     lastDate: DateTime.now());
-                                if (picked != null) {
+                                if (picked!= null) {
                                   setState(() => selectedDate = picked);
                                 }
                               },
@@ -1399,7 +1400,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                                       children: [
                                         Text(
                                             DateFormat('MMM dd, yyyy')
-                                                .format(selectedDate),
+                                               .format(selectedDate),
                                             style: const TextStyle(
                                                 color: Colors.white)),
                                         const Icon(Icons.calendar_today,
@@ -1429,7 +1430,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                                         controllerAmount.text.trim());
                                     if (desc.isEmpty || amount == null) {
                                       ScaffoldMessenger.of(context)
-                                          .showSnackBar(const SnackBar(
+                                         .showSnackBar(const SnackBar(
                                               content: Text(
                                                   'Please fill in Description and valid Amount'),
                                               backgroundColor: Colors.red));
@@ -1445,7 +1446,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                                         isIncome: isIncome,
                                         category: selectedCategory);
                                     await _firestore
-                                        .saveTransaction(newTransaction);
+                                       .saveTransaction(newTransaction);
                                     Navigator.pop(context);
                                   },
                                   style: ElevatedButton.styleFrom(
@@ -1455,7 +1456,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                                               BorderRadius.circular(12))),
                                   child: Text(
                                       isEditing
-                                          ? 'Update Transaction'
+                                         ? 'Update Transaction'
                                           : 'Save Transaction',
                                       style: const TextStyle(
                                           fontSize: 16, color: Colors.black)))),
@@ -1463,7 +1464,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
   }
 
   void _showLoanForm({Loan? existingLoan}) {
-    final isEditing = existingLoan != null;
+    final isEditing = existingLoan!= null;
     if (isEditing) {
       _loanNameController.text = existingLoan.name;
       _loanPrincipalController.text = existingLoan.principal.toString();
@@ -1514,7 +1515,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                                       color: Colors.grey[700],
                                       borderRadius: BorderRadius.circular(2)))),
                           const SizedBox(height: 16),
-                          Text(isEditing ? 'Edit Loan' : 'New Loan',
+                          Text(isEditing? 'Edit Loan' : 'New Loan',
                               style: const TextStyle(
                                   fontSize: 22,
                                   fontWeight: FontWeight.bold,
@@ -1598,7 +1599,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                                     initialDate: _loanStartDate,
                                     firstDate: DateTime(2020),
                                     lastDate: DateTime.now());
-                                if (picked != null)
+                                if (picked!= null)
                                   setState(() => _loanStartDate = picked);
                               },
                               child: Container(
@@ -1614,7 +1615,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                                       children: [
                                         Text(
                                             DateFormat('MMM dd, yyyy')
-                                                .format(_loanStartDate),
+                                               .format(_loanStartDate),
                                             style: const TextStyle(
                                                 color: Colors.white)),
                                         const Icon(Icons.calendar_today,
@@ -1635,18 +1636,18 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                                     final months = int.tryParse(
                                         _loanMonthsController.text.trim());
                                     final extra = double.tryParse(
-                                            _loanExtraController.text.trim()) ??
+                                            _loanExtraController.text.trim())??
                                         0;
                                     final penalty = double.tryParse(
                                             _loanPenaltyController.text
-                                                .trim()) ??
+                                               .trim())??
                                         0;
                                     if (name.isEmpty ||
                                         principal == null ||
                                         rate == null ||
                                         months == null) {
                                       ScaffoldMessenger.of(context)
-                                          .showSnackBar(const SnackBar(
+                                         .showSnackBar(const SnackBar(
                                               content: Text(
                                                   'Please fill all required fields'),
                                               backgroundColor: Colors.red));
@@ -1654,13 +1655,13 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                                     }
                                     final loan = Loan(
                                         id: isEditing
-                                            ? _editingLoan?.id ??
+                                           ? _editingLoan?.id??
                                                 DateTime.now()
-                                                    .millisecondsSinceEpoch
-                                                    .toString()
+                                                   .millisecondsSinceEpoch
+                                                   .toString()
                                             : DateTime.now()
-                                                .millisecondsSinceEpoch
-                                                .toString(),
+                                               .millisecondsSinceEpoch
+                                               .toString(),
                                         name: name,
                                         principal: principal,
                                         annualRate: rate,
@@ -1677,7 +1678,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                                           borderRadius:
                                               BorderRadius.circular(12))),
                                   child: Text(
-                                      isEditing ? 'Update Loan' : 'Add Loan',
+                                      isEditing? 'Update Loan' : 'Add Loan',
                                       style: const TextStyle(
                                           color: Colors.black)))),
                         ])))));
@@ -1715,7 +1716,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                             firstDate: DateTime.now(),
                             lastDate:
                                 DateTime.now().add(const Duration(days: 365)));
-                        if (picked != null) {
+                        if (picked!= null) {
                           setState(() => _taskDueDate = picked);
                         }
                       }),
@@ -1731,8 +1732,8 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                         if (title.isEmpty) return;
                         final newTask = Task(
                             id: DateTime.now()
-                                .millisecondsSinceEpoch
-                                .toString(),
+                               .millisecondsSinceEpoch
+                               .toString(),
                             title: title,
                             dueDate: _taskDueDate);
                         await _firestore.saveTask(newTask);
@@ -1776,7 +1777,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                                 style: const TextStyle(color: Colors.white)));
                       }).toList(),
                       onChanged: (newValue) {
-                        if (newValue != null) {
+                        if (newValue!= null) {
                           _selectedBudgetCategory = newValue;
                         }
                       }),
@@ -1882,7 +1883,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
     final controller = StreamController<Map<String, dynamic>>.broadcast();
     List<dynamic> latestData = [null, null, null, null, null, null];
     void checkAndEmit() {
-      if (latestData.every((d) => d != null)) {
+      if (latestData.every((d) => d!= null)) {
         controller.add({
           'transactions': latestData[0],
           'loans': latestData[1],
@@ -1932,7 +1933,8 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
             '💰 Finances',
             '📋 Records',
             '📅 Schedule',
-            '💰 Budgets'
+            '💰 Budgets',
+            '💼 Gig Income'
           ][_currentIndex]),
           backgroundColor: const Color(0xFF1E1E1E),
           elevation: 0,
@@ -1972,7 +1974,8 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
               _buildFinancesTab(transactions),
               _buildRecordsTab(loans),
               _buildScheduleTab(tasks),
-              _buildBudgetTab(budgets, transactions)
+              _buildBudgetTab(budgets, transactions),
+              const GigIncomeScreen(),
             ]);
           }),
       bottomNavigationBar: BottomNavigationBar(
@@ -1995,6 +1998,8 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                 icon: Icon(Icons.calendar_month), label: 'Schedule'),
             BottomNavigationBarItem(
                 icon: Icon(Icons.account_balance_wallet), label: 'Budgets'),
+            BottomNavigationBarItem(
+                icon: Icon(Icons.work), label: 'Gig'),
           ]),
     );
   }
@@ -2014,7 +2019,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                           stream: _firestore.streamUnit(),
                           initialData: 'LB',
                           builder: (context, snapshot) {
-                            final unit = snapshot.data ?? 'LB';
+                            final unit = snapshot.data?? 'LB';
                             return Text('Current: $unit (default LB)',
                                 style: const TextStyle(color: Colors.grey));
                           }),
@@ -2022,11 +2027,11 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                           stream: _firestore.streamUnit(),
                           initialData: 'LB',
                           builder: (context, snapshot) {
-                            final unit = snapshot.data ?? 'LB';
+                            final unit = snapshot.data?? 'LB';
                             return ToggleButtons(
                                 isSelected: [unit == 'KG', unit == 'LB'],
                                 onPressed: (index) async {
-                                  final newUnit = index == 0 ? 'KG' : 'LB';
+                                  final newUnit = index == 0? 'KG' : 'LB';
                                   await _firestore.saveUnit(newUnit);
                                   Navigator.pop(ctx);
                                 },
@@ -2042,7 +2047,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                       onTap: () async {
                         Navigator.pop(ctx);
                         await const FlutterSecureStorage()
-                            .delete(key: 'auth_username');
+                           .delete(key: 'auth_username');
                         if (!mounted) return;
                         Navigator.pushNamedAndRemoveUntil(
                             context, '/signin', (r) => false);
