@@ -1,4 +1,4 @@
-# Miscellaneous
+﻿# Miscellaneous
 *.class
 *.log
 *.pyc
@@ -45,19 +45,6 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
-
-# Haven OS icon junk — local only, not committed per 949d358 + f0a2fd9
-android/app/src/main/res/drawable-*/
-android/app/src/main/res/mipmap-*/
-android/app/src/main/res/values/colors.xml
-android/app/src/main/res/values/styles.xml
-assets/
-ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-50x50@1x.png
-ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-50x50@2x.png
-ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-57x57@1x.png
-ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-57x57@2x.png
-ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-72x72@1x.png
-ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-72x72@2x.png
 
 # Keep app_state but ignore dumps
 app_state_full.txt
