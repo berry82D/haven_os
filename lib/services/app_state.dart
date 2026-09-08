@@ -1,4 +1,4 @@
-// lib/services/app_state.dart
+﻿// lib/services/app_state.dart
 import 'package:flutter/material.dart';
 import 'package:haven_os/core/storage/storage_service.dart';
 import 'package:haven_os/domain/services/finance_service.dart';
@@ -663,5 +663,13 @@ class AppState extends ChangeNotifier {
       await AuthService.updateUser(updated);
       notifyListeners();
     }
+  }
+  void addBill(dynamic bill) {
+    myBills.add(bill);
+    notifyListeners();
+  }
+  void removeBillAt(int index) {
+    myBills.removeAt(index);
+    notifyListeners();
   }
 }
