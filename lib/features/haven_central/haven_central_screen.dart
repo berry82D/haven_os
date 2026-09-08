@@ -1155,17 +1155,17 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
               title: const Text('Select source',
                   style: TextStyle(color: Colors.white)),
               content: Column(mainAxisSize: MainAxisSize.min, children: [
-                ListTile(
+                Material(type: MaterialType.transparency, child: ListTile(
                     leading:
                         const Icon(Icons.photo_library, color: Colors.white),
                     title: const Text('Gallery',
                         style: TextStyle(color: Colors.white)),
-                    onTap: () => Navigator.pop(ctx, ImageSource.gallery)),
-                ListTile(
+                    onTap: () => Navigator.pop(ctx, ImageSource.gallery)),),
+                Material(type: MaterialType.transparency, child: ListTile(
                     leading: const Icon(Icons.camera_alt, color: Colors.white),
                     title: const Text('Camera',
                         style: TextStyle(color: Colors.white)),
-                    onTap: () => Navigator.pop(ctx, ImageSource.camera)),
+                    onTap: () => Navigator.pop(ctx, ImageSource.camera)),),
               ])));
       if (source == null) return;
       if (source == ImageSource.camera) {
@@ -1701,7 +1701,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                           enabledBorder: OutlineInputBorder(
                               borderSide: BorderSide(color: Colors.grey)))),
                   const SizedBox(height: 12),
-                  ListTile(
+                  Material(type: MaterialType.transparency, child: ListTile(
                       title: const Text('Due Date',
                           style: TextStyle(color: Colors.white)),
                       subtitle: Text(
@@ -1719,7 +1719,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                         if (picked!= null) {
                           setState(() => _taskDueDate = picked);
                         }
-                      }),
+                      }),),
                 ]),
                 actions: [
                   TextButton(
@@ -2012,7 +2012,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                 title: const Text('Settings',
                     style: TextStyle(color: Colors.white)),
                 content: Column(mainAxisSize: MainAxisSize.min, children: [
-                  ListTile(
+                  Material(type: MaterialType.transparency, child: ListTile(
                       title: const Text('Unit System',
                           style: TextStyle(color: Colors.white)),
                       subtitle: StreamBuilder<String>(
@@ -2038,9 +2038,9 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                                 color: Colors.grey,
                                 selectedColor: Colors.tealAccent,
                                 children: const [Text('KG'), Text('LB')]);
-                          })),
+                          })),),
                   const Divider(color: Colors.grey),
-                  ListTile(
+                  Material(type: MaterialType.transparency, child: ListTile(
                       title: const Text('Logout',
                           style: TextStyle(color: Colors.red)),
                       leading: const Icon(Icons.logout, color: Colors.red),
@@ -2051,7 +2051,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                         if (!mounted) return;
                         Navigator.pushNamedAndRemoveUntil(
                             context, '/signin', (r) => false);
-                      }),
+                      }),),
                 ]),
                 actions: [
                   TextButton(

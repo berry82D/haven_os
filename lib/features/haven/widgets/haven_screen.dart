@@ -355,13 +355,13 @@ class _HavenScreenState extends State<HavenScreen> {
                       itemBuilder: (context, index) {
                         final loan = _loans[index];
                         return Card(
-                          child: ListTile(
+                          child: Material(type: MaterialType.transparency, child: ListTile(
                             title: Text(loan.name),
                             subtitle: Text(
                                 '\$${loan.amount.toStringAsFixed(0)} at ${loan.interestRate}% for ${loan.termMonths} months'),
                             trailing: Text(
                                 '\$${loan.monthlyPayment.toStringAsFixed(0)}/mo'),
-                          ),
+                          ),),
                         );
                       },
                     ),

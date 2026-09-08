@@ -383,7 +383,7 @@ class _FilteredTransactionsScreen extends StatelessWidget {
                     itemBuilder: (context, index) {
                       final tx = filtered[index];
                       final isIncome = tx.type == TransactionType.income;
-                      return ListTile(
+                      return Material(type: MaterialType.transparency, child: ListTile(
                         leading: Icon(
                           isIncome ? Icons.arrow_upward : Icons.arrow_downward,
                           color: isIncome ? Colors.green : Colors.red,
@@ -399,7 +399,7 @@ class _FilteredTransactionsScreen extends StatelessWidget {
                             color: isIncome ? Colors.green : Colors.red,
                           ),
                         ),
-                      );
+                      ),);
                     },
                   ),
           ),

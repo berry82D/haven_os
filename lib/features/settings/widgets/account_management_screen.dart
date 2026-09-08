@@ -270,7 +270,7 @@ class _AccountManagementScreenState extends State<AccountManagementScreen> {
 
                 return Card(
                   margin: const EdgeInsets.only(bottom: 12),
-                  child: ListTile(
+                  child: Material(type: MaterialType.transparency, child: ListTile(
                     leading: CircleAvatar(
                       backgroundColor: isSelf
                           ? HavenColors.green.withValues(alpha: 0.15)
@@ -295,7 +295,7 @@ class _AccountManagementScreenState extends State<AccountManagementScreen> {
                           )
                         : const Icon(Icons.lock_outline,
                             color: Colors.grey, size: 18),
-                  ),
+                  ),),
                 );
               },
             ),

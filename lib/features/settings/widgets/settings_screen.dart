@@ -293,14 +293,14 @@ class SettingsScreen extends StatelessWidget {
     VoidCallback? onTap,
   }) {
     return Card(
-      child: ListTile(
+      child: Material(type: MaterialType.transparency, child: ListTile(
         leading: Icon(icon, color: HavenColors.green, size: 28),
         title: Text(title),
         subtitle: Text(subtitle,
             style: TextStyle(fontSize: 12, color: HavenColors.muted)),
         trailing: trailing,
         onTap: onTap,
-      ),
+      ),),
     );
   }
 

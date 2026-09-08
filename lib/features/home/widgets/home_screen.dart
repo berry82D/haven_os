@@ -273,14 +273,14 @@ class _HomeScreenState extends State<HomeScreen> {
                       itemCount: _transactions.length,
                       itemBuilder: (context, index) {
                         final tx = _transactions[index];
-                        return ListTile(
+                        return Material(type: MaterialType.transparency, child: ListTile(
                           title: Text(tx.description),
                           subtitle: Text(
                               '${tx.type.name} - \$${tx.amount.toStringAsFixed(2)} - ${tx.date.toLocal().toString().split(' ')[0]}'),
                           trailing: tx.type == TransactionType.income
                               ? Icon(Icons.arrow_upward, color: Colors.green)
                               : Icon(Icons.arrow_downward, color: Colors.red),
-                        );
+                        ),);
                       },
                     ),
             ),

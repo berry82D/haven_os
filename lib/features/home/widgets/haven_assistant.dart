@@ -76,7 +76,7 @@ class _HavenAssistantState extends State<HavenAssistant> {
                   'Recent Transactions',
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                 ),
-                ...transactions.reversed.take(3).map((t) => ListTile(
+                ...transactions.reversed.take(3).map((t) => Material(type: MaterialType.transparency, child: ListTile(
                       dense: true,
                       leading: Icon(
                         t.amount > 0
@@ -94,7 +94,7 @@ class _HavenAssistantState extends State<HavenAssistant> {
                           color: t.amount > 0 ? Colors.green : Colors.red,
                         ),
                       ),
-                    )),
+                    ),)),
                 const SizedBox(height: 8),
               ],
               if (upcomingBills.isNotEmpty) ...[
@@ -102,7 +102,7 @@ class _HavenAssistantState extends State<HavenAssistant> {
                   'Upcoming Bills',
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                 ),
-                ...upcomingBills.map((b) => ListTile(
+                ...upcomingBills.map((b) => Material(type: MaterialType.transparency, child: ListTile(
                       dense: true,
                       leading: const Icon(Icons.receipt, size: 16),
                       title: Text(b.name, style: const TextStyle(fontSize: 13)),
@@ -110,7 +110,7 @@ class _HavenAssistantState extends State<HavenAssistant> {
                         '\$${b.amount.toStringAsFixed(2)}',
                         style: const TextStyle(fontSize: 13),
                       ),
-                    )),
+                    ),)),
                 const SizedBox(height: 8),
               ],
               if (attentionAnimals.isNotEmpty) ...[
@@ -118,17 +118,17 @@ class _HavenAssistantState extends State<HavenAssistant> {
                   'Animal Health Alerts',
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                 ),
-                ...attentionAnimals.map((a) => ListTile(
+                ...attentionAnimals.map((a) => Material(type: MaterialType.transparency, child: ListTile(
                       dense: true,
                       leading: const Icon(Icons.pets, size: 16),
                       title: Text('${a.name} (${a.health})',
                           style: const TextStyle(fontSize: 13)),
                       trailing: Text('${a.count} animals',
                           style: const TextStyle(fontSize: 13)),
-                    )),
+                    ),)),
                 const SizedBox(height: 8),
               ],
-              ListTile(
+              Material(type: MaterialType.transparency, child: ListTile(
                 dense: true,
                 leading: const Icon(Icons.account_balance, size: 16),
                 title:
@@ -141,7 +141,7 @@ class _HavenAssistantState extends State<HavenAssistant> {
                     color: totalBalance >= 0 ? Colors.green : Colors.red,
                   ),
                 ),
-              ),
+              ),),
             ],
           );
         }

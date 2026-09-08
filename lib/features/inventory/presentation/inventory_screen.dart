@@ -144,7 +144,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                     borderRadius: BorderRadius.circular(8),
                     side: BorderSide(color: AppTheme.tornEdge, width: 0.5),
                   ),
-                  child: ListTile(
+                  child: Material(type: MaterialType.transparency, child: ListTile(
                     title: Text(item['name'],
                         style: const TextStyle(
                             fontFamily: 'serif', fontWeight: FontWeight.w500)),
@@ -154,7 +154,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                       icon: const Icon(Icons.delete, color: Colors.red),
                       onPressed: () => _deleteItem(i),
                     ),
-                  ),
+                  ),),
                 );
               },
             ),

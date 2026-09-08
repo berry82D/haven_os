@@ -723,7 +723,7 @@ class _KitchenScreenState extends State<KitchenScreen>
                   itemBuilder: (context, index) {
                     final entry = _pantry.entries.toList()[index];
                     final item = entry.value;
-                    return ListTile(
+                    return Material(type: MaterialType.transparency, child: ListTile(
                       title: Text(item.name),
                       subtitle: Text(
                           'Price: \$${item.pricePerUnit.toStringAsFixed(2)} / lb'),
@@ -798,7 +798,7 @@ class _KitchenScreenState extends State<KitchenScreen>
                           ),
                         ],
                       ),
-                    );
+                    ),);
                   },
                 ),
         ],
@@ -1003,7 +1003,7 @@ class _KitchenScreenState extends State<KitchenScreen>
                       margin: const EdgeInsets.symmetric(
                         vertical: 4,
                       ),
-                      child: ListTile(
+                      child: Material(type: MaterialType.transparency, child: ListTile(
                         leading: ClipRRect(
                           borderRadius: BorderRadius.circular(8),
                           child: Image.network(
@@ -1026,7 +1026,7 @@ class _KitchenScreenState extends State<KitchenScreen>
                           onPressed: () => _toggleFavorite(recipe['idMeal']),
                         ),
                         onTap: () => _showRecipeDetail(recipe),
-                      ),
+                      ),),
                     );
                   },
                 ),

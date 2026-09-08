@@ -51,7 +51,7 @@ class _HouseholdManagementScreenState extends State<HouseholdManagementScreen> {
                       return Card(
                         margin: const EdgeInsets.symmetric(
                             horizontal: 16, vertical: 8),
-                        child: ListTile(
+                        child: Material(type: MaterialType.transparency, child: ListTile(
                           leading: CircleAvatar(
                             backgroundColor: Colors.green.shade100,
                             child: Text(
@@ -102,7 +102,7 @@ class _HouseholdManagementScreenState extends State<HouseholdManagementScreen> {
                               ),
                             ],
                           ),
-                        ),
+                        ),),
                       );
                     },
                   ),
@@ -128,13 +128,13 @@ class _HouseholdManagementScreenState extends State<HouseholdManagementScreen> {
                           TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 8),
-                    ...members.map((user) => ListTile(
+                    ...members.map((user) => Material(type: MaterialType.transparency, child: ListTile(
                           leading: CircleAvatar(
                             child: Text(user.name[0].toUpperCase()),
                           ),
                           title: Text(user.name),
                           subtitle: Text(user.role.name),
-                        )),
+                        ),)),
                   ],
                 ),
               );
