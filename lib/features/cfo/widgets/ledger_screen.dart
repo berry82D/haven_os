@@ -25,7 +25,7 @@ class LedgerScreen extends StatelessWidget {
             indicatorColor: HavenColors.green,
           ),
         ),
-        body: TabBarView(
+        body: const TabBarView(
           children: [
             BillsTab(),
             TransactionsTab(),
