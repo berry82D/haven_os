@@ -664,12 +664,4 @@ class AppState extends ChangeNotifier {
       notifyListeners();
     }
   }
-  void addBill(dynamic bill) {
-    myBills.add(bill);
-    notifyListeners();
-  }
-  void removeBillAt(int index) {
-    myBills.removeAt(index);
-    notifyListeners();
-  }
 }
