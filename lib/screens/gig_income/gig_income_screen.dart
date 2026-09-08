@@ -1,517 +1,93 @@
-// lib/screens/gig_income/gig_income_screen.dart
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:haven_os/models/gig_income.dart';
-import 'package:haven_os/services/app_state.dart';
+import '../../models/gig_job.dart';
+import '../../services/firestore_service.dart';
 
-class GigIncomeScreen extends StatelessWidget {
+class GigIncomeScreen extends StatefulWidget {
   const GigIncomeScreen({super.key});
+  @override
+  State<GigIncomeScreen> createState() => _GigIncomeScreenState();
+}
 
+class _GigIncomeScreenState extends State<GigIncomeScreen> {
+  final FirestoreService _fs = FirestoreService();
+  final _platforms = const ['DoorDash','Uber Eats','Instacart','Amazon Flex','Spark','Lyft','Uber','Other'];
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF121212),
-      appBar: AppBar(
-        title: const Text('Gig Income'),
-        backgroundColor: const Color(0xFF1E1E1E),
-        elevation: 0,
-      ),
-      body: Consumer<AppState>(
-        builder: (context, appState, _) {
-          final items = List<GigIncome>.from(appState.myGigIncomes)
-            ..sort((a, b) => b.date.compareTo(a.date));
-
-          final now = DateTime.now();
-          final monthItems = items
-              .where(
-                  (g) => g.date.year == now.year && g.date.month == now.month)
-              .toList();
-          final monthTotal =
-              monthItems.fold<double>(0, (s, g) => s + g.totalAmount);
-          final monthMiles = monthItems.fold<double>(0, (s, g) => s + g.miles);
-          final monthAvgPayPerMile = monthMiles > 0
-              ? monthItems.fold<double>(0, (s, g) => s + g.totalPay) /
-                  monthMiles
-              : 0.0;
-
-          return Column(
+    return Container(
+      color: const Color(0xFF121212),
+      child: StreamBuilder<List<GigJob>>(
+        stream: _fs.streamGigJobs(),
+        builder: (context, snap) {
+          if (!snap.hasData) return const Center(child: CircularProgressIndicator());
+          final jobs = snap.data!;
+          final totalEarn = jobs.fold<double>(0.0, (s,j)=>s+j.earnings);
+          final totalExp = jobs.fold<double>(0.0, (s,j)=>s+j.expenses);
+          final totalMin = jobs.fold<int>(0, (s,j)=>s+j.minutes);
+          final totalMiles = jobs.fold<double>(0.0, (s,j)=>s+j.miles);
+          final net = totalEarn - totalExp;
+          final perHr = totalMin>0? net/(totalMin/60) : 0.0;
+          return ListView(
+            padding: const EdgeInsets.all(16),
             children: [
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Card(
-                  color: const Color(0xFF1E1E1E),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'This month (${DateFormat('MMM yyyy').format(now)})',
-                          style: const TextStyle(
-                            color: Colors.white70,
-                            fontSize: 13,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _SummaryChip(
-                                label: 'Total',
-                                value: '\$${monthTotal.toStringAsFixed(2)}',
-                              ),
-                            ),
-                            Expanded(
-                              child: _SummaryChip(
-                                label: 'Miles',
-                                value: monthMiles.toStringAsFixed(1),
-                              ),
-                            ),
-                            Expanded(
-                              child: _SummaryChip(
-                                label: '\$/mi',
-                                value: monthAvgPayPerMile.toStringAsFixed(2),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              Expanded(
-                child: items.isEmpty
-                    ? const Center(
-                        child: Text(
-                          'No gig entries yet.\nTap + to add DoorDash, Uber, Spark…',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(color: Colors.grey),
-                        ),
-                      )
-                    : ListView.separated(
-                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 88),
-                        itemCount: items.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 8),
-                        itemBuilder: (context, index) {
-                          final g = items[index];
-                          return Card(
-                            color: const Color(0xFF1E1E1E),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: ListTile(
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 8,
-                              ),
-                              title: Text(
-                                '${g.platformName}  ${g.formattedTotal}',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              subtitle: Text(
-                                '${g.formattedDate}'
-                                '  •  ${g.miles.toStringAsFixed(1)} mi'
-                                '  •  \$${g.payPerMile.toStringAsFixed(2)}/mi'
-                                '  •  tip ${g.tipPercent.toStringAsFixed(0)}%',
-                                style: const TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 12,
-                                ),
-                              ),
-                              trailing: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  IconButton(
-                                    icon: const Icon(Icons.edit,
-                                        color: Colors.tealAccent, size: 20),
-                                    onPressed: () => _openEditor(
-                                      context,
-                                      appState,
-                                      existing: g,
-                                    ),
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(Icons.delete_outline,
-                                        color: Colors.redAccent, size: 20),
-                                    onPressed: () =>
-                                        _confirmDelete(context, appState, g),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-              ),
+              const Text('💼 Gig Income', style: TextStyle(fontSize:22,fontWeight:FontWeight.bold,color:Colors.white)),
+              Text('${jobs.length} jobs • Net \$${net.toStringAsFixed(0)} • ${totalMiles.toStringAsFixed(1)} mi • \$${perHr.toStringAsFixed(2)}/hr', style: const TextStyle(color: Colors.grey, fontSize:12)),
+              const SizedBox(height:12),
+              Row(children:[_stat('Net', '\$${net.toStringAsFixed(0)}', Colors.tealAccent), const SizedBox(width:8), _stat('\$/hr', '\$${perHr.toStringAsFixed(2)}', Colors.green)]),
+              const SizedBox(height:8),
+              Row(children:[_stat('Earn', '\$${totalEarn.toStringAsFixed(0)}', Colors.white), const SizedBox(width:8), _stat('Miles', '${totalMiles.toStringAsFixed(1)}', Colors.orange)]),
+              const SizedBox(height:16),
+              ElevatedButton.icon(onPressed: ()=>_showForm(), icon: const Icon(Icons.add, color: Colors.black), label: const Text('Add Gig Job', style: TextStyle(color: Colors.black)), style: ElevatedButton.styleFrom(backgroundColor: Colors.tealAccent[700])),
+              const SizedBox(height:16),
+              if (jobs.isEmpty)
+                const Padding(padding: EdgeInsets.all(32), child: Text('No gigs yet. Add one!', style: TextStyle(color: Colors.grey)))
+              else
+            ...jobs.map((j)=>Container(margin: const EdgeInsets.symmetric(vertical:6), padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: const Color(0xFF1E1E1E), borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.grey[800]!)), child: Row(children:[Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children:[Text('${j.platform} • \$${j.earnings.toStringAsFixed(2)}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)), Text('${DateFormat('MMM dd').format(j.date)} • ${j.miles.toStringAsFixed(1)} mi • ${j.minutes} min • Net \$${j.net.toStringAsFixed(2)}', style: const TextStyle(color: Colors.grey, fontSize:12)), if (j.notes.isNotEmpty) Text(j.notes, style: const TextStyle(color: Colors.white70, fontSize:11))])), IconButton(icon: const Icon(Icons.edit, color: Colors.blue, size:18), onPressed: ()=>_showForm(existing: j)), IconButton(icon: const Icon(Icons.delete, color: Colors.red, size:18), onPressed: ()=>_confirmDelete(j))]))),
             ],
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.tealAccent[700],
-        onPressed: () {
-          final appState = context.read<AppState>();
-          _openEditor(context, appState);
-        },
-        child: const Icon(Icons.add, color: Colors.black),
-      ),
     );
   }
-
-  void _confirmDelete(BuildContext context, AppState appState, GigIncome g) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1E1E1E),
-        title:
-            const Text('Delete entry?', style: TextStyle(color: Colors.white)),
-        content: Text(
-          'Remove ${g.platformName} ${g.formattedTotal} on ${g.formattedDate}?',
-          style: const TextStyle(color: Colors.white70),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              appState.deleteGigIncome(g.id);
-              Navigator.pop(ctx);
-            },
-            child:
-                const Text('Delete', style: TextStyle(color: Colors.redAccent)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _openEditor(
-    BuildContext context,
-    AppState appState, {
-    GigIncome? existing,
-  }) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: const Color(0xFF1E1E1E),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (ctx) {
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(ctx).viewInsets.bottom,
-          ),
-          child: _GigIncomeEditor(
-            existing: existing,
-            onSave: (income) {
-              if (existing == null) {
-                appState.addGigIncome(income);
-              } else {
-                appState.updateGigIncome(income);
-              }
-              Navigator.pop(ctx);
-            },
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _SummaryChip extends StatelessWidget {
-  final String label;
-  final String value;
-  const _SummaryChip({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(label,
-            style: const TextStyle(color: Colors.white54, fontSize: 12)),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: const TextStyle(
-            color: Colors.tealAccent,
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _GigIncomeEditor extends StatefulWidget {
-  final GigIncome? existing;
-  final void Function(GigIncome income) onSave;
-
-  const _GigIncomeEditor({
-    required this.existing,
-    required this.onSave,
-  });
-
-  @override
-  State<_GigIncomeEditor> createState() => _GigIncomeEditorState();
-}
-
-class _GigIncomeEditorState extends State<_GigIncomeEditor> {
-  late GigPlatform _platform;
-  late DateTime _date;
-  final _baseCtrl = TextEditingController();
-  final _tipsCtrl = TextEditingController();
-  final _bonusCtrl = TextEditingController();
-  final _milesCtrl = TextEditingController();
-  final _mileageCtrl = TextEditingController();
-  final _notesCtrl = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-    final e = widget.existing;
-    _platform = e?.platform ?? GigPlatform.doordash;
-    _date = e?.date ?? DateTime.now();
-    _baseCtrl.text = e != null ? e.basePay.toStringAsFixed(2) : '';
-    _tipsCtrl.text = e != null ? e.tips.toStringAsFixed(2) : '';
-    _bonusCtrl.text = e != null ? e.bonus.toStringAsFixed(2) : '';
-    _milesCtrl.text = e != null ? e.miles.toStringAsFixed(1) : '';
-    _mileageCtrl.text = e != null ? e.mileage.toStringAsFixed(2) : '';
-    _notesCtrl.text = e?.notes ?? '';
-  }
-
-  @override
-  void dispose() {
-    _baseCtrl.dispose();
-    _tipsCtrl.dispose();
-    _bonusCtrl.dispose();
-    _milesCtrl.dispose();
-    _mileageCtrl.dispose();
-    _notesCtrl.dispose();
-    super.dispose();
-  }
-
-  double _parse(TextEditingController c) =>
-      double.tryParse(c.text.trim()) ?? 0.0;
-
-  Future<void> _pickDate() async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: _date,
-      firstDate: DateTime(2020),
-      lastDate: DateTime.now().add(const Duration(days: 1)),
-    );
-    if (picked != null) setState(() => _date = picked);
-  }
-
-  void _save() {
-    final appState = context.read<AppState>();
-    final user = appState.currentUser;
-    if (user == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No signed-in user. Sign in first.'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
-    final base = _parse(_baseCtrl);
-    final tips = _parse(_tipsCtrl);
-    final bonus = _parse(_bonusCtrl);
-    final total = base + tips + bonus;
-
-    if (total <= 0 && _parse(_milesCtrl) <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Enter at least base pay, tips, or bonus.'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
-    final income = GigIncome(
-      id: widget.existing?.id,
-      userId: user.id,
-      householdId: user.householdId,
-      date: _date,
-      platform: _platform,
-      basePay: base,
-      tips: tips,
-      bonus: bonus,
-      miles: _parse(_milesCtrl),
-      mileage: _parse(_mileageCtrl),
-      totalAmount: total,
-      notes: _notesCtrl.text.trim(),
-      transactionId: widget.existing?.transactionId ?? '',
-    );
-
-    widget.onSave(income);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final base = _parse(_baseCtrl);
-    final tips = _parse(_tipsCtrl);
-    final bonus = _parse(_bonusCtrl);
-    final total = base + tips + bonus;
-
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Center(
-            child: Container(
-              width: 40,
-              height: 4,
-              margin: const EdgeInsets.only(bottom: 16),
-              decoration: BoxDecoration(
-                color: Colors.grey[700],
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-          ),
-          Text(
-            widget.existing == null ? 'Add gig income' : 'Edit gig income',
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 16),
-          DropdownButtonFormField<GigPlatform>(
-            initialValue: _platform,
-            dropdownColor: const Color(0xFF2A2A2A),
-            decoration: const InputDecoration(
-              labelText: 'Platform',
-              labelStyle: TextStyle(color: Colors.white70),
-              border: OutlineInputBorder(),
-            ),
-            style: const TextStyle(color: Colors.white),
-            items: GigPlatform.values
-                .map(
-                  (p) => DropdownMenuItem(
-                    value: p,
-                    child: Text(p.toString().split('.').last),
-                  ),
-                )
-                .toList(),
-            onChanged: (v) {
-              if (v != null) setState(() => _platform = v);
-            },
-          ),
-          const SizedBox(height: 12),
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            title: const Text('Date', style: TextStyle(color: Colors.white70)),
-            subtitle: Text(
-              DateFormat('MMM dd, yyyy').format(_date),
-              style: const TextStyle(color: Colors.white),
-            ),
-            trailing: IconButton(
-              icon: const Icon(Icons.calendar_today, color: Colors.tealAccent),
-              onPressed: _pickDate,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: _numField(_baseCtrl, 'Base pay',
-                    onChanged: (_) => setState(() {})),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _numField(_tipsCtrl, 'Tips',
-                    onChanged: (_) => setState(() {})),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: _numField(_bonusCtrl, 'Bonus',
-                    onChanged: (_) => setState(() {})),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _numField(_milesCtrl, 'Miles'),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          _numField(_mileageCtrl, 'Mileage \$ (optional)'),
-          const SizedBox(height: 8),
-          TextField(
-            controller: _notesCtrl,
-            style: const TextStyle(color: Colors.white),
-            maxLines: 2,
-            decoration: const InputDecoration(
-              labelText: 'Notes',
-              labelStyle: TextStyle(color: Colors.white70),
-              border: OutlineInputBorder(),
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'Total: \$${total.toStringAsFixed(2)}  (base + tips + bonus)',
-            style: const TextStyle(
-              color: Colors.tealAccent,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: _save,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.tealAccent[700],
-              foregroundColor: Colors.black,
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            child: Text(
-              widget.existing == null ? 'Save' : 'Update',
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _numField(
-    TextEditingController ctrl,
-    String label, {
-    void Function(String)? onChanged,
-  }) {
-    return TextField(
-      controller: ctrl,
-      onChanged: onChanged,
-      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-      style: const TextStyle(color: Colors.white),
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: const TextStyle(color: Colors.white70),
-        border: const OutlineInputBorder(),
-      ),
-    );
+  Widget _stat(String label, String val, Color color){ return Expanded(child: Container(padding: const EdgeInsets.symmetric(vertical:12), decoration: BoxDecoration(color: const Color(0xFF1E1E1E), borderRadius: BorderRadius.circular(8), border: Border.all(color: color.withAlpha(60))), child: Column(children:[Text(label, style: const TextStyle(color: Colors.grey, fontSize:11)), const SizedBox(height:4), Text(val, style: TextStyle(color: color, fontWeight: FontWeight.bold))]))); }
+  void _confirmDelete(GigJob j){ showDialog(context: context, builder: (ctx)=>AlertDialog(backgroundColor: const Color(0xFF1E1E1E), title: const Text('Delete?', style: TextStyle(color: Colors.white)), content: Text('Delete ${j.platform} \$${j.earnings}?', style: const TextStyle(color: Colors.grey)), actions:[TextButton(onPressed: ()=>Navigator.pop(ctx), child: const Text('Cancel', style: TextStyle(color: Colors.grey))), TextButton(onPressed: () async { await _fs.deleteGigJob(j.id); if(context.mounted) Navigator.pop(ctx); }, child: const Text('Delete', style: TextStyle(color: Colors.red)))])); }
+  void _showForm({GigJob? existing}){
+    final earnCtrl = TextEditingController(text: existing?.earnings.toString()?? '');
+    final milesCtrl = TextEditingController(text: existing?.miles.toString()?? '');
+    final expCtrl = TextEditingController(text: existing?.expenses.toString()?? '');
+    final minCtrl = TextEditingController(text: existing?.minutes.toString()?? '');
+    final notesCtrl = TextEditingController(text: existing?.notes?? '');
+    String platform = existing?.platform?? 'DoorDash';
+    DateTime date = existing?.date?? DateTime.now();
+    final bool isEdit = existing!= null;
+    final String editId = existing?.id?? '';
+    showModalBottomSheet(context: context, isScrollControlled: true, backgroundColor: Colors.transparent, builder: (ctx)=>DraggableScrollableSheet(initialChildSize: 0.9, maxChildSize: 0.95, minChildSize: 0.5, expand: false, builder: (c, sc)=>Container(padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom), decoration: const BoxDecoration(color: Color(0xFF1E1E1E), borderRadius: BorderRadius.vertical(top: Radius.circular(20))), child: SingleChildScrollView(controller: sc, padding: const EdgeInsets.all(20), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children:[
+      Center(child: Container(width:40,height:4,decoration: BoxDecoration(color: Colors.grey[700], borderRadius: BorderRadius.circular(2)))),
+      const SizedBox(height:16),
+      Text(isEdit? 'Edit Gig' : 'Add Gig Job', style: const TextStyle(color: Colors.white, fontSize:20, fontWeight: FontWeight.bold)),
+      const SizedBox(height:16),
+      DropdownButtonFormField<String>(initialValue: platform, dropdownColor: const Color(0xFF2C2C2C), style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'Platform', labelStyle: TextStyle(color: Colors.grey), border: OutlineInputBorder()), items: _platforms.map((p)=>DropdownMenuItem(value:p, child: Text(p, style: const TextStyle(color: Colors.white)))).toList(), onChanged: (v){ if(v!=null) platform=v; }),
+      const SizedBox(height:12),
+      GestureDetector(onTap: () async { final picked = await showDatePicker(context: context, initialDate: date, firstDate: DateTime(2023), lastDate: DateTime.now()); if(picked!=null) setState(()=> date=picked); }, child: Container(padding: const EdgeInsets.all(12), decoration: BoxDecoration(border: Border.all(color: Colors.grey), borderRadius: BorderRadius.circular(8)), child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children:[Text(DateFormat('MMM dd, yyyy').format(date), style: const TextStyle(color: Colors.white)), const Icon(Icons.calendar_today, color: Colors.grey, size:18)]))),
+      const SizedBox(height:12),
+      TextField(controller: earnCtrl, keyboardType: TextInputType.number, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'Earnings \$ *', labelStyle: TextStyle(color: Colors.grey), border: OutlineInputBorder())),
+      const SizedBox(height:12),
+      TextField(controller: milesCtrl, keyboardType: TextInputType.number, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'Miles', labelStyle: TextStyle(color: Colors.grey), border: OutlineInputBorder())),
+      const SizedBox(height:12),
+      TextField(controller: expCtrl, keyboardType: TextInputType.number, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'Expenses (gas) \$', labelStyle: TextStyle(color: Colors.grey), border: OutlineInputBorder())),
+      const SizedBox(height:12),
+      TextField(controller: minCtrl, keyboardType: TextInputType.number, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'Minutes', labelStyle: TextStyle(color: Colors.grey), border: OutlineInputBorder())),
+      const SizedBox(height:12),
+      TextField(controller: notesCtrl, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'Notes', labelStyle: TextStyle(color: Colors.grey), border: OutlineInputBorder())),
+      const SizedBox(height:20),
+      SizedBox(width: double.infinity, height:50, child: ElevatedButton(onPressed: () async {
+        final earn = double.tryParse(earnCtrl.text.trim())?? 0;
+        if(earn<=0){ ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Enter earnings'), backgroundColor: Colors.red)); return; }
+        final job = GigJob(id: isEdit? editId : DateTime.now().millisecondsSinceEpoch.toString(), platform: platform, date: date, earnings: earn, miles: double.tryParse(milesCtrl.text.trim())?? 0, expenses: double.tryParse(expCtrl.text.trim())?? 0, minutes: int.tryParse(minCtrl.text.trim())?? 0, notes: notesCtrl.text.trim());
+        await _fs.saveGigJob(job);
+        if(mounted) Navigator.pop(context);
+      }, style: ElevatedButton.styleFrom(backgroundColor: Colors.tealAccent[700]), child: Text(isEdit? 'Update' : 'Save', style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold)))),
+    ])),
+    )));
   }
 }

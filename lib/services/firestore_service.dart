@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart' as firestore;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../models/transaction.dart';
 import '../models/budget.dart';
+import '../models/gig_job.dart';
 
 // ---------- Loan Model ----------
 class Loan {
@@ -280,5 +281,38 @@ class FirestoreService {
         .doc(userId)
         .snapshots()
         .map((doc) => (doc.data()?['unit'] as String?) ?? 'KG');
+  }
+
+  // ---------- GIG JOBS – Phase 4a – Law 11/13 ----------
+  Future<void> saveGigJob(GigJob job) async {
+    final userId = await _getUserId();
+    await _firestore
+        .collection('users')
+        .doc(userId)
+        .collection('gig_jobs')
+        .doc(job.id)
+        .set(job.toMap());
+  }
+
+  Stream<List<GigJob>> streamGigJobs() async* {
+    final userId = await _getUserId();
+    yield* _firestore
+        .collection('users')
+        .doc(userId)
+        .collection('gig_jobs')
+        .orderBy('date', descending: true)
+        .snapshots()
+        .map((snapshot) =>
+            snapshot.docs.map((doc) => GigJob.fromMap(doc.data())).toList());
+  }
+
+  Future<void> deleteGigJob(String jobId) async {
+    final userId = await _getUserId();
+    await _firestore
+        .collection('users')
+        .doc(userId)
+        .collection('gig_jobs')
+        .doc(jobId)
+        .delete();
   }
 }
