@@ -26,7 +26,7 @@ class BillsTab extends StatelessWidget {
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
-              
+              ),
               ElevatedButton.icon(
                 onPressed: () {
                   _showAddBillDialog(context, appState);
@@ -59,7 +59,7 @@ class BillsTab extends StatelessWidget {
   Widget _buildBillTile(BuildContext context, Bill bill, AppState appState) {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      child: ListTile(
+      child: Material(type: MaterialType.transparency, child: ListTile(
         leading: CircleAvatar(
           backgroundColor:
               bill.isPaid ? Colors.green.shade100 : Colors.red.shade100,
