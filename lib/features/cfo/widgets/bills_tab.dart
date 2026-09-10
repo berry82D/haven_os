@@ -1,4 +1,4 @@
-// lib/features/cfo/widgets/bills_tab.dart
+﻿// lib/features/cfo/widgets/bills_tab.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:haven_os/core/constants/colors.dart';
@@ -70,7 +70,7 @@ class BillsTab extends StatelessWidget {
         ),
         title: Text(bill.name),
         subtitle: Text(
-          '\$${bill.amount.toStringAsFixed(2)} • Due ${bill.dueDate.month}/${bill.dueDate.day} • ${bill.category}',
+          '\$${bill.amount.toStringAsFixed(2)} â€¢ Due ${bill.dueDate.month}/${bill.dueDate.day} â€¢ ${bill.category}',
         ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
@@ -185,7 +185,7 @@ class BillsTab extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 DropdownButtonFormField<String>(
-                  // ✅ FIXED: single colon
+                  // âœ… FIXED: single colon
                   initialValue: selectedCategory,
                   decoration: const InputDecoration(
                     labelText: 'Category',
