@@ -50,7 +50,7 @@ class Transaction {
         description = description ?? name ?? '',
         place = place ?? '',
         date = date ?? DateTime.now(),
-        amount = amount ?? 0.0,
+        amount = (amount ?? 0.0).abs(),
         notes = notes ?? note ?? '',
         isIncome = isIncome ??
             (type == TransactionType.income
@@ -58,13 +58,14 @@ class Transaction {
                 : (type == TransactionType.expense ? false : false)),
         category = category ?? 'General',
         userId = userId ?? '' {
-    if (this.isIncome == false && type == null) {
-      final cat = this.category.toLowerCase();
-      if (['paycheck', 'salary', 'income', 'deposit', 'wage', 'pay']
-          .any((k) => cat.contains(k))) {
-        this.isIncome = true;
-      }
+    // Haven Law: Category decides income - additive fix, preserves schema
+    final cat = this.category.toLowerCase();
+    if (['paycheck', 'salary', 'income', 'deposit', 'wage', 'pay', 'bonus', 'rental', 'livestock']
+        .any((k) => cat.contains(k))) {
+      this.isIncome = true;
     }
+    // Architecture: amounts always non-negative
+    this.amount = this.amount.abs();
     if (accountObj != null) {
       this.account = accountObj.name;
     } else if (account is Account) {
@@ -100,7 +101,7 @@ class Transaction {
         'description': description,
         'place': place,
         'date': date.toIso8601String(),
-        'amount': amount,
+        'amount': amount.abs(),
         'notes': notes,
         'isIncome': isIncome,
         'category': category,
@@ -116,7 +117,7 @@ class Transaction {
       description: j['description'] ?? '',
       place: j['place'] ?? '',
       date: DateTime.parse(j['date']),
-      amount: (j['amount'] ?? 0.0).toDouble(),
+      amount: (j['amount'] ?? 0.0).toDouble().abs(),
       notes: j['notes'] ?? '',
       isIncome: j['isIncome'] ?? false,
       category: j['category'] ?? 'General',

@@ -5,7 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'sign_up_screen.dart';
-import '../../haven_central/haven_central_screen.dart';
+import 'package:haven_os/features/haven_central/haven_central_screen.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
