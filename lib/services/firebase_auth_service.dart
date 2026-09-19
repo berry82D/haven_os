@@ -1,4 +1,4 @@
-﻿import 'package:firebase_auth/firebase_auth.dart' as fb;
+import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart' as firestore;
 
@@ -50,8 +50,17 @@ class FirebaseAuthService {
   }
 
   Future<void> logout() async {
-    await _auth.signOut();
-    await _storage.delete(key: 'auth_username');
-    await _storage.delete(key: 'auth_email');
+    try {
+      await _auth.signOut();
+    } catch (_) {}
+    try {
+      await _storage.delete(key: 'auth_username');
+      await _storage.delete(key: 'auth_email');
+      await _storage.delete(key: 'auth_token');
+    } catch (_) {}
+    try {
+      await _storage.deleteAll();
+    } catch (_) {}
   }
 }
+
