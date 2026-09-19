@@ -1,5 +1,8 @@
 // lib/features/auth/presentation/sign_in_screen.dart
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../../services/app_state.dart';
+import '../../../models/user_account.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
@@ -117,6 +120,17 @@ class _SignInScreenState extends State<SignInScreen> {
 
       if (!mounted) return;
       setState(() => _isLoading = false);
+
+      // FIX #2: Set currentUser so myTransactions/myBills not empty
+      try {
+        final appState = context.read<AppState>();
+        final u = UserAccount(
+          id: resolvedUsername,
+          householdId: 'default',
+          name: resolvedUsername,
+        );
+        appState.setCurrentUser(u);
+      } catch (e) { debugPrint('setCurrentUser error $e'); }
 
       Navigator.pushReplacement(
         context,
