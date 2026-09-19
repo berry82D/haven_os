@@ -1,64 +1,83 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
+import '../../services/app_state.dart';
 
 class RequireEmailDialog {
   static Future<void> checkAndPrompt(BuildContext context) async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
-    
-    final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
-    final data = doc.data();
-    final hasEmail = user.email != null && user.email!.isNotEmpty;
-    final hasStoredEmail = data != null && (data['email'] as String?)?.isNotEmpty == true;
-    
-    if (!hasEmail && !hasStoredEmail) {
+    try {
+      final appState = context.read<AppState>();
+      final currentUser = appState.currentUser;
+      if (currentUser == null) return;
+
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString('registered_users');
+      if (raw == null) return;
+      final List users = jsonDecode(raw);
+
+      Map<String, dynamic>? matched;
+      int idx = -1;
+      for (int i = 0; i < users.length; i++) {
+        final u = users[i] as Map<String, dynamic>;
+        if ((u['username']?.toString().toLowerCase()?? '') == currentUser.name.toLowerCase() ||
+            (u['id']?.toString()?? '') == currentUser.id) {
+          matched = u;
+          idx = i;
+          break;
+        }
+      }
+      if (matched == null) return;
+      final email = (matched['email']?.toString()?? '').trim();
+      if (email.isNotEmpty && email.contains('@')) return; // already has email
+
       if (!context.mounted) return;
       await showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (_) => const _RequireEmailPopup(),
+        builder: (_) => _RequireEmailPopup(userIndex: idx, username: matched!['username']?.toString()?? currentUser.name),
       );
+    } catch (e) {
+      debugPrint('RequireEmailDialog error: $e');
     }
   }
 }
 
 class _RequireEmailPopup extends StatefulWidget {
-  const _RequireEmailPopup();
+  final int userIndex;
+  final String username;
+  const _RequireEmailPopup({required this.userIndex, required this.username});
   @override
   State<_RequireEmailPopup> createState() => _RequireEmailPopupState();
 }
 
 class _RequireEmailPopupState extends State<_RequireEmailPopup> {
   final _emailController = TextEditingController();
-  bool _sending = false;
+  bool _saving = false;
   String? _error;
 
   Future<void> _save() async {
-    final email = _emailController.text.trim();
-    if (!email.contains('@')) {
+    final email = _emailController.text.trim().toLowerCase();
+    if (!email.contains('@') ||!email.contains('.')) {
       setState(() => _error = 'Enter valid email');
       return;
     }
-    setState(() { _sending = true; _error = null; });
+    setState(() { _saving = true; _error = null; });
     try {
-      final user = FirebaseAuth.instance.currentUser!;
-      await user.verifyBeforeUpdateEmail(email);
-      await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
-        'email': email,
-        'emailPendingVerification': true,
-        'updatedAt': FieldValue.serverTimestamp(),
-      });
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString('registered_users')!;
+      final List users = jsonDecode(raw);
+      users[widget.userIndex]['email'] = email;
+      users[widget.userIndex]['emailVerified'] = false;
+      await prefs.setString('registered_users', jsonEncode(users));
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Verification sent to $email - Check inbox to keep your data safe')),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Email saved for ${widget.username} - Your data is now protected')));
         Navigator.pop(context);
       }
     } catch (e) {
       setState(() => _error = e.toString());
     } finally {
-      if (mounted) setState(() => _sending = false);
+      if (mounted) setState(() => _saving = false);
     }
   }
 
@@ -69,24 +88,18 @@ class _RequireEmailPopupState extends State<_RequireEmailPopup> {
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text('Add email to verify your account so you won\'t lose your data on any device.'),
+          Text('Account "${widget.username}" has no email. Add email so you won\'t lose your data if you change phones.'),
           const SizedBox(height: 16),
           TextField(
             controller: _emailController,
             keyboardType: TextInputType.emailAddress,
-            decoration: InputDecoration(
-              labelText: 'Email for verification',
-              errorText: _error,
-              border: const OutlineInputBorder(),
-            ),
+            decoration: InputDecoration(labelText: 'Email for recovery', errorText: _error, border: const OutlineInputBorder(), prefixIcon: const Icon(Icons.email)),
           ),
         ],
       ),
       actions: [
-        TextButton(
-          onPressed: _sending ? null : _save,
-          child: _sending ? const CircularProgressIndicator() : const Text('Send Verification Link'),
-        ),
+        TextButton(onPressed: _saving? null : () => Navigator.pop(context), child: const Text('Later')),
+        ElevatedButton(onPressed: _saving? null : _save, child: _saving? const SizedBox(width:16,height:16,child:CircularProgressIndicator(strokeWidth:2)) : const Text('Save Email')),
       ],
     );
   }
