@@ -7,11 +7,18 @@ LAW 17: Every AI must READ DEV_LOG.md + CLAUDE.md BEFORE assisting.
 
 ## CURRENT STATE (update this every push)
 - Branch: feature/haven-central-fixes
-- HEAD: c4a82ee
-- Last push: c4a82ee — docs: Law16 91c5075 full history preserved + memory + biweekly - analyze 24.4s
-- flutter analyze: No issues found! (24.4s at 91c5075, confirmed text at c4a82ee)
-- In progress: COMPLETE - 91c5075 screen restore + memory + biweekly wired + docs push c4a82ee
-- Queued next: merge to main, Phase 3b nav wiring, Phase 4 forgot-password
+- HEAD: 86df4e2
+- Last push: 86df4e2 — docs: full history preserved - add fbca4ed handoff + detailed 949d358-4dc39f9
+- flutter analyze: No issues found! (24.4s at 91c5075, text confirmed at c4a82ee, 86df4e2 docs)
+- In progress: COMPLETE - docs history preserved, ready for merge to main
+- Queued next: merge feature/haven-central-fixes -> main, Phase 3b nav wiring, Phase 4 forgot-password
+
+---## 2026-05-13 — 86df4e2 — docs: full history preserved - fbca4ed + detailed
+**Status:** PUSHED — origin/feature/haven-central-fixes up to date
+**Change:** Added fbca4ed handoff entry + detailed 949d358 fix, e034289 UI, 60170b5, 4dc39f9 env details, system info, workflow notes - 60+ ins, 21 del - No info removed
+**Why:** David requested full replacement, ensure everything included
+**analyze:** No issues - docs only
+**Push:** c4a82ee..86df4e2
 
 ---
 
