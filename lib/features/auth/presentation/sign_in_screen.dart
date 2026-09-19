@@ -1,11 +1,15 @@
 // lib/features/auth/presentation/sign_in_screen.dart
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../../services/app_state.dart';
+import '../../../models/user_account.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'sign_up_screen.dart';
-import '../../haven_central/haven_central_screen.dart';
+import 'forgot_password_screen.dart';
+import 'package:haven_os/features/haven_central/haven_central_screen.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -117,6 +121,17 @@ class _SignInScreenState extends State<SignInScreen> {
       if (!mounted) return;
       setState(() => _isLoading = false);
 
+      // FIX #2: Set currentUser so myTransactions/myBills not empty
+      try {
+        final appState = context.read<AppState>();
+        final u = UserAccount(
+          id: resolvedUsername,
+          householdId: 'default',
+          name: resolvedUsername,
+        );
+        appState.setCurrentUser(u);
+      } catch (e) { debugPrint('setCurrentUser error $e'); }
+
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
@@ -205,9 +220,7 @@ class _SignInScreenState extends State<SignInScreen> {
             Align(
               alignment: Alignment.centerRight,
               child: TextButton(
-                onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Reset password coming soon.')),
-                ),
+                onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ForgotPasswordScreen())),
                 child: const Text('Forgot Password?'),
               ),
             ),
@@ -254,3 +267,4 @@ class _SignInScreenState extends State<SignInScreen> {
     );
   }
 }
+

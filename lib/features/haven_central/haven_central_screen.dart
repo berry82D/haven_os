@@ -1,6 +1,8 @@
 ﻿import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import '../auth/presentation/sign_in_screen.dart';
+import '../../widgets/require_email_dialog.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
@@ -62,6 +64,8 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
 
   @override
   void initState() {
+    WidgetsBinding.instance.addPostFrameCallback((_) { if (mounted) RequireEmailDialog.checkAndPrompt(context); });
+
     super.initState();
   }
 
@@ -2049,8 +2053,8 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                         await const FlutterSecureStorage()
                            .delete(key: 'auth_username');
                         if (!mounted) return;
-                        Navigator.pushNamedAndRemoveUntil(
-                            context, '/signin', (r) => false);
+                        Navigator.pushAndRemoveUntil(
+                            context, MaterialPageRoute(builder: (_) => const SignInScreen()), (r) => false /* fixed logout */);
                       }),),
                 ]),
                 actions: [

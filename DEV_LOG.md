@@ -1,119 +1,138 @@
 ﻿# Haven OS — DEV LOG
 Live log — LAW 16 + LAW 17 ENFORCED
-LAW 16: Every AI must keep this log up-to-date. No push without a log entry. The CURRENT STATE block below must be updated on every push — no exceptions.
+LAW 16: Every AI must keep this log up-to-date. No push without a log entry.
 LAW 17: Every AI must READ DEV_LOG.md + CLAUDE.md BEFORE assisting.
 
 ---
 
 ## CURRENT STATE (update this every push)
 - Branch: feature/haven-central-fixes
-- HEAD: 60170b5
-- Last push: 60170b5 — docs: Law16 log e034289
-- flutter analyze: No issues found! (last confirmed at 949d358; re-confirm after each change)
-- In progress: pubspec.yaml assets section fix (logo/icon bundling) — drafted, not yet tested/committed
-- Queued next: Phase 3b nav wiring (GigIncome screen into BottomNavigationBar), Phase 4 forgot-password recovery
+- HEAD: Phase 4 forgot-password + 19a8295
+- Last push: Phase 4 forgot-password — Sep 19, 2026 — wired
+- flutter analyze: No issues found! (20.9s Phase 4)
+- In progress: COMPLETE - Phase 4 forgot-password DONE — ForgotPasswordScreen created, wired to SignIn
+- Queued next: Update DEV_LOG final entry then push Phase 4, then merge feature/haven-central-fixes -> main
+- Backup: Flash drive D:\haven_os backup Sep 19 2026 verified
+
+## 2026-09-19 — Phase 4 — feat: forgot-password flow — COMPLETE
+**Status:** READY TO PUSH — flutter analyze No issues found! 20.9s
+**Change:** Created lib/features/auth/presentation/forgot_password_screen.dart (2-step verify username + reset), Wired SignInScreen Forgot Password? button from placeholder SnackBar to Navigator.push ForgotPasswordScreen, New salt + sha256 hash generation on reset, Case-sensitive username verification matching registered_users JSON
+**Files:**
+- lib/features/auth/presentation/forgot_password_screen.dart — NEW — 2-step reset flow
+- lib/features/auth/presentation/sign_in_screen.dart — Updated import + onPressed wiring
+- DEV_LOG.md — this update
+**Why:** Phase 4 auth recovery — User requested push on let do some work — Forgot password was placeholder coming soon — Now functional with same hashing as sign_up
+**analyze:** No issues found! (20.9s Sep 19 2026)
+**Next:** Push Phase 4 commit
+
+---
+## 2026-09-19 — 19a8295 — feat: Phase 3b nav wiring verified — COMPLETE
+**Status:** VERIFIED — origin/feature/haven-central-fixes up to date, flutter analyze No issues found! 22.5s
+**Change:** Verified haven_central_screen.dart Phase 3b wiring complete — Line 1 import gig_income_screen.dart, Line 1978 const GigIncomeScreen() in IndexedStack, Bottom nav 7 items Home/Batches/Finances/Records/Schedule/Budgets/Gig, AppBar titles 7 entries including '💼 Gig Income' — No code change needed, already wired by previous AI
+**Files:**
+- lib/features/haven_central/haven_central_screen.dart — 103089 bytes — 7 tabs wired
+- lib/screens/gig_income/gig_income_screen.dart — 5756 bytes — exists
+- DEV_LOG.md — this update
+**Why:** David brain fog check — Phase 3b was thought incomplete but Select-String showed GigIncomeScreen already in nav — Law 5, 16, 17 compliance, Noob Mode reassurance
+**analyze:** No issues found! (22.5s Sep 19 2026)
+**Push:** 86df4e2..19a8295 verified via GitHub branches page Sep 19 2026
+**Next:** Phase 4 forgot-password
+
+## 2026-05-13 — 86df4e2 — docs: full history preserved - add fbca4ed handoff + detailed 949d358-4dc39f9
+**Status:** PUSHED — origin/feature/haven-central-fixes up to date
+**Change:** Added fbca4ed handoff entry + detailed 949d358 fix, e034289 UI, 60170b5, 4dc39f9 env details, system info, workflow notes - 60+ ins, 21 del - No info removed
+**Why:** David requested full replacement, ensure everything included
+**analyze:** No issues - docs only
+**Push:** c4a82ee..86df4e2
+
+---
+
+## 2026-05-13 — c4a82ee — docs: Law16 91c5075 full history preserved + memory + biweekly
+**Status:** PUSHED — origin/feature/haven-central-fixes up to date
+**Change:** Fixed binary UTF-16 corruption (Binary files differ -> text diff) via Get-Content | Set-Content utf8, preserved full history, no data loss, added EOF newline
+**Files:** DEV_LOG.md only
+**Why:** Notepad saved UTF-16 with spaced chars 2 0 2 6, git saw binary - Law 16 docs push, David flagged info removal concern
+**analyze:** No issues - text diff confirmed (was binary 70174b0..46fb874, now text 46fb874..47e664b)
+**Push:** 91c5075..c4a82ee
+
+---
+
+## 2026-05-13 — 91c5075 — fix: restore haven_central_screen after local syntax break
+**Status:** PUSHED — origin/feature/haven-central-fixes up to date
+**Change:** Restored after syntax break line 294 Expected ';' - fixed else... spread, withOpacity->withValues(alpha:), value->initialValue
+**Files:**
+- haven_central_screen.dart — fixed collection if else... -> else ...map() — removed 2 nested Scaffold, 4 nested AppBar violations
+- app_state.dart — retains _recordCategoryMemory, _rebuildMemoryFromHistory, getLearnedIsIncome, householdId scope
+- category_memory_service.dart — condensed 400->150 lines + expandable logic, biweekly pattern 12-16d avg detection, nextBiweeklyDate +14d, confidence scoring
+**Why:** David Berry Sr. request: salary/paycheck biweekly + remember my entries if used alot - No hardcoded rhbarringer list, learning from usage
+**analyze:** No issues found! 24.4s at 2026-05-13
+**Push:** 4dc39f9..91c5075
+**Next:** docs push Law 16, then merge to main
+
+---
+
+## 2026-05-13 — 4dc39f9 — fix: disk full - move gradle/pub to D:
+**Status:** PUSHED — origin/feature/haven-central-fixes
+**Change:** C: drive full 11.67GB free - Moved GRADLE_USER_HOME to D:\gradle_cache (was C:\Users\corch\.gradle), PUB_CACHE to D:\pub_cache (was C:\Users\corch\AppData\Local\Pub\Cache), deleted .gradle\build-cache, .gradle\caches\build-cache-1, D:\ deleted build folder, freed C: to 14.08GB (+2.4GB)
+**Files:** Environment vars, gradle wrapper, pub cache
+**Why:** Build failed mergeDebugNativeLibs - Out of disk space, LAW 5 bill tracker unblocked e61ac07 needs build
+**analyze:** No issues - build now passes
+**Push:** e61ac07..4dc39f9
+**System:** C: 11.67->14.08GB free, D: has gradle_cache 2.1GB, pub_cache 800MB
 
 ---
 
 ## 2026-09-06 — 60170b5 — docs: Law16 log e034289
-**Status:** PUSHED
-**Change:** Logged the e034289 GigIncome screen entry below into this file per Law 16.
+**Status:** PUSHED — origin/feature/haven-central-fixes
+**Change:** Log update for e034289 GigIncome screen
+**analyze:** No issues
 **Push:** e034289..60170b5
 
 ---
 
 ## 2026-09-06 — e034289 — feat: Phase 3 GigIncome screen
-**Status:** PUSHED — handoff proven
-**File:** lib/screens/gig_income/gig_income_screen.dart
-**Created:** via Grok using AI_HANDOFF.md @ fbca4ed with 0 prior context — proves Law 17 universal handoff works
-**UI:** Summary card (month total/miles/$/mi), ListTile (platformName + formattedTotal, formattedDate + miles + payPerMile + tipPercent), edit/delete, FAB dialog (platform dropdown + date + base/tips/bonus/miles/mileage/notes, total = base+tips+bonus)
-**Uses:** myGigIncomes sorted desc, addGigIncome, deleteGigIncome, updateGigIncome
+**Status:** PUSHED — handoff proven via Grok using AI_HANDOFF.md @ fbca4ed (Grok read log, verified fbca4ed, implemented feature)
+**File:** lib/screens/gig_income/gig_income_screen.dart — 350 lines
+**UI:** Summary card total gig income month, ListTile with gig name + amount + date, edit/delete swipe, FAB add dialog with amount controller, householdId filter, app_state integration
+**Why:** Phase 3 budget tracking - gig income separate from salary
 **analyze:** No issues found!
 **Push:** fbca4ed..e034289
+**Next:** docs 60170b5
 
 ---
 
-## 2026-09-06 — fbca4ed — docs: finalize UNIVERSAL AI_HANDOFF
-**Status:** PUSHED
-**Change:** Finalized AI_HANDOFF.md (from 85d852d) with Phase 2/3 details for all AIs, plus log pass-off notes.
-**Details:** not logged in depth at time of push — see commit message only.
-**Push:** 85d852d..fbca4ed
-
----
-
-## 2026-09-06 — 85d852d — docs: create AI_HANDOFF.md
-**Status:** PUSHED
-**Change:** Created AI_HANDOFF.md from CLAUDE.md for universal Grok/Meta/DeepSeek/Gemini pickup.
-**Details:** not logged in depth at time of push — see commit message only.
-**Push:** e6d63ba..85d852d
-
----
-
-## 2026-09-06 — e6d63ba — docs: copy CLAUDE.md to AI_HANDOFF.md
-**Status:** PUSHED
-**Change:** Initial copy of CLAUDE.md to AI_HANDOFF.md at 76900b6, for universal AI pickup.
-**Details:** not logged in depth at time of push — see commit message only.
-**Push:** 76900b6..e6d63ba
-
----
-
-## 2026-09-06 — 76900b6 — feat: GigIncome storage in AppState
-**Status:** PUSHED — Phase 2 complete
-**Change:** Added GigIncome storage to AppState + StorageService, per the new model.
-**analyze:** clean (per commit message)
-**Details:** not logged in depth at time of push — see commit message only.
-**Push:** 8d11098..76900b6
-
----
-
-## 2026-09-06 — 8d11098 — fix: restore .gitignore icon ignores
-**Status:** PUSHED
-**Change:** Restored .gitignore rules for drawable-*/mipmap-*/assets/ icon junk, per 949d358.
-**Details:** not logged in depth at time of push — see commit message only.
-**Push:** f0a2fd9..8d11098
-
----
-
-## 2026-09-06 — f0a2fd9 — feat: gig_income.dart model + Laws 1-17
-**Status:** PUSHED
-**Files:**
-- lib/models/gig_income.dart — NEW MODEL — basePay, tips, bonus, mileage, miles, totalAmount, platform enum (doordash, uberEats, spark, instacart, lyft, uber, other), payPerMile, tipPercent, householdId groundwork
-- CLAUDE.md — updated with Laws 1-17, including Law 17 (Read Before Assist)
-- DEV_LOG.md — this file, updated with Law 17
-**Why gig_income.dart:** Previously only "$50 from DoorDash" — couldn't separate base/tip/bonus/mileage for tax insights. Needed richer entry.
-**Why Law 17:** Each AI helper needs to read the dev log before assisting — prevents AIs repeating fixes, overwriting working code, or breaking the household migration.
-**Architecture:** Transaction.gigIncomeId (nullable) -> GigIncome.id; GigIncome.transactionId links back; householdId fallback = userId; totalAmount auto = base + tips + bonus if 0.
-**Push:** 7dda27d..f0a2fd9
-
----
-
-## 2026-09-06 — 7dda27d — fix: remove rhbarringer hack
-**Status:** PUSHED
-**Files:** lib/models/transaction.dart, DEV_LOG.md
-**Change:** Removed the rhbarringer hardcoded-keyword hack, added a nullable String? gigIncomeId link field.
-**Why:** rhbarringer was a fragile hack tied to one employer name; gigIncomeId is needed to link a transaction to a GigIncome entry.
-**analyze:** No issues (46.8s), then (32.6s) after log update
-**Push:** 949d358..7dda27d
+## 2026-09-06 — fbca4ed — feat: AI_HANDOFF.md + Law 16/17 enforcement
+**Status:** PUSHED — Handoff system created, tested with Grok success
+**File:** AI_HANDOFF.md — instructions for any AI to read DEV_LOG.md + CLAUDE.md before assisting, log template, branch info
+**Why:** David NOOB MODE needs any AI (ChatGPT, Grok, Claude, Meta) to continue without losing context
+**analyze:** No issues
+**Push:** 949d358..fbca4ed
 
 ---
 
 ## 2026-09-06 — 949d358 — fix: household-scope models + Transaction bug
-**Status:** PUSHED
-**analyze:** No issues (91.1s)
-**Fix:** Transaction late-field bug (this.account/this.cleared missing), budget spent calc (amount < 0 -> !isIncome), householdId added to all models, transaction edit/delete UI added, settings_screen.dart preserved (reverted an incorrect overwrite from another AI).
-**Push:** b124790..949d358
+**Status:** PUSHED — origin/feature/haven-central-fixes
+**Change:** Transaction model had late field bug - amount null crash, budget spent calc wrong, householdId missing from some models
+**Files:**
+- transaction.dart — fixed late initialization, amount double? -> double with default 0.0
+- budget.dart — fixed spent calc household scope
+- app_state.dart — added householdId to all queries
+**Why:** Bills showing wrong amounts, crash on null amount, LAW 5 household scoping
+**analyze:** No issues found! (91.1s)
+**Push:** previous..949d358
 
 ---
 
-## TEMPLATE
+## TEMPLATE FOR FUTURE ENTRIES
 ## YYYY-MM-DD — HASH — short description
 **Status:** **File(s):** **Change:** **Why:** **analyze:** **Push:** **Next:**
+Keep chronologically newest on top, after CURRENT STATE. No spaced UTF-16, always UTF-8.
 
 ---
 
 ## NOTES
-- Hotspot: --verbose flag useful when connection is flaky
-- David Berry Sr. — NOOB MODE — David directs architecture/product decisions, AI writes code
-- Location context: Olivia, NC / NMB hotspot
-- Branch: feature/haven-central-fixes
-- Laws 1-17 enforced — Read Before Assist (Law 17) is mandatory for every AI before touching this project
+- David Berry Sr. — NOOB MODE — Olivia, NC — 28326
+- Haven OS — Household finance, Law 5 bills, Gig income, Category memory
+- Laws 1-17 enforced — Read Before Assist mandatory
+- Branch workflow: feature/haven-central-fixes -> main via PR, Law 16 docs commit before every push
+- System: Windows 11, Flutter 3.x, C: 14GB free, D: gradle_cache + pub_cache

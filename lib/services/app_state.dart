@@ -24,6 +24,7 @@ import 'package:haven_os/models/gig_income.dart';
 import 'package:haven_os/domain/services/household_service.dart';
 import 'package:haven_os/services/auth_service.dart';
 import 'package:haven_os/core/enums/learning_mode.dart';
+import 'package:haven_os/services/category_memory_service.dart';
 
 class AppState extends ChangeNotifier {
   List<Transaction> _transactions = [];
@@ -42,10 +43,8 @@ class AppState extends ChangeNotifier {
   LearningMode _learningMode = LearningMode.standard;
   SchoolAgeGroup _schoolAgeGroup = SchoolAgeGroup.older;
   bool _allowFinalAnswers = false;
-
   UserAccount? _currentUser;
   UserAccount? get currentUser => _currentUser;
-
   bool _currentUserHasPin = false;
   bool get isPinEnabled => _currentUserHasPin;
 
@@ -59,7 +58,6 @@ class AppState extends ChangeNotifier {
   bool _pinVerifiedForUserId = false;
   String? _verifiedUserId;
   DateTime? _sessionStartTime;
-
   bool get pinVerified =>
       _pinVerifiedForUserId && _verifiedUserId == _currentUser?.id;
   bool get isPinVerified => pinVerified;
@@ -113,9 +111,7 @@ class AppState extends ChangeNotifier {
     setPinVerified(true);
   }
 
-  void unlockApp() {
-    setPinVerified(true);
-  }
+  void unlockApp() => setPinVerified(true);
 
   void logout() async {
     await AuthService.logout();
@@ -135,57 +131,43 @@ class AppState extends ChangeNotifier {
       _currentUser?.role == UserRole.administrator ||
       _currentUser?.role == UserRole.adult;
 
-  List<Transaction> get myTransactions {
-    if (_currentUser == null) return [];
-    return _transactions
-        .where((t) => t.householdId == _currentUser!.householdId)
-        .toList();
-  }
-
-  List<Animal> get myAnimals {
-    if (_currentUser == null) return [];
-    return _animals
-        .where((a) => a.householdId == _currentUser!.householdId)
-        .toList();
-  }
-
-  List<Bill> get myBills {
-    if (_currentUser == null) return [];
-    return _bills
-        .where((b) => b.householdId == _currentUser!.householdId)
-        .toList();
-  }
-
+  List<Transaction> get myTransactions => _currentUser == null
+      ? []
+      : _transactions
+          .where((t) => t.householdId == _currentUser!.householdId)
+          .toList();
+  List<Animal> get myAnimals => _currentUser == null
+      ? []
+      : _animals
+          .where((a) => a.householdId == _currentUser!.householdId)
+          .toList();
+  List<Bill> get myBills => _currentUser == null
+      ? []
+      : _bills
+          .where((b) => b.householdId == _currentUser!.householdId)
+          .toList();
   List<Task> get myTasks => _tasks;
   List<TimelineEvent> get myTimelineEvents => _timelineEvents;
-
-  List<FeedDelivery> get myFeedDeliveries {
-    if (_currentUser == null) return [];
-    return _feedDeliveries
-        .where((f) => f.householdId == _currentUser!.householdId)
-        .toList();
-  }
-
-  List<Loan> get myLoans {
-    if (_currentUser == null) return [];
-    return _loans
-        .where((l) => l.householdId == _currentUser!.householdId)
-        .toList();
-  }
-
-  List<Budget> get myBudgets {
-    if (_currentUser == null) return [];
-    return _budgets
-        .where((b) => b.householdId == _currentUser!.householdId)
-        .toList();
-  }
-
-  List<GigIncome> get myGigIncomes {
-    if (_currentUser == null) return [];
-    return _gigIncomes
-        .where((g) => g.householdId == _currentUser!.householdId)
-        .toList();
-  }
+  List<FeedDelivery> get myFeedDeliveries => _currentUser == null
+      ? []
+      : _feedDeliveries
+          .where((f) => f.householdId == _currentUser!.householdId)
+          .toList();
+  List<Loan> get myLoans => _currentUser == null
+      ? []
+      : _loans
+          .where((l) => l.householdId == _currentUser!.householdId)
+          .toList();
+  List<Budget> get myBudgets => _currentUser == null
+      ? []
+      : _budgets
+          .where((b) => b.householdId == _currentUser!.householdId)
+          .toList();
+  List<GigIncome> get myGigIncomes => _currentUser == null
+      ? []
+      : _gigIncomes
+          .where((g) => g.householdId == _currentUser!.householdId)
+          .toList();
 
   List<Transaction> get transactions => _transactions;
   List<Animal> get animals => _animals;
@@ -200,7 +182,6 @@ class AppState extends ChangeNotifier {
       _guardianRelationships;
   List<Budget> get budgets => _budgets;
   List<GigIncome> get gigIncomes => _gigIncomes;
-
   LearningMode get learningMode => _learningMode;
   SchoolAgeGroup get schoolAgeGroup => _schoolAgeGroup;
   bool get allowFinalAnswers => _allowFinalAnswers;
@@ -228,12 +209,10 @@ class AppState extends ChangeNotifier {
   final StorageService storage = StorageService();
   final HealthScoreService healthScoreService = HealthScoreService();
   final LoanService loanService = LoanService();
-
   BriefingService get briefing => BriefingService(finance, farm);
   QueryService get query => const QueryService();
   LearningService get learningService => LearningService(
       ageGroup: _schoolAgeGroup, allowFinalAnswers: _allowFinalAnswers);
-
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
@@ -327,6 +306,11 @@ class AppState extends ChangeNotifier {
     } else {
       _seedData();
     }
+    if (_transactions.isNotEmpty) {
+      final count =
+          await CategoryMemoryService.useCount(_transactions.first.category);
+      if (count == 0) _rebuildMemoryFromHistory();
+    }
     _refreshPinStatus();
     _isLoading = false;
     notifyListeners();
@@ -368,8 +352,20 @@ class AppState extends ChangeNotifier {
         allowFinalAnswers: _allowFinalAnswers);
   }
 
+  void _rebuildMemoryFromHistory() {
+    for (final t in _transactions) {
+      CategoryMemoryService.record(t.category, t.isIncome);
+    }
+  }
+
+  void _recordCategoryMemory(Transaction tx) =>
+      CategoryMemoryService.record(tx.category, tx.isIncome);
+  Future<bool?> getLearnedIsIncome(String c) =>
+      CategoryMemoryService.learnedIsIncome(c);
+
   void addTransaction(Transaction tx) {
     _transactions.add(tx);
+    _recordCategoryMemory(tx);
     _saveData();
     notifyListeners();
   }
@@ -384,6 +380,7 @@ class AppState extends ChangeNotifier {
     final i = _transactions.indexWhere((t) => t.id == updated.id);
     if (i != -1) {
       _transactions[i] = updated;
+      _recordCategoryMemory(updated);
       _saveData();
       notifyListeners();
     }
@@ -638,10 +635,7 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  void refresh() {
-    notifyListeners();
-  }
-
+  void refresh() => notifyListeners();
   Future<List<UserAccount>> getHouseholdMembers(String householdId) async {
     final accounts = await AuthService.loadAccounts();
     return accounts.where((a) => a.householdId == householdId).toList();
