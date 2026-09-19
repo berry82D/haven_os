@@ -7,14 +7,26 @@ LAW 17: Every AI must READ DEV_LOG.md + CLAUDE.md BEFORE assisting.
 
 ## CURRENT STATE (update this every push)
 - Branch: feature/haven-central-fixes
-- HEAD: 19a8295 + Phase3b wired Sep 19 2026
-- Last push: 19a8295 — Sep 19, 2026 — Phase 3b nav verified
-- flutter analyze: No issues found! (22.5s at 2026-09-19 19a8295)
-- In progress: COMPLETE - Phase 3b Gig Income nav wiring DONE — import '../../screens/gig_income/gig_income_screen.dart' present, BottomNavigationBarItem work Gig at index 6, IndexedStack const GigIncomeScreen() at index 6, AppBar title '💼 Gig Income'
-- Queued next: Phase 4 forgot-password flow, then merge feature/haven-central-fixes -> main
+- HEAD: Phase 4 forgot-password + 19a8295
+- Last push: Phase 4 forgot-password — Sep 19, 2026 — wired
+- flutter analyze: No issues found! (20.9s Phase 4)
+- In progress: COMPLETE - Phase 4 forgot-password DONE — ForgotPasswordScreen created, wired to SignIn
+- Queued next: Update DEV_LOG final entry then push Phase 4, then merge feature/haven-central-fixes -> main
 - Backup: Flash drive D:\haven_os backup Sep 19 2026 verified
 
----## 2026-09-19 — 19a8295 — feat: Phase 3b nav wiring verified — COMPLETE
+## 2026-09-19 — Phase 4 — feat: forgot-password flow — COMPLETE
+**Status:** READY TO PUSH — flutter analyze No issues found! 20.9s
+**Change:** Created lib/features/auth/presentation/forgot_password_screen.dart (2-step verify username + reset), Wired SignInScreen Forgot Password? button from placeholder SnackBar to Navigator.push ForgotPasswordScreen, New salt + sha256 hash generation on reset, Case-sensitive username verification matching registered_users JSON
+**Files:**
+- lib/features/auth/presentation/forgot_password_screen.dart — NEW — 2-step reset flow
+- lib/features/auth/presentation/sign_in_screen.dart — Updated import + onPressed wiring
+- DEV_LOG.md — this update
+**Why:** Phase 4 auth recovery — User requested push on let do some work — Forgot password was placeholder coming soon — Now functional with same hashing as sign_up
+**analyze:** No issues found! (20.9s Sep 19 2026)
+**Next:** Push Phase 4 commit
+
+---
+## 2026-09-19 — 19a8295 — feat: Phase 3b nav wiring verified — COMPLETE
 **Status:** VERIFIED — origin/feature/haven-central-fixes up to date, flutter analyze No issues found! 22.5s
 **Change:** Verified haven_central_screen.dart Phase 3b wiring complete — Line 1 import gig_income_screen.dart, Line 1978 const GigIncomeScreen() in IndexedStack, Bottom nav 7 items Home/Batches/Finances/Records/Schedule/Budgets/Gig, AppBar titles 7 entries including '💼 Gig Income' — No code change needed, already wired by previous AI
 **Files:**

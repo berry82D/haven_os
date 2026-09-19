@@ -1,10 +1,11 @@
-// lib/features/auth/presentation/sign_in_screen.dart
+﻿// lib/features/auth/presentation/sign_in_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'sign_up_screen.dart';
+import 'forgot_password_screen.dart';
 import 'package:haven_os/features/haven_central/haven_central_screen.dart';
 
 class SignInScreen extends StatefulWidget {
@@ -205,9 +206,7 @@ class _SignInScreenState extends State<SignInScreen> {
             Align(
               alignment: Alignment.centerRight,
               child: TextButton(
-                onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Reset password coming soon.')),
-                ),
+                onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ForgotPasswordScreen())),
                 child: const Text('Forgot Password?'),
               ),
             ),
@@ -254,3 +253,4 @@ class _SignInScreenState extends State<SignInScreen> {
     );
   }
 }
+
