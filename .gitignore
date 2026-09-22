@@ -48,3 +48,6 @@ app.*.map.json
 
 # Keep app_state but ignore dumps
 app_state_full.txt
+
+*.hprof
+*.bak

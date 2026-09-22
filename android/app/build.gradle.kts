@@ -1,10 +1,7 @@
-// android/app/build.gradle.kts
-plugins {
+﻿plugins {
     id("com.android.application")
     id("kotlin-android")
     id("dev.flutter.flutter-gradle-plugin")
-    
-    // 🔥 Add the Google Services plugin (THIS LINE)
     id("com.google.gms.google-services")
 }
 
@@ -28,11 +25,20 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        multiDexEnabled = true
     }
 
     buildTypes {
-        release {
+        getByName("debug") {
+            isMinifyEnabled = false
+            isShrinkResources = false
+            multiDexEnabled = true
+        }
+        getByName("release") {
             signingConfig = signingConfigs.getByName("debug")
+            isMinifyEnabled = false
+            isShrinkResources = false
+            multiDexEnabled = true
         }
     }
 }
@@ -41,12 +47,7 @@ flutter {
     source = "../.."
 }
 
-// 🔥 Optional but recommended: Firebase BoM helps keep Firebase SDK versions aligned
 dependencies {
-    // Firebase Bill of Materials (BoM) – ensures all Firebase SDK versions are compatible
-    implementation(platform("com.google.firebase:firebase-bom:34.18.0"))
-    
-    // No need to add firebase‑core or firebase‑firestore here;
-    // the Flutter packages will pull them automatically.
-    // Adding the BoM is enough to manage versions.
+    implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
+    implementation("androidx.multidex:multidex:2.0.1")
 }

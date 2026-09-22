@@ -1,31 +1,20 @@
-﻿# Haven OS — DEV LOG
+﻿## CURRENT STATE - [2026-05-13 HOLD - 11:47 PM]
+**Branch:** main @ 3b48d22 (merged from feature/haven-central-fixes)
+**Latest Work:** Email recovery - RequireEmailDialog regression fix + mock verification (6-digit code gen + emailVerified flag). New accounts now require email. Once-only Secure Your Account popup for legacy username-only accounts.
+**Last Build:** OK - Removed UserAccount.email reference crash
+**Data Note:** adb uninstall wiped SharedPreferences (registered_users lost) -> forced new profile creation. Use `flutter run` not uninstall to preserve data.
+**Merge Note:** main merged @ 3b48d22 - message "resolve bills_tab.dart conflict, keep feature branch version" - needs sanity check on what main's side had before discard. Bills_tab has prior duplication.
+**Next:** REAL email send (mailer + SMTP creds), inbox delivery test, forgot/restore flow
+**Status:** HOLD till tomorrow - Mock verification done, real send pending
+---
+
+# Haven OS — DEV LOG
 Live log — LAW 16 + LAW 17 ENFORCED
 LAW 16: Every AI must keep this log up-to-date. No push without a log entry.
 LAW 17: Every AI must READ DEV_LOG.md + CLAUDE.md BEFORE assisting.
 
 ---
 
-## CURRENT STATE (update this every push)
-- Branch: feature/haven-central-fixes
-- HEAD: Phase 4 forgot-password + 19a8295
-- Last push: Phase 4 forgot-password — Sep 19, 2026 — wired
-- flutter analyze: No issues found! (20.9s Phase 4)
-- In progress: COMPLETE - Phase 4 forgot-password DONE — ForgotPasswordScreen created, wired to SignIn
-- Queued next: Update DEV_LOG final entry then push Phase 4, then merge feature/haven-central-fixes -> main
-- Backup: Flash drive D:\haven_os backup Sep 19 2026 verified
-
-## 2026-09-19 — Phase 4 — feat: forgot-password flow — COMPLETE
-**Status:** READY TO PUSH — flutter analyze No issues found! 20.9s
-**Change:** Created lib/features/auth/presentation/forgot_password_screen.dart (2-step verify username + reset), Wired SignInScreen Forgot Password? button from placeholder SnackBar to Navigator.push ForgotPasswordScreen, New salt + sha256 hash generation on reset, Case-sensitive username verification matching registered_users JSON
-**Files:**
-- lib/features/auth/presentation/forgot_password_screen.dart — NEW — 2-step reset flow
-- lib/features/auth/presentation/sign_in_screen.dart — Updated import + onPressed wiring
-- DEV_LOG.md — this update
-**Why:** Phase 4 auth recovery — User requested push on let do some work — Forgot password was placeholder coming soon — Now functional with same hashing as sign_up
-**analyze:** No issues found! (20.9s Sep 19 2026)
-**Next:** Push Phase 4 commit
-
----
 ## 2026-09-19 — 19a8295 — feat: Phase 3b nav wiring verified — COMPLETE
 **Status:** VERIFIED — origin/feature/haven-central-fixes up to date, flutter analyze No issues found! 22.5s
 **Change:** Verified haven_central_screen.dart Phase 3b wiring complete — Line 1 import gig_income_screen.dart, Line 1978 const GigIncomeScreen() in IndexedStack, Bottom nav 7 items Home/Batches/Finances/Records/Schedule/Budgets/Gig, AppBar titles 7 entries including '💼 Gig Income' — No code change needed, already wired by previous AI
@@ -136,3 +125,34 @@ Keep chronologically newest on top, after CURRENT STATE. No spaced UTF-16, alway
 - Laws 1-17 enforced — Read Before Assist mandatory
 - Branch workflow: feature/haven-central-fixes -> main via PR, Law 16 docs commit before every push
 - System: Windows 11, Flutter 3.x, C: 14GB free, D: gradle_cache + pub_cache
+
+---
+## [2026-05-13 Evening] Email Recovery - HOLD for Tomorrow
+
+### DONE
+- Audited UserAccount (lib/models/user_account.dart) -> confirmed NO email field. Email lives in registered_users SharedPreferences JSON only.
+- Fixed RequireEmailDialog build crash: was referencing UserAccount.email which doesn't exist. Rewrote to parse registered_users list, match by username/id.
+- Implemented once-only Secure Your Account popup via didPromptForEmail_${id} flag.
+- Handled adb uninstall data wipe -> old logins removed, forced new profile creation. Validated new flow.
+- New accounts now require email on sign_up_screen.
+- Mock verification implemented: random 6-digit code generation, Snackbar + debugPrint display, verify & save with emailVerified=true.
+
+### CURRENT STATE (Mock)
+- Code gen: (100000 + Random().nextInt(900000)).toString()
+- Temp storage: pending_code_${userId}, pending_email_${userId}
+- Final storage: registered_users[idx]['email'] + ['emailVerified']=true
+- Build OK, no errors.
+
+### HOLD - TOMORROW TASK
+User wants REAL email send to provided email, verify code matches in Haven.
+- Requires real email service (mailer + Gmail SMTP App Password OR Firebase/Supabase Auth)
+- Next steps:
+    1. flutter pub add mailer
+    2. Configure senderEmail + appPassword in require_email_dialog.dart
+    3. Test delivery to inbox/spam
+    4. Implement Forgot/Restore flow using verified email
+    5. Update sign_up_screen to also verify on creation
+
+### NOTE
+Use `flutter run` NOT `adb uninstall` to preserve SharedPreferences for testing. Uninstall wipes registered_users.
+

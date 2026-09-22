@@ -1,8 +1,7 @@
 // lib/features/auth/presentation/sign_up_screen.dart
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
-import 'package:crypto/crypto.dart';
+import 'package:firebase_auth/firebase_auth.dart' as fb;
+import 'package:haven_os/services/firebase_auth_service.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -19,12 +18,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool _obscurePassword = true;
   bool _obscureConfirm = true;
   bool _isLoading = false;
-
-  String _hashPassword(String password, String salt) {
-    final bytes = utf8.encode(password + salt);
-    final digest = sha256.convert(bytes);
-    return digest.toString();
-  }
 
   String? _validateUsername(String? value) {
     if (value == null || value.isEmpty) return 'Username is required';
@@ -50,6 +43,24 @@ class _SignUpScreenState extends State<SignUpScreen> {
     return null;
   }
 
+  String _friendlyError(Object e) {
+    if (e is fb.FirebaseAuthException) {
+      switch (e.code) {
+        case 'email-already-in-use':
+          return 'An account already exists for that email.';
+        case 'invalid-email':
+          return 'That email address looks invalid.';
+        case 'weak-password':
+          return 'Password is too weak — use at least 6 characters.';
+        case 'network-request-failed':
+          return 'No internet connection — check your network and try again.';
+        default:
+          return 'Could not create account: ${e.message ?? e.code}';
+      }
+    }
+    return 'Could not create account: $e';
+  }
+
   Future<void> _signUp() async {
     final username = _usernameCtrl.text.trim();
     final email = _emailCtrl.text.trim();
@@ -69,42 +80,40 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
     setState(() => _isLoading = true);
 
-    final prefs = await SharedPreferences.getInstance();
-    final usersJson = prefs.getString('registered_users');
-    List<Map<String, dynamic>> users = [];
-    if (usersJson != null) {
-      users = List<Map<String, dynamic>>.from(jsonDecode(usersJson));
-    }
+    try {
+      // signOutAfter defaults to true: a brand-new account must verify its
+      // email before it can sign in, so we don't leave them signed in here.
+      await FirebaseAuthService().createAccount(email, password, username);
 
-    if (users.any((u) => u['username'] == username)) {
+      if (!mounted) return;
       setState(() => _isLoading = false);
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-            content: Text('Username already taken!'),
-            backgroundColor: Colors.red),
+          content: Text(
+            'Account created! Check your email for a verification link, '
+            'then sign in.',
+          ),
+          duration: Duration(seconds: 5),
+        ),
       );
-      return;
+      Navigator.pop(context);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_friendlyError(e)), backgroundColor: Colors.red),
+      );
     }
+  }
 
-    // Secure: generate salt and hash password
-    final salt = DateTime.now().millisecondsSinceEpoch.toString();
-    final hashedPassword = _hashPassword(password, salt);
-
-    users.add({
-      'username': username,
-      'email': email,
-      'salt': salt,
-      'passwordHash': hashedPassword,
-    });
-    await prefs.setString('registered_users', jsonEncode(users));
-
-    setState(() => _isLoading = false);
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Account created! Please sign in.')),
-    );
-
-    Navigator.pop(context);
+  @override
+  void dispose() {
+    _usernameCtrl.dispose();
+    _emailCtrl.dispose();
+    _passwordCtrl.dispose();
+    _confirmCtrl.dispose();
+    super.dispose();
   }
 
   @override
