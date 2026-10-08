@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:haven_os/core/constants/colors.dart';
 import 'package:haven_os/models/user_account.dart';
@@ -6,6 +6,7 @@ import 'package:haven_os/services/auth_service.dart';
 import 'package:haven_os/services/app_state.dart';
 import 'package:haven_os/features/auth/widgets/password_strength_indicator.dart';
 import 'package:haven_os/services/firebase_auth_service.dart';
+import 'package:haven_os/domain/services/household_service.dart';
 
 class CreateAccountScreen extends StatefulWidget {
   const CreateAccountScreen({super.key});
@@ -69,7 +70,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
       );
       final user = await AuthService.createAccount(
         name: _nameController.text.trim(),
-        householdId: 'default',
+        householdId: isFirst ? (await HouseholdService.createHouseholdRecord(_nameController.text.trim() + "'s Household")).id : 'pending_join',
         type: isFirst ? AccountType.parent : _selectedType,
         role: role,
         hasPin: true,

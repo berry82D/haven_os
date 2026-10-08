@@ -169,4 +169,17 @@ class HouseholdService {
             r.status == JoinRequestStatus.pending)
         .toList();
   }
+  /// Creates a household record and returns it (does not require a user yet).
+  static Future<Household> createHouseholdRecord(String name) async {
+    final households = await loadHouseholds();
+    final cleaned = name.trim().isEmpty ? 'My Household' : name.trim();
+    final newHousehold = Household(
+      id: 'hh_${DateTime.now().millisecondsSinceEpoch}',
+      name: cleaned,
+      createdAt: DateTime.now(),
+    );
+    households.add(newHousehold);
+    await saveHouseholds(households);
+    return newHousehold;
+  }
 }

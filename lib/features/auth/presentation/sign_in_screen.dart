@@ -57,7 +57,7 @@ class _SignInScreenState extends State<SignInScreen> {
     final appState = context.read<AppState>();
     final u = UserAccount(
       id: firebaseUser.uid,
-      householdId: 'default',
+      householdId: 'pending_join',
       name: displayUsername,
     );
     try {
