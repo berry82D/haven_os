@@ -1,13 +1,27 @@
-﻿## CURRENT STATE - [2026-05-13 HOLD - 11:47 PM]
-**Branch:** main @ 3b48d22 (merged from feature/haven-central-fixes)
-**Latest Work:** Email recovery - RequireEmailDialog regression fix + mock verification (6-digit code gen + emailVerified flag). New accounts now require email. Once-only Secure Your Account popup for legacy username-only accounts.
-**Last Build:** OK - Removed UserAccount.email reference crash
-**Data Note:** adb uninstall wiped SharedPreferences (registered_users lost) -> forced new profile creation. Use `flutter run` not uninstall to preserve data.
-**Merge Note:** main merged @ 3b48d22 - message "resolve bills_tab.dart conflict, keep feature branch version" - needs sanity check on what main's side had before discard. Bills_tab has prior duplication.
-**Next:** REAL email send (mailer + SMTP creds), inbox delivery test, forgot/restore flow
-**Status:** HOLD till tomorrow - Mock verification done, real send pending
----
+## CURRENT STATE - [2026-10-08 - Invites File 1 + Cloud Build Fix]
+**Branch:** main (File 1 of 6 -- household invites + Android cloud-build config)
+**Latest Work:**
+  1) Android build config (Claude): buildscript{} moved to settings.gradle.kts plugins{} block (android.application 8.11.1, kotlin.android 2.2.20, google-services 4.4.2). gradle.properties heap 6g->2g, daemon off, vfs.watch off. Enables GitHub Actions cloud build.
+  2) Household invites -- File 1 of 6. UserAccount extended with accessExpiresAt + grantedByUid (additive only).
+**Deploy Path:** GitHub Actions builds app-release.apk -> download once -> flash to each phone (NOT local build, NOT local install).
+**Build Order (NEXT AI: continue at File 2):**
+  - [x] File 1: lib/models/user_account.dart -- DONE
+  - [ ] File 2: lib/models/invite.dart (NEW) -- invite code + capabilities + duration
+  - [ ] File 3: lib/services/invite_service.dart (NEW) -- generate/redeem/revoke
+  - [ ] File 4: lib/features/household/invite_someone_screen.dart (NEW) -- owner UI
+  - [ ] File 5: lib/features/household/redeem_invite_screen.dart (NEW) -- invitee UI + preview
+  - [ ] File 6: lib/features/settings/widgets/household_management_screen.dart -- list/revoke
+**Key Decisions:**
+  - Invites by USERNAME (not email)
+  - Code: HAVEN-XXXX (6-char), 24h validity, single-use
+  - Capabilities reuse existing Capability enum in permission_service.dart
+  - Member = view+write, Viewer = view only
+  - accessExpiresAt = null means permanent
+  - UserRole enum UNTOUCHED (means family relationship, not permission level)
+**Status:** Ready to push. Next AI continue at File 2.
+**Next AI:** Read this first. Verify File 1 in user_account.dart. Continue at File 2 (invite.dart). ONE FILE AT A TIME. STOP if any analyze not clean.
 
+---
 # Haven OS — DEV LOG
 Live log — LAW 16 + LAW 17 ENFORCED
 LAW 16: Every AI must keep this log up-to-date. No push without a log entry.
@@ -15,6 +29,18 @@ LAW 17: Every AI must READ DEV_LOG.md + CLAUDE.md BEFORE assisting.
 
 ---
 
+## 2026-10-08 -- 45527d1 -- feat: Cloud build config + invites File 1/6
+**Status:** PENDING push
+**Files:**
+- android/build.gradle.kts -- buildscript{} removed (classpaths now in settings.gradle.kts plugins{}: android.application 8.11.1, kotlin.android 2.2.20, google-services 4.4.2). Modern Flutter template, enables cloud build.
+- android/gradle.properties -- heap 6g->2g, daemon=false, vfs.watch=false, workers.max=1. Lighter local build.
+- lib/models/user_account.dart -- added accessExpiresAt (DateTime?, null=permanent), grantedByUid (String?), hasActiveAccess + isAccessExpired getters. Additive only.
+- DEV_LOG.md -- this update
+**Change:** Two independent changes batched (both uncommitted in working tree).
+**Why:** Cloud build via GitHub Actions + invite feature foundation. Law 12 (additive only).
+**analyze:** No issues found! (user_account.dart, 0.6s)
+**Push:** PENDING
+**Next:** File 2 -- lib/models/invite.dart (NEW)
 ## 2026-09-19 — 19a8295 — feat: Phase 3b nav wiring verified — COMPLETE
 **Status:** VERIFIED — origin/feature/haven-central-fixes up to date, flutter analyze No issues found! 22.5s
 **Change:** Verified haven_central_screen.dart Phase 3b wiring complete — Line 1 import gig_income_screen.dart, Line 1978 const GigIncomeScreen() in IndexedStack, Bottom nav 7 items Home/Batches/Finances/Records/Schedule/Budgets/Gig, AppBar titles 7 entries including '💼 Gig Income' — No code change needed, already wired by previous AI
