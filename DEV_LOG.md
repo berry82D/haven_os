@@ -1,25 +1,26 @@
-## CURRENT STATE - [2026-10-08 - Invites File 1 + Cloud Build Fix]
-**Branch:** main (File 1 of 6 -- household invites + Android cloud-build config)
+## CURRENT STATE - [2026-10-08 - Invites File 1 + Cloud Build Workflow]
+**Branch:** main (File 1 of 6 -- household invites + cloud build workflow added)
 **Latest Work:**
-  1) Android build config (Claude): buildscript{} moved to settings.gradle.kts plugins{} block (android.application 8.11.1, kotlin.android 2.2.20, google-services 4.4.2). gradle.properties heap 6g->2g, daemon off, vfs.watch off. Enables GitHub Actions cloud build.
-  2) Household invites -- File 1 of 6. UserAccount extended with accessExpiresAt + grantedByUid (additive only).
-**Deploy Path:** GitHub Actions builds app-release.apk -> download once -> flash to each phone (NOT local build, NOT local install).
+  1) Android build config: buildscript{} moved to settings.gradle.kts plugins{} (android.application 8.11.1, kotlin.android 2.2.20, google-services 4.4.2). gradle.properties heap 6g->2g, daemon off. Lighter local build.
+  2) Household invites -- File 1 of 6 done. UserAccount extended with accessExpiresAt + grantedByUid (additive only).
+  3) .github/workflows/build.yml ADDED. Cloud build via GitHub Actions on push to main OR manual workflow_dispatch. Produces app-release.apk artifact, 30-day retention.
+**Deploy Path:** GitHub Actions builds app-release.apk -> download artifact -> flash to each phone (NOT local build, NOT local install).
 **Build Order (NEXT AI: continue at File 2):**
   - [x] File 1: lib/models/user_account.dart -- DONE
-  - [ ] File 2: lib/models/invite.dart (NEW) -- invite code + capabilities + duration
-  - [ ] File 3: lib/services/invite_service.dart (NEW) -- generate/redeem/revoke
-  - [ ] File 4: lib/features/household/invite_someone_screen.dart (NEW) -- owner UI
-  - [ ] File 5: lib/features/household/redeem_invite_screen.dart (NEW) -- invitee UI + preview
-  - [ ] File 6: lib/features/settings/widgets/household_management_screen.dart -- list/revoke
+  - [ ] File 2: lib/models/invite.dart (NEW)
+  - [ ] File 3: lib/services/invite_service.dart (NEW)
+  - [ ] File 4: lib/features/household/invite_someone_screen.dart (NEW)
+  - [ ] File 5: lib/features/household/redeem_invite_screen.dart (NEW)
+  - [ ] File 6: lib/features/settings/widgets/household_management_screen.dart
 **Key Decisions:**
   - Invites by USERNAME (not email)
   - Code: HAVEN-XXXX (6-char), 24h validity, single-use
   - Capabilities reuse existing Capability enum in permission_service.dart
   - Member = view+write, Viewer = view only
   - accessExpiresAt = null means permanent
-  - UserRole enum UNTOUCHED (means family relationship, not permission level)
-**Status:** Ready to push. Next AI continue at File 2.
-**Next AI:** Read this first. Verify File 1 in user_account.dart. Continue at File 2 (invite.dart). ONE FILE AT A TIME. STOP if any analyze not clean.
+  - UserRole enum UNTOUCHED
+**Status:** Cloud build workflow live. Push to main triggers APK build.
+**Next AI:** Read this first. Verify File 1 in user_account.dart. Continue at File 2 (invite.dart). ONE FILE AT A TIME.
 
 ---
 # Haven OS — DEV LOG
