@@ -29,7 +29,7 @@ LAW 17: Every AI must READ DEV_LOG.md + CLAUDE.md BEFORE assisting.
 
 ---
 
-## 2026-10-08 -- PENDING -- feat: Cloud build config + invites File 1/6
+## 2026-10-08 -- cc0d57e -- feat: Cloud build config + invites File 1/6
 **Status:** PENDING push
 **Files:**
 - android/build.gradle.kts -- buildscript{} removed (classpaths now in settings.gradle.kts plugins{}: android.application 8.11.1, kotlin.android 2.2.20, google-services 4.4.2). Modern Flutter template, enables cloud build.
