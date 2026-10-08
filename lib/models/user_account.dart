@@ -1,4 +1,4 @@
-// lib/models/user_account.dart
+﻿// lib/models/user_account.dart
 import 'package:haven_os/core/enums/learning_mode.dart';
 
 enum UserRole { administrator, adult, teen, child }
@@ -19,10 +19,20 @@ class UserAccount {
   final SchoolAgeGroup schoolAgeGroup;
   final bool allowFinalAnswers;
 
+  // ===== HOUSEHOLD ACCESS (added for invite system) =====
+  /// When this account's household access expires. `null` = permanent.
+  /// Set by InviteService when a viewer accepts a time-limited invite.
+  final DateTime? accessExpiresAt;
+
+  /// UID of the account that granted this access (for audit + revoke).
+  /// `null` for the original owner / self-created accounts.
+  final String? grantedByUid;
+  // ======================================================
+
   // ===== PREFERENCES =====
   final String weightUnit; // 'lb' or 'kg'
   final String temperatureUnit; // 'C' or 'F'
-  final String currencySymbol; // '$', '€', '£', '¥'
+  final String currencySymbol; // '$', 'EUR', 'GBP', 'JPY'
   final String dateFormat; // 'MM/dd/yyyy' or 'dd/MM/yyyy'
   final String languageCode; // 'en', 'es', etc. (future use)
   // =========================
@@ -40,6 +50,8 @@ class UserAccount {
     this.learningMode = LearningMode.standard,
     this.schoolAgeGroup = SchoolAgeGroup.older,
     this.allowFinalAnswers = false,
+    this.accessExpiresAt,
+    this.grantedByUid,
     this.weightUnit = 'lb',
     this.temperatureUnit = 'C',
     this.currencySymbol = '\$',
@@ -52,6 +64,19 @@ class UserAccount {
   bool get isParent =>
       role == UserRole.administrator || type == AccountType.parent;
   bool get isAdult => role == UserRole.adult || type == AccountType.adult;
+
+  /// True if this account's household access is still valid right now.
+  /// Permanent accounts (null expiry) always return true.
+  bool get hasActiveAccess {
+    if (accessExpiresAt == null) return true;
+    return accessExpiresAt!.isAfter(DateTime.now());
+  }
+
+  /// True if this account's access has expired and needs renewal.
+  bool get isAccessExpired {
+    if (accessExpiresAt == null) return false;
+    return accessExpiresAt!.isBefore(DateTime.now());
+  }
 
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -66,6 +91,8 @@ class UserAccount {
         'learningMode': learningMode.index,
         'schoolAgeGroup': schoolAgeGroup.index,
         'allowFinalAnswers': allowFinalAnswers,
+        'accessExpiresAt': accessExpiresAt?.toIso8601String(),
+        'grantedByUid': grantedByUid,
         // preferences
         'weightUnit': weightUnit,
         'temperatureUnit': temperatureUnit,
@@ -88,6 +115,10 @@ class UserAccount {
       learningMode: LearningMode.values[json['learningMode'] ?? 0],
       schoolAgeGroup: SchoolAgeGroup.values[json['schoolAgeGroup'] ?? 1],
       allowFinalAnswers: json['allowFinalAnswers'] ?? false,
+      accessExpiresAt: json['accessExpiresAt'] != null
+          ? DateTime.tryParse(json['accessExpiresAt'])
+          : null,
+      grantedByUid: json['grantedByUid'],
       weightUnit: json['weightUnit'] ?? 'lb',
       temperatureUnit: json['temperatureUnit'] ?? 'C',
       currencySymbol: json['currencySymbol'] ?? '\$',
