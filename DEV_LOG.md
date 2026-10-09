@@ -1,15 +1,22 @@
 ## CURRENT STATE - [2026-10-09 - Cloud signing, household design correction]
 **Branch:** main. Check HEAD with git log (last known f30c3e0).
 **Cloud build:** .github/workflows/build.yml, Flutter 3.44.8. Needs a REPOSITORY secret (not an Environment secret) named DEBUG_KEYSTORE_B64 = base64 of the PC file %USERPROFILE%\.android\debug.keystore. Key SHA-256 starts 387faa51 and ends 554624.
-**Signing:** release uses the debug signingConfig. The app on phone R3GL40HW72K is signed with the PC key (apksigner verified 2026-10-09). The first cloud APK with the keystore step was signed with a DIFFERENT key (ce398dbd...) and failed install -r with INSTALL_FAILED_UPDATE_INCOMPATIBLE. f30c3e0 adds ANDROID_USER_HOME plus fingerprint checks before and after the build. RESULT PENDING.
+**Signing:** release uses the debug signingConfig. The app on phone R3GL40HW72K is signed with the PC key (apksigner verified 2026-10-09). The first cloud APK with the keystore step was signed with a DIFFERENT key (ce398dbd...) and failed install -r with INSTALL_FAILED_UPDATE_INCOMPATIBLE. f30c3e0 adds ANDROID_USER_HOME plus fingerprint checks before and after the build. RESULT 2026-10-09: run 7 green, APK fingerprint 387faa51...554624 matches the PC key. Installed with install -r over the existing app on R3GL40HW72K (a wiped test phone, no real data) and signed in.
 **RULE:** never adb uninstall on a phone with real data (it wipes registered_users). Install only with adb install -r. A failed install changes nothing.
 **Household (CORRECTION):** 45527d1 makes the first account create an hh_ id, but HouseholdService stores it in LOCAL secure storage only, so a second phone cannot see it. sign_in_screen.dart _finalizeLogin sets householdId 'pending_join' for every Firebase login (UNFIXED BUG). Households and invites MUST live in Firestore (households/{id}) for two-phone sharing.
 **Invites roadmap:** File 1 of 6 done (user_account.dart). Files 2-6 not started. DESIGN CONSTRAINT: invite and household records go in Firestore, not HouseholdService local storage.
 **Firestore:** firestore_service.dart syncs under users/{username}/..., keyed by username not Firebase uid. The test-mode rule expired 2026-09-30. A strict users/{uid} rule covers only the profile doc, not those subcollections. Sync needs households/{id} data plus membership-based rules.
+**Firestore rules PUBLISHED 2026-10-09:** users/{name}/** allowed only for verified emails in the isFamily() allowlist; users/{uid} profile doc allowed for its own uid. The earlier strict users/{uid} suggestion was WRONG for this app (data lives under users/{username}). REQUIREMENT: add each family member's email to the allowlist BEFORE they sign in, or the app hangs on the loading screen (unhandled PERMISSION_DENIED).
 **Firebase Auth:** duplicate or half-created accounts exist (2 each for David and Candice). Review in console before deleting. Sign-up should undo the Auth user if the profile write fails.
 **Open items:** forgotten-username hint on sign-in (email sign-in already works); com.example.haven_os package rename before any Play Store release; logout() deleteAll is broad.
 **Email recovery:** real Firebase verification and reset links are in use. The May 13 mock-code section near the bottom is SUPERSEDED.
-**Next:** read the f30c3e0 build result, install -r on the first phone, then write the Firestore household record at sign-up, one complete file at a time.
+**Next:** (1) Candice phone: pull base.apk and check the signing key matches, add her email to the rules allowlist, install -r, test legacy-account migration. (2) Firestore household record at sign-up, one complete file at a time. (3) Show an error, not an endless loading screen, when Firestore denies access.
+
+---
+## 2026-10-09 - first on-phone test of the cloud APK
+**Result:** cloud APK installed over the old app with install -r, email verification link worked, sign-in worked, home screen loaded after the rules fix.
+**Learned:** (a) a secret created under Environments is invisible to the workflow, it must be a repository secret; (b) test -s only proved the keystore file was non-empty, not that it was the right key; (c) endless loading screen = unhandled PERMISSION_DENIED on username-keyed Firestore paths.
+**NOT yet tested:** legacy-account migration (needs a phone with real registered_users, Candice's); household sharing.
 
 ---
 ## 2026-10-09 - f30c3e0 - ci: verify signing key before and after build
