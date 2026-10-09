@@ -1,27 +1,31 @@
-## CURRENT STATE - [2026-10-08 - Invites File 1 + Cloud Build Workflow]
-**Branch:** main (File 1 of 6 -- household invites + cloud build workflow added)
-**Latest Work:**
-  1) Android build config: buildscript{} moved to settings.gradle.kts plugins{} (android.application 8.11.1, kotlin.android 2.2.20, google-services 4.4.2). gradle.properties heap 6g->2g, daemon off. Lighter local build.
-  2) Household invites -- File 1 of 6 done. UserAccount extended with accessExpiresAt + grantedByUid (additive only).
-  3) .github/workflows/build.yml ADDED. Cloud build via GitHub Actions on push to main OR manual workflow_dispatch. Produces app-release.apk artifact, 30-day retention.
-**Deploy Path:** GitHub Actions builds app-release.apk -> download artifact -> flash to each phone (NOT local build, NOT local install).
-**Build Order (NEXT AI: continue at File 2):**
-  - [x] File 1: lib/models/user_account.dart -- DONE
-  - [ ] File 2: lib/models/invite.dart (NEW)
-  - [ ] File 3: lib/services/invite_service.dart (NEW)
-  - [ ] File 4: lib/features/household/invite_someone_screen.dart (NEW)
-  - [ ] File 5: lib/features/household/redeem_invite_screen.dart (NEW)
-  - [ ] File 6: lib/features/settings/widgets/household_management_screen.dart
-**Key Decisions:**
-  - Invites by USERNAME (not email)
-  - Code: HAVEN-XXXX (6-char), 24h validity, single-use
-  - Capabilities reuse existing Capability enum in permission_service.dart
-  - Member = view+write, Viewer = view only
-  - accessExpiresAt = null means permanent
-  - UserRole enum UNTOUCHED
-**Status:** Cloud build workflow live. Push to main triggers APK build.
-**Next AI:** Read this first. Verify File 1 in user_account.dart. Continue at File 2 (invite.dart). ONE FILE AT A TIME.
+## CURRENT STATE - [2026-10-09 - Cloud signing, household design correction]
+**Branch:** main. Check HEAD with git log (last known f30c3e0).
+**Cloud build:** .github/workflows/build.yml, Flutter 3.44.8. Needs a REPOSITORY secret (not an Environment secret) named DEBUG_KEYSTORE_B64 = base64 of the PC file %USERPROFILE%\.android\debug.keystore. Key SHA-256 starts 387faa51 and ends 554624.
+**Signing:** release uses the debug signingConfig. The app on phone R3GL40HW72K is signed with the PC key (apksigner verified 2026-10-09). The first cloud APK with the keystore step was signed with a DIFFERENT key (ce398dbd...) and failed install -r with INSTALL_FAILED_UPDATE_INCOMPATIBLE. f30c3e0 adds ANDROID_USER_HOME plus fingerprint checks before and after the build. RESULT PENDING.
+**RULE:** never adb uninstall on a phone with real data (it wipes registered_users). Install only with adb install -r. A failed install changes nothing.
+**Household (CORRECTION):** 45527d1 makes the first account create an hh_ id, but HouseholdService stores it in LOCAL secure storage only, so a second phone cannot see it. sign_in_screen.dart _finalizeLogin sets householdId 'pending_join' for every Firebase login (UNFIXED BUG). Households and invites MUST live in Firestore (households/{id}) for two-phone sharing.
+**Invites roadmap:** File 1 of 6 done (user_account.dart). Files 2-6 not started. DESIGN CONSTRAINT: invite and household records go in Firestore, not HouseholdService local storage.
+**Firestore:** firestore_service.dart syncs under users/{username}/..., keyed by username not Firebase uid. The test-mode rule expired 2026-09-30. A strict users/{uid} rule covers only the profile doc, not those subcollections. Sync needs households/{id} data plus membership-based rules.
+**Firebase Auth:** duplicate or half-created accounts exist (2 each for David and Candice). Review in console before deleting. Sign-up should undo the Auth user if the profile write fails.
+**Open items:** forgotten-username hint on sign-in (email sign-in already works); com.example.haven_os package rename before any Play Store release; logout() deleteAll is broad.
+**Email recovery:** real Firebase verification and reset links are in use. The May 13 mock-code section near the bottom is SUPERSEDED.
+**Next:** read the f30c3e0 build result, install -r on the first phone, then write the Firestore household record at sign-up, one complete file at a time.
 
+---
+## 2026-10-09 - f30c3e0 - ci: verify signing key before and after build
+**Status:** PUSHED
+**Files:** .github/workflows/build.yml
+**Change:** Restore debug keystore from secret, set ANDROID_USER_HOME, fail if fingerprint is not 387faa51...554624, verify the built APK with apksigner before upload.
+**Why:** The earlier cloud APK was signed with a different key and could not update the installed app.
+**analyze:** n/a (CI only)
+**Push:** afbcac4..f30c3e0
+**Next:** read the build result
+
+---
+## 2026-10-08 - 45527d1 - feat(household): first account creates real household id instead of default
+**Status:** PUSHED (logged retroactively 2026-10-09)
+**Files:** lib/domain/services/household_service.dart (createHouseholdRecord), lib/features/auth/presentation/create_account_screen.dart
+**Note:** the household record is LOCAL only. See CURRENT STATE.
 ---
 # Haven OS — DEV LOG
 Live log — LAW 16 + LAW 17 ENFORCED
@@ -31,7 +35,7 @@ LAW 17: Every AI must READ DEV_LOG.md + CLAUDE.md BEFORE assisting.
 ---
 
 ## 2026-10-08 -- cc0d57e -- feat: Cloud build config + invites File 1/6
-**Status:** PENDING push
+**Status:** PUSHED (stamped f3f08dc)
 **Files:**
 - android/build.gradle.kts -- buildscript{} removed (classpaths now in settings.gradle.kts plugins{}: android.application 8.11.1, kotlin.android 2.2.20, google-services 4.4.2). Modern Flutter template, enables cloud build.
 - android/gradle.properties -- heap 6g->2g, daemon=false, vfs.watch=false, workers.max=1. Lighter local build.
@@ -40,7 +44,7 @@ LAW 17: Every AI must READ DEV_LOG.md + CLAUDE.md BEFORE assisting.
 **Change:** Two independent changes batched (both uncommitted in working tree).
 **Why:** Cloud build via GitHub Actions + invite feature foundation. Law 12 (additive only).
 **analyze:** No issues found! (user_account.dart, 0.6s)
-**Push:** PENDING
+**Push:** done
 **Next:** File 2 -- lib/models/invite.dart (NEW)
 ## 2026-09-19 — 19a8295 — feat: Phase 3b nav wiring verified — COMPLETE
 **Status:** VERIFIED — origin/feature/haven-central-fixes up to date, flutter analyze No issues found! 22.5s
@@ -155,6 +159,7 @@ Keep chronologically newest on top, after CURRENT STATE. No spaced UTF-16, alway
 
 ---
 ## [2026-05-13 Evening] Email Recovery - HOLD for Tomorrow
+SUPERSEDED 2026-10-09: real Firebase email verification and reset links replaced the mock code and the mailer plan below.
 
 ### DONE
 - Audited UserAccount (lib/models/user_account.dart) -> confirmed NO email field. Email lives in registered_users SharedPreferences JSON only.
