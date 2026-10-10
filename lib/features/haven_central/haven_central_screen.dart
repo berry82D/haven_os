@@ -2002,7 +2002,6 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                           })),),
                   const Divider(color: Colors.grey),
                   Material(type: MaterialType.transparency, child: ListTile(
-                  Material(type: MaterialType.transparency, child: ListTile(
                       title: const Text('Household Management',
                           style: TextStyle(color: Colors.white)),
                       leading: const Icon(Icons.home_work_outlined,
@@ -2015,6 +2014,8 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                                 builder: (_) =>
                                     const HouseholdManagementScreen()));
                       }),),
+                  const Divider(color: Colors.grey),
+                  Material(type: MaterialType.transparency, child: ListTile(
                       title: const Text('Logout',
                           style: TextStyle(color: Colors.red)),
                       leading: const Icon(Icons.logout, color: Colors.red),
