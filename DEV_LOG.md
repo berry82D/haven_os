@@ -13,7 +13,7 @@
 **Next:** (1) Candice phone: pull base.apk and check the signing key matches, add her email to the rules allowlist, install -r, test legacy-account migration. (2) Firestore household record at sign-up, one complete file at a time. (3) Show an error, not an endless loading screen, when Firestore denies access.
 
 ---
-## 2026-10-10 -- PENDING -- fix(auth): write auth_username on EVERY sign-in path
+## 2026-10-10 -- a08ccee -- fix(auth): write auth_username on EVERY sign-in path
 **Status:** PENDING push
 **Files:**
 - lib/features/auth/presentation/sign_in_screen.dart -- _resolveUsername now 3-tier (Firestore profile -> Auth displayName -> fallback); _finalizeLogin writes FlutterSecureStorage key 'auth_username' on every sign-in path. This is the value FirestoreService._getUserId uses to pick the users/{folder}. Root cause: stale 'Cberry16' from last night's signup meant Candice's data reads hit the wrong folder even though greeting showed 'Coberry16'.
