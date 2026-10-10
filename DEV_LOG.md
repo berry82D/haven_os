@@ -13,7 +13,7 @@
 **Next:** (1) Candice phone: pull base.apk and check the signing key matches, add her email to the rules allowlist, install -r, test legacy-account migration. (2) Firestore household record at sign-up, one complete file at a time. (3) Show an error, not an endless loading screen, when Firestore denies access.
 
 ---
-## 2026-10-10 -- PENDING -- feat(cfo): Week/Month toggle + Left This Period hero on Finances tab
+## 2026-10-10 -- 4e0e5e1 -- feat(cfo): Week/Month toggle + Left This Period hero on Finances tab
 **Status:** PENDING push
 **Files:**
 - lib/features/haven_central/haven_central_screen.dart -- _buildFinancesTab: added _financesPeriod state, This week/Month pill toggle in header, gradient Left-This-Period hero with visible formula (income - spent - bills due - $100 buffer), summary cards now ranged, pie chart + recent activity filtered to selected range. Bar chart left as monthly trend (unchanged behavior).
