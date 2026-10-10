@@ -13,7 +13,7 @@
 **Next:** (1) Candice phone: pull base.apk and check the signing key matches, add her email to the rules allowlist, install -r, test legacy-account migration. (2) Firestore household record at sign-up, one complete file at a time. (3) Show an error, not an endless loading screen, when Firestore denies access.
 
 ---
-## 2026-10-09 -- PENDING -- fix(auth): sign-in reads username from Firestore, not displayName
+## 2026-10-09 -- d703ddf -- fix(auth): sign-in reads username from Firestore, not displayName
 
 **Status:** PENDING push
 **Files:**
