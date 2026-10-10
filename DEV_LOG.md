@@ -13,6 +13,28 @@
 **Next:** (1) Candice phone: pull base.apk and check the signing key matches, add her email to the rules allowlist, install -r, test legacy-account migration. (2) Firestore household record at sign-up, one complete file at a time. (3) Show an error, not an endless loading screen, when Firestore denies access.
 
 ---
+## 2026-10-09 -- PENDING -- fix(auth): sign-in reads username from Firestore, not displayName
+
+**Status:** PENDING push
+**Files:**
+- lib/features/auth/presentation/sign_in_screen.dart -- added _resolveUsername() which reads users/{uid}.username from Firestore and repairs displayName if it was null or equal to uid. Step 2 (Firebase-native sign-in) now passes email prefix as FALLBACK, never user.displayName, since displayName is often null or (for older accounts) the uid.
+- DEV_LOG.md -- this entry
+
+**Change:** Candice's sign-in showed H2m4TIUt6vdaErC7O941HxqW8rw2 (Firebase UID) instead of "Coberry16" because Firebase Auth displayName was either null or set to uid by an older account-creation path. Sign-in now trusts the Firestore profile doc (which correctly has username: "Coberry16") and self-heals the Auth displayName for future logins.
+
+**Why:** Cosmetic bug but confusing for the user. Also affects household-name derivation since household name comes from user.name.
+
+**Tested:** flutter analyze lib\features\auth\presentation\sign_in_screen.dart -- No issues found! (6.4s)
+
+**NOT touched:**
+- householdId still 'pending_join' in _finalizeLogin (separate issue, needs Firestore household record at sign-up)
+- Legacy migration path (Step 1) unchanged
+- No UI changes
+
+**Push:** PENDING
+**Next:** Sign in on Candice's phone, confirm greeting shows "Coberry16" not the UID
+
+---
 ## 2026-10-09 - first on-phone test of the cloud APK
 **Result:** cloud APK installed over the old app with install -r, email verification link worked, sign-in worked, home screen loaded after the rules fix.
 **Learned:** (a) a secret created under Environments is invisible to the workflow, it must be a repository secret; (b) test -s only proved the keystore file was non-empty, not that it was the right key; (c) endless loading screen = unhandled PERMISSION_DENIED on username-keyed Firestore paths.

@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb;
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../services/app_state.dart';
 import '../../../services/firebase_auth_service.dart';
 import '../../../models/user_account.dart';
@@ -51,7 +52,43 @@ class _SignInScreenState extends State<SignInScreen> {
     );
   }
 
-  Future<void> _finalizeLogin(fb.User firebaseUser, String displayUsername) async {
+  /// Resolves the real username for this user and stores it on the
+  /// Firebase Auth record if it is missing or wrong. Firestore
+  /// users/{uid}.username is the source of truth. The Firebase Auth
+  /// displayName is often null, and older account-creation paths may
+  /// have accidentally set it to the uid - so we never trust it directly.
+  Future<String> _resolveUsername(fb.User user, String fallback) async {
+    String resolved = fallback;
+    try {
+      final snap = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+      if (snap.exists) {
+        final stored = (snap.data()?['username'] ?? '').toString().trim();
+        if (stored.isNotEmpty) resolved = stored;
+      }
+    } catch (e) {
+      debugPrint('profile lookup error: $e');
+    }
+
+    // Repair the Firebase Auth displayName so future logins don't
+    // fall back to the uid again.
+    final current = user.displayName?.trim();
+    if (current == null || current.isEmpty || current == user.uid) {
+      try {
+        await user.updateDisplayName(resolved);
+      } catch (_) {}
+    }
+
+    return resolved;
+  }
+
+  Future<void> _finalizeLogin(fb.User firebaseUser, String fallbackUsername) async {
+    if (!mounted) return;
+
+    final displayUsername = await _resolveUsername(firebaseUser, fallbackUsername);
+
     if (!mounted) return;
 
     final appState = context.read<AppState>();
@@ -89,11 +126,11 @@ class _SignInScreenState extends State<SignInScreen> {
     setState(() => _isLoading = true);
 
     // ---- Step 1: check for a legacy local account (pre-Firebase-migration)
-    // Real accounts created before tonight live in SharedPreferences under
-    // 'registered_users'. If we find a match here, we verify the password
-    // against the OLD local hash first — that's what proves this person
-    // actually owns the account, since they may not have a Firebase
-    // account yet at all.
+    // Real accounts created before the Firebase migration live in
+    // SharedPreferences under 'registered_users'. If we find a match here,
+    // we verify the password against the OLD local hash first - that's what
+    // proves this person actually owns the account, since they may not have
+    // a Firebase account yet at all.
     Map<String, dynamic>? legacyUser;
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -109,8 +146,6 @@ class _SignInScreenState extends State<SignInScreen> {
         if (matches.isNotEmpty) legacyUser = matches.first;
       }
     } catch (e) {
-      // Local lookup failing shouldn't block a straight Firebase sign-in
-      // attempt below — just proceed without a legacy match.
       debugPrint('legacy lookup error: $e');
     }
 
@@ -130,22 +165,18 @@ class _SignInScreenState extends State<SignInScreen> {
       if (resolvedEmail.isEmpty) {
         setState(() => _isLoading = false);
         _showError(
-          'This account has no email on file, so it can\'t be upgraded '
+          "This account has no email on file, so it can't be upgraded "
           'automatically. Contact support to fix this manually.',
         );
         return;
       }
 
-      // Password matches the legacy record — this person owns the
-      // account. Now find or create the matching Firebase account.
       try {
         final user = await FirebaseAuthService().rawSignIn(resolvedEmail, password);
         await _finalizeLogin(user, resolvedUsername);
         return;
       } on fb.FirebaseAuthException catch (e) {
         if (e.code == 'user-not-found') {
-          // Never migrated yet — do it now. They already proved ownership
-          // above, so stay signed in rather than forcing re-verification.
           try {
             final user = await FirebaseAuthService().createAccount(
               resolvedEmail,
@@ -190,9 +221,7 @@ class _SignInScreenState extends State<SignInScreen> {
       }
     }
 
-    // ---- Step 2: no legacy record — this is a Firebase-native account.
-    // Sign-in requires an email for Firebase, so the identifier must look
-    // like one at this point.
+    // ---- Step 2: no legacy record - this is a Firebase-native account.
     if (!identifier.contains('@')) {
       setState(() => _isLoading = false);
       _showError('No account found for "$identifier".');
@@ -202,8 +231,12 @@ class _SignInScreenState extends State<SignInScreen> {
     try {
       await FirebaseAuthService().login(identifier, password);
       final user = fb.FirebaseAuth.instance.currentUser!;
-      final displayUsername = user.displayName ?? identifier.split('@')[0];
-      await _finalizeLogin(user, displayUsername);
+
+      // Pass the email prefix as the FALLBACK - never user.displayName.
+      // displayName is often null or (older accounts) accidentally the uid.
+      // _finalizeLogin prefers Firestore users/{uid}.username anyway.
+      final fallback = identifier.split('@')[0];
+      await _finalizeLogin(user, fallback);
     } on fb.FirebaseAuthException catch (e) {
       setState(() => _isLoading = false);
       switch (e.code) {
@@ -216,7 +249,7 @@ class _SignInScreenState extends State<SignInScreen> {
           break;
         case 'email-not-verified':
           _showError(
-            'Please verify your email first — check your inbox for the '
+            'Please verify your email first - check your inbox for the '
             'link we sent when you signed up.',
           );
           break;
