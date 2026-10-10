@@ -1,3 +1,16 @@
+## 2026-10-10 -- PENDING -- feat(sync): household data root with one-time merge from the users folder
+
+**Status:** PENDING push
+**Files:**
+- lib/services/firestore_service.dart -- new _dataRoot(): if secure storage has household_id, transactions, budgets, loans, farmItems, tasks and gig_jobs read and write under households/{id}/...; otherwise users/{username}/... as before. First use per household runs _mergeIntoHousehold: copies only documents the household lacks (same doc ids), never overwrites, never deletes, recorded in users/{username}.mergedInto. If the merge fails the app falls back to users/{username}, so data never vanishes from the screen. Unit setting (KG/LB) stays per user.
+- DEV_LOG.md -- this entry
+
+**Why:** join (faed632) linked the accounts but both phones still read their own users/{username} folder, so data did not match.
+**Requires:** Firestore rule for households/{id}/** (members only, uses get() on memberIds) PUBLISHED before install. Without it the merge fails and the app uses the personal folder.
+**Known limits:** (1) bills, animals and other AppState-only data are still local to each phone, not shared. (2) If a user edits data while alone in a solo household and later joins another, those edits stay in the solo household; only the old users/{username} folder is merged. (3) Budget docs with the same id: the copy already in the household wins.
+**Tested:** flutter analyze on the file -- No issues found! Cloud build is the full compile check.
+**Next:** install -r on both phones, open on David phone first (merges David data), then Candice phone (merges Coberry16 data), confirm both see the combined data.
+---
 ## 2026-10-10 -- faed632 -- feat(household): sign-in finds or creates the Firestore household by uid; household screen reads it
 
 **Status:** PENDING push
