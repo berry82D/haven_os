@@ -1,4 +1,5 @@
-import 'dart:convert';
+﻿import 'dart:convert';
+import 'dart:math';
 import 'package:haven_os/models/household.dart';
 import 'package:haven_os/models/join_request.dart';
 import 'package:haven_os/models/user_account.dart';
@@ -7,6 +8,13 @@ import 'package:haven_os/services/auth_service.dart';
 class HouseholdService {
   static const String _householdsKey = 'households';
   static const String _requestsKey = 'join_requests';
+
+  static String _generateInviteCode() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    final r = Random.secure();
+    final body = List.generate(4, (_) => chars[r.nextInt(chars.length)]).join();
+    return 'HAVEN-$body';
+  }
 
   // ---- Household CRUD ----
 
@@ -21,7 +29,7 @@ class HouseholdService {
     if (data == null) return [];
     try {
       final json = jsonDecode(data) as List;
-      return json.map((j) => Household.fromJson(j)).toList();
+      return json.map((j) => Household.fromJson(j as Map<String, dynamic>)).toList();
     } catch (_) {
       return [];
     }
@@ -33,9 +41,12 @@ class HouseholdService {
       throw Exception('A household with that name already exists.');
     }
     final newHousehold = Household(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      id: 'hh_${DateTime.now().millisecondsSinceEpoch}',
       name: name,
       createdAt: DateTime.now(),
+      inviteCode: _generateInviteCode(),
+      ownerUserId: adminUserId,
+      memberIds: [adminUserId],
     );
     households.add(newHousehold);
     await saveHouseholds(households);
@@ -57,6 +68,27 @@ class HouseholdService {
     }
   }
 
+  /// Creates a household record and returns it.
+  /// [ownerUserId] is optional at create-account time (may be empty until user id exists).
+  static Future<Household> createHouseholdRecord(
+    String name, {
+    String ownerUserId = '',
+  }) async {
+    final households = await loadHouseholds();
+    final cleaned = name.trim().isEmpty ? 'My Household' : name.trim();
+    final newHousehold = Household(
+      id: 'hh_${DateTime.now().millisecondsSinceEpoch}',
+      name: cleaned,
+      createdAt: DateTime.now(),
+      inviteCode: _generateInviteCode(),
+      ownerUserId: ownerUserId,
+      memberIds: ownerUserId.isEmpty ? const [] : [ownerUserId],
+    );
+    households.add(newHousehold);
+    await saveHouseholds(households);
+    return newHousehold;
+  }
+
   static Future<Household?> getHouseholdByName(String name) async {
     final households = await loadHouseholds();
     try {
@@ -66,7 +98,71 @@ class HouseholdService {
     }
   }
 
-  // ---- Join Requests ----
+  static Future<Household?> getHouseholdById(String id) async {
+    final households = await loadHouseholds();
+    try {
+      return households.firstWhere((h) => h.id == id);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static Future<Household?> getHouseholdByInviteCode(String code) async {
+    final normalized = code.trim().toUpperCase();
+    if (normalized.isEmpty) return null;
+    final households = await loadHouseholds();
+    try {
+      return households.firstWhere(
+        (h) => h.inviteCode.toUpperCase() == normalized,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Adds [userId] to the household matching [inviteCode] and sets their householdId.
+  static Future<Household> joinByInviteCode({
+    required String inviteCode,
+    required String userId,
+  }) async {
+    final household = await getHouseholdByInviteCode(inviteCode);
+    if (household == null) {
+      throw Exception('Invalid invite code');
+    }
+
+    final members = List<String>.from(household.memberIds);
+    if (!members.contains(userId)) {
+      members.add(userId);
+    }
+
+    final updated = household.copyWith(memberIds: members);
+    final all = await loadHouseholds();
+    final index = all.indexWhere((h) => h.id == household.id);
+    if (index == -1) {
+      throw Exception('Household not found');
+    }
+    all[index] = updated;
+    await saveHouseholds(all);
+
+    final user = await AuthService.getUserById(userId);
+    if (user != null) {
+      await AuthService.updateUser(UserAccount(
+        id: user.id,
+        householdId: updated.id,
+        name: user.name,
+        type: user.type,
+        role: user.role,
+        hasPin: user.hasPin,
+        useBiometrics: user.useBiometrics,
+        autoLogin: user.autoLogin,
+        permissions: user.permissions,
+      ));
+    }
+
+    return updated;
+  }
+
+  // ---- Join Requests (legacy local flow; kept) ----
 
   static Future<void> saveRequests(List<JoinRequest> requests) async {
     final json = requests.map((r) => r.toJson()).toList();
@@ -78,7 +174,7 @@ class HouseholdService {
     if (data == null) return [];
     try {
       final json = jsonDecode(data) as List;
-      return json.map((j) => JoinRequest.fromJson(j)).toList();
+      return json.map((j) => JoinRequest.fromJson(j as Map<String, dynamic>)).toList();
     } catch (_) {
       return [];
     }
@@ -92,11 +188,11 @@ class HouseholdService {
     String? message,
   }) async {
     final requests = await loadRequests();
-    final existing = requests.any((r) =>
+    final already = requests.any((r) =>
         r.requesterUserId == requesterUserId &&
         r.householdId == householdId &&
         r.status == JoinRequestStatus.pending);
-    if (existing) return;
+    if (already) return;
 
     final request = JoinRequest(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
@@ -105,6 +201,7 @@ class HouseholdService {
       householdId: householdId,
       householdName: householdName,
       message: message,
+      status: JoinRequestStatus.pending,
     );
     requests.add(request);
     await saveRequests(requests);
@@ -122,7 +219,6 @@ class HouseholdService {
       throw Exception('Only an administrator can approve requests.');
     }
 
-    // Create a new request with status approved
     final approvedRequest = JoinRequest(
       id: request.id,
       requesterUserId: request.requesterUserId,
@@ -135,7 +231,6 @@ class HouseholdService {
     );
     requests[index] = approvedRequest;
 
-    // Update the requester's householdId
     final user = await AuthService.getUserById(request.requesterUserId);
     if (user != null) {
       final updatedUser = UserAccount(
@@ -168,18 +263,5 @@ class HouseholdService {
             r.householdId == householdId &&
             r.status == JoinRequestStatus.pending)
         .toList();
-  }
-  /// Creates a household record and returns it (does not require a user yet).
-  static Future<Household> createHouseholdRecord(String name) async {
-    final households = await loadHouseholds();
-    final cleaned = name.trim().isEmpty ? 'My Household' : name.trim();
-    final newHousehold = Household(
-      id: 'hh_${DateTime.now().millisecondsSinceEpoch}',
-      name: cleaned,
-      createdAt: DateTime.now(),
-    );
-    households.add(newHousehold);
-    await saveHouseholds(households);
-    return newHousehold;
   }
 }
