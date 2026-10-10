@@ -4,6 +4,7 @@ import 'package:haven_os/models/household.dart';
 import 'package:haven_os/models/join_request.dart';
 import 'package:haven_os/models/user_account.dart';
 import 'package:haven_os/services/auth_service.dart';
+import 'package:haven_os/services/household_cloud_service.dart';
 
 class HouseholdService {
   static const String _householdsKey = 'households';
@@ -86,6 +87,10 @@ class HouseholdService {
     );
     households.add(newHousehold);
     await saveHouseholds(households);
+    // Publish to Firestore so other phones can join.
+    try {
+      await HouseholdCloudService.instance.publishHousehold(newHousehold);
+    } catch (_) {}
     return newHousehold;
   }
 
@@ -265,3 +270,6 @@ class HouseholdService {
         .toList();
   }
 }
+
+
+

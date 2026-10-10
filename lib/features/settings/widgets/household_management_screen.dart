@@ -8,6 +8,7 @@ import 'package:haven_os/models/household.dart';
 import 'package:haven_os/models/join_request.dart';
 import 'package:haven_os/services/app_state.dart';
 import 'package:haven_os/domain/services/household_service.dart';
+import 'package:haven_os/services/household_cloud_service.dart';
 
 class HouseholdManagementScreen extends StatefulWidget {
   const HouseholdManagementScreen({super.key});
@@ -48,6 +49,11 @@ class _HouseholdManagementScreenState extends State<HouseholdManagementScreen> {
       hh = await HouseholdService.getHouseholdById(id);
     }
     if (!mounted) return;
+    if (hh != null) {
+      try {
+        await HouseholdCloudService.instance.publishHousehold(hh);
+      } catch (_) {}
+    }
     setState(() {
       _household = hh;
       _loadingHousehold = false;
@@ -107,7 +113,7 @@ class _HouseholdManagementScreenState extends State<HouseholdManagementScreen> {
 
     setState(() => _joining = true);
     try {
-      final hh = await HouseholdService.joinByInviteCode(
+      final hh = await HouseholdCloudService.instance.joinByInviteCode(
         inviteCode: code,
         userId: user.id,
       );
@@ -370,3 +376,7 @@ class _HouseholdManagementScreenState extends State<HouseholdManagementScreen> {
     );
   }
 }
+
+
+
+
