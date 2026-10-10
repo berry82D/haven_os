@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../services/app_state.dart';
+import '../settings/widgets/household_management_screen.dart';
 import '../auth/presentation/sign_in_screen.dart';
 import '../../widgets/require_email_dialog.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -2001,6 +2002,19 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                           })),),
                   const Divider(color: Colors.grey),
                   Material(type: MaterialType.transparency, child: ListTile(
+                  Material(type: MaterialType.transparency, child: ListTile(
+                      title: const Text('Household Management',
+                          style: TextStyle(color: Colors.white)),
+                      leading: const Icon(Icons.home_work_outlined,
+                          color: Colors.tealAccent),
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) =>
+                                    const HouseholdManagementScreen()));
+                      }),),
                       title: const Text('Logout',
                           style: TextStyle(color: Colors.red)),
                       leading: const Icon(Icons.logout, color: Colors.red),
