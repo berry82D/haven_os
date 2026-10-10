@@ -1,4 +1,4 @@
-## 2026-10-10 -- PENDING -- feat(sync): household data root with one-time merge from the users folder
+## 2026-10-10 -- 2f06a87 -- feat(sync): household data root with one-time merge from the users folder
 
 **Status:** PENDING push
 **Files:**
