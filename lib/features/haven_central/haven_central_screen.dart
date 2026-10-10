@@ -1,6 +1,8 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../services/app_state.dart';
 import '../auth/presentation/sign_in_screen.dart';
 import '../../widgets/require_email_dialog.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -42,6 +44,7 @@ class HavenCentralScreen extends StatefulWidget {
 class _HavenCentralScreenState extends State<HavenCentralScreen> {
   int _currentIndex = 0;
   bool _showCumulativeLine = false;
+  String _financesPeriod = 'month'; // 'week' | 'month'
   bool _showRecentActivity = true;
   final FirestoreService _firestore = FirestoreService();
   final TextEditingController _loanNameController = TextEditingController();
@@ -381,14 +384,44 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
   }
 
   Widget _buildFinancesTab(List<Transaction> transactions) {
-    final incomes = transactions
-       .where((t) => t.isIncome)
-       .fold(0.0, (sum, t) => sum + t.amount);
-    final expenses = transactions
-       .where((t) =>!t.isIncome)
-       .fold(0.0, (sum, t) => sum + t.amount);
-    final net = incomes - expenses;
-    final savingsRate = incomes > 0? (net / incomes * 100).clamp(0, 100) : 0.0;
+    final now = DateTime.now();
+    final DateTime rangeStart;
+    final DateTime rangeEnd;
+    final String periodLabel;
+    if (_financesPeriod == 'week') {
+      final weekday = now.weekday;
+      final todayMid = DateTime(now.year, now.month, now.day);
+      rangeStart = todayMid.subtract(Duration(days: weekday - 1));
+      rangeEnd = rangeStart.add(const Duration(days: 7));
+      periodLabel = 'this week';
+    } else {
+      rangeStart = DateTime(now.year, now.month, 1);
+      rangeEnd = DateTime(now.year, now.month + 1, 1);
+      periodLabel = 'this month';
+    }
+    final ranged = transactions
+        .where((t) => !t.date.isBefore(rangeStart) && t.date.isBefore(rangeEnd))
+        .toList();
+    final rangedIncomes = ranged.where((t) => t.isIncome).fold(0.0, (s, t) => s + t.amount);
+    final rangedExpenses = ranged.where((t) => !t.isIncome).fold(0.0, (s, t) => s + t.amount);
+    final rangedNet = rangedIncomes - rangedExpenses;
+    final rangedSavingsRate = rangedIncomes > 0 ? (rangedNet / rangedIncomes * 100).clamp(0, 100) : 0.0;
+    double rangedBillsDue = 0;
+    try {
+      final bills = context.read<AppState>().myBills;
+      for (final b in bills) {
+        final dynamic bd = b;
+        final DateTime? due = bd.dueDate;
+        final double? amt = bd.amount;
+        if (due == null || amt == null) continue;
+        if (!due.isBefore(rangeStart) && due.isBefore(rangeEnd)) rangedBillsDue += amt;
+      }
+    } catch (_) {}
+    const double rangeBuffer = 100.0;
+    final leftThisPeriod = rangedIncomes - rangedExpenses - rangedBillsDue - rangeBuffer;
+    final allTimeIncomes = transactions.where((t) => t.isIncome).fold(0.0, (s, t) => s + t.amount);
+    final allTimeExpenses = transactions.where((t) => !t.isIncome).fold(0.0, (s, t) => s + t.amount);
+    final allTimeNet = allTimeIncomes - allTimeExpenses;
     List<DateTime> monthRange = [];
     if (transactions.isNotEmpty) {
       DateTime earliest = transactions.first.date;
@@ -404,14 +437,10 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
         monthRange.add(current);
         current = DateTime(current.year, current.month + 1, 1);
       }
-      if (monthRange.length > 24) {
-        monthRange = monthRange.skip(monthRange.length - 24).toList();
-      }
+      if (monthRange.length > 24) monthRange = monthRange.skip(monthRange.length - 24).toList();
     } else {
-      final now = DateTime.now();
-      for (int i = 5; i >= 0; i--) {
-        monthRange.add(DateTime(now.year, now.month - i, 1));
-      }
+      final nowRef = DateTime.now();
+      for (int i = 5; i >= 0; i--) monthRange.add(DateTime(nowRef.year, nowRef.month - i, 1));
     }
     final monthlyData = monthRange.map((month) {
       final monthStart = DateTime(month.year, month.month, 1);
@@ -419,35 +448,22 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
       final monthTxs = transactions.where((t) =>
           t.date.isAfter(monthStart.subtract(const Duration(days: 1))) &&
           t.date.isBefore(monthEnd));
-      final inc =
-          monthTxs.where((t) => t.isIncome).fold(0.0, (s, t) => s + t.amount);
-      final exp =
-          monthTxs.where((t) =>!t.isIncome).fold(0.0, (s, t) => s + t.amount);
-      return {
-        'label': DateFormat('MMM').format(month),
-        'income': inc,
-        'expense': exp,
-        'net': inc - exp
-      };
+      final inc = monthTxs.where((t) => t.isIncome).fold(0.0, (s, t) => s + t.amount);
+      final exp = monthTxs.where((t) => !t.isIncome).fold(0.0, (s, t) => s + t.amount);
+      return {'label': DateFormat('MMM').format(month), 'income': inc, 'expense': exp, 'net': inc - exp};
     }).toList();
     final expenseCategories = <String, double>{};
-    for (final tx in transactions.where((t) =>!t.isIncome)) {
-      expenseCategories[tx.category] =
-          (expenseCategories[tx.category]?? 0) + tx.amount;
+    for (final tx in ranged.where((t) => !t.isIncome)) {
+      expenseCategories[tx.category] = (expenseCategories[tx.category] ?? 0) + tx.amount;
     }
-    final categoryEntries = expenseCategories.entries.toList()
-     ..sort((a, b) => b.value.compareTo(a.value));
+    final categoryEntries = expenseCategories.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
     final topCategories = categoryEntries.take(5).toList();
     final otherTotal = categoryEntries.skip(5).fold(0.0, (s, e) => s + e.value);
-    final validMonths = monthlyData
-       .where(
-            (m) => (m['income'] as double) > 0 || (m['expense'] as double) > 0)
-       .toList();
+    final validMonths = monthlyData.where((m) => (m['income'] as double) > 0 || (m['expense'] as double) > 0).toList();
     final avgSavings = validMonths.isNotEmpty
-       ? validMonths.fold(0.0, (s, m) => s + (m['net'] as double)) /
-            validMonths.length
+        ? validMonths.fold(0.0, (s, m) => s + (m['net'] as double)) / validMonths.length
         : 0.0;
-    final projectedNet = net + avgSavings * 12;
+    final projectedNet = allTimeNet + avgSavings * 12;
     double maxVal = 0;
     for (var data in monthlyData) {
       final inc = data['income'] as double;
@@ -457,284 +473,224 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
     }
     if (maxVal == 0) maxVal = 100;
     final maxY = maxVal * 1.2;
+    final rangedReversed = ranged.reversed.toList();
     return Container(
-        color: const Color(0xFF121212),
-        child: ListView(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+      color: const Color(0xFF121212),
+      child: ListView(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text('📊 CFO Dashboard',
-                  style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white)),
-              const SizedBox(height: 16),
-              Row(children: [
-                _buildSummaryCard(
-                    'Income', '\$${incomes.toStringAsFixed(0)}', Colors.green),
-                const SizedBox(width: 8),
-                _buildSummaryCard(
-                    'Expenses', '\$${expenses.toStringAsFixed(0)}', Colors.red)
-              ]),
-              const SizedBox(height: 8),
-              Row(children: [
-                _buildSummaryCard('Net', '\$${net.toStringAsFixed(0)}',
-                    net >= 0? Colors.teal : Colors.orange),
-                const SizedBox(width: 8),
-                _buildSummaryCard('Savings Rate',
-                    '${savingsRate.toStringAsFixed(1)}%', Colors.blue)
-              ]),
-              const SizedBox(height: 20),
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)),
               Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                      color: const Color(0xFF1E1E1E),
-                      borderRadius: BorderRadius.circular(12)),
-                  child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                decoration: BoxDecoration(
+                    color: const Color(0xFF1E1E1E),
+                    borderRadius: BorderRadius.circular(20)),
+                padding: const EdgeInsets.all(3),
+                child: Row(children: [
+                  _financesPill('week', 'This week'),
+                  _financesPill('month', 'Month'),
+                ]),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                  colors: [Color(0xFF00695C), Color(0xFF004D40)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Left $periodLabel',
+                    style: const TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600)),
+                const SizedBox(height: 6),
+                Text('\$${leftThisPeriod.toStringAsFixed(2)}',
+                    style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: Colors.white)),
+                const SizedBox(height: 8),
+                Text(
+                  '\$${rangedIncomes.toStringAsFixed(0)} in - \$${rangedExpenses.toStringAsFixed(0)} spent - \$${rangedBillsDue.toStringAsFixed(0)} bills due - \$${rangeBuffer.toStringAsFixed(0)} buffer',
+                  style: const TextStyle(color: Colors.white70, fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(children: [
+            _buildSummaryCard('Income', '\$${rangedIncomes.toStringAsFixed(0)}', Colors.green),
+            const SizedBox(width: 8),
+            _buildSummaryCard('Expenses', '\$${rangedExpenses.toStringAsFixed(0)}', Colors.red)
+          ]),
+          const SizedBox(height: 8),
+          Row(children: [
+            _buildSummaryCard('Net', '\$${rangedNet.toStringAsFixed(0)}', rangedNet >= 0 ? Colors.teal : Colors.orange),
+            const SizedBox(width: 8),
+            _buildSummaryCard('Savings Rate', '${rangedSavingsRate.toStringAsFixed(1)}%', Colors.blue)
+          ]),
+          const SizedBox(height: 20),
+          Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(color: const Color(0xFF1E1E1E), borderRadius: BorderRadius.circular(12)),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                  const Text('Monthly Income vs Expenses',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                  Row(children: [
+                    const Text('Cumulative', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                    Switch(
+                        value: _showCumulativeLine,
+                        onChanged: (val) { setState(() => _showCumulativeLine = val); },
+                        activeThumbColor: Colors.tealAccent,
+                        activeTrackColor: Colors.tealAccent.withAlpha(100))
+                  ])
+                ]),
+                const SizedBox(height: 12),
+                if (monthlyData.isEmpty ||
+                    monthlyData.every((m) => (m['income'] as double) == 0 && (m['expense'] as double) == 0))
+                  const Center(child: Padding(padding: EdgeInsets.all(16),
+                      child: Text('No data to display', style: TextStyle(color: Colors.grey))))
+                else
+                  SizedBox(
+                      height: 220,
+                      child: BarChart(BarChartData(
+                          alignment: BarChartAlignment.spaceAround,
+                          maxY: maxY,
+                          barGroups: monthlyData.asMap().entries.map((entry) {
+                            final idx = entry.key;
+                            final data = entry.value;
+                            return BarChartGroupData(x: idx, barRods: [
+                              BarChartRodData(toY: data['income'] as double, color: Colors.green, width: 12),
+                              BarChartRodData(toY: data['expense'] as double, color: Colors.red, width: 12)
+                            ]);
+                          }).toList(),
+                          titlesData: FlTitlesData(
+                              bottomTitles: AxisTitles(sideTitles: SideTitles(showTitles: true, getTitlesWidget: (value, meta) {
+                                final index = value.toInt();
+                                if (index < 0 || index >= monthlyData.length) return const Text('');
+                                return Padding(padding: const EdgeInsets.only(top: 4),
+                                    child: Text(monthlyData[index]['label'] as String,
+                                        style: const TextStyle(color: Colors.grey, fontSize: 12)));
+                              })),
+                              leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: true, reservedSize: 40,
+                                  getTitlesWidget: (value, meta) =>
+                                      Text('\$${value.toInt()}', style: const TextStyle(color: Colors.grey, fontSize: 10)))),
+                              topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                              rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false))),
+                          borderData: FlBorderData(show: false),
+                          gridData: FlGridData(show: true, drawVerticalLine: false)))),
+                const SizedBox(height: 8),
+                Row(mainAxisAlignment: MainAxisAlignment.center, children: const [
+                  _LegendItem(color: Colors.green, label: 'Income'),
+                  SizedBox(width: 16),
+                  _LegendItem(color: Colors.red, label: 'Expense'),
+                  SizedBox(width: 16),
+                  _LegendItem(color: Colors.blue, label: 'Cumulative Net')
+                ]),
+              ])),
+          const SizedBox(height: 20),
+          Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(color: const Color(0xFF1E1E1E), borderRadius: BorderRadius.circular(12)),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text('Expense Breakdown ($periodLabel)',
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                const SizedBox(height: 12),
+                if (topCategories.isEmpty)
+                  const Center(child: Padding(padding: EdgeInsets.all(16),
+                      child: Text('No expense data for this period', style: TextStyle(color: Colors.grey))))
+                else ...[
+                  SizedBox(height: 200, child: PieChart(PieChartData(sections: [
+                    ...topCategories.map((e) => PieChartSectionData(
+                        value: e.value,
+                        title: '${(e.value / rangedExpenses * 100).toStringAsFixed(0)}%',
+                        color: _categoryColor(e.key),
+                        radius: 80,
+                        titleStyle: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
+                    if (otherTotal > 0)
+                      PieChartSectionData(
+                          value: otherTotal,
+                          title: '${(otherTotal / rangedExpenses * 100).toStringAsFixed(0)}%',
+                          color: Colors.grey,
+                          radius: 80,
+                          titleStyle: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+                  ], sectionsSpace: 2, centerSpaceRadius: 40))),
+                  const SizedBox(height: 12),
+                  ...topCategories.map((e) => _buildCategoryLegend(e.key, e.value, rangedExpenses)),
+                  if (otherTotal > 0) _buildCategoryLegend('Other', otherTotal, rangedExpenses),
+                ],
+              ])),
+          const SizedBox(height: 20),
+          Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(color: const Color(0xFF1E1E1E), borderRadius: BorderRadius.circular(12)),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                const Text('12-Month Projection',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                const SizedBox(height: 12),
+                Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                  Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    const Text('Current Net Worth', style: TextStyle(color: Colors.grey)),
+                    Text('\$${allTimeNet.toStringAsFixed(0)}',
+                        style: TextStyle(color: allTimeNet >= 0 ? Colors.green : Colors.red, fontWeight: FontWeight.bold))
+                  ]),
+                  Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+                    const Text('Projected (12 mo)', style: TextStyle(color: Colors.grey)),
+                    Text('\$${projectedNet.toStringAsFixed(0)}',
+                        style: TextStyle(color: projectedNet >= 0 ? Colors.green : Colors.red, fontWeight: FontWeight.bold))
+                  ])
+                ]),
+                const SizedBox(height: 8),
+                LinearProgressIndicator(
+                    value: projectedNet >= 0 ? 1 : 0.5,
+                    backgroundColor: Colors.grey[800],
+                    color: projectedNet >= 0 ? Colors.green : Colors.red),
+              ])),
+          const SizedBox(height: 20),
+          Container(
+              decoration: BoxDecoration(color: const Color(0xFF1E1E1E), borderRadius: BorderRadius.circular(12)),
+              child: Theme(
+                  data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                  child: ExpansionTile(
+                      title: const Text('📋 Recent Activity',
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                      initiallyExpanded: _showRecentActivity,
+                      onExpansionChanged: (expanded) { setState(() => _showRecentActivity = expanded); },
                       children: [
-                        Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text('Monthly Income vs Expenses',
-                                  style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white)),
-                              Row(children: [
-                                const Text('Cumulative',
-                                    style: TextStyle(
-                                        color: Colors.grey, fontSize: 12)),
-                                Switch(
-                                    value: _showCumulativeLine,
-                                    onChanged: (val) {
-                                      setState(() => _showCumulativeLine = val);
-                                    },
-                                    activeThumbColor: Colors.tealAccent,
-                                    activeTrackColor:
-                                        Colors.tealAccent.withAlpha(100))
-                              ])
-                            ]),
-                        const SizedBox(height: 12),
-                        if (monthlyData.isEmpty ||
-                            monthlyData.every((m) =>
-                                (m['income'] as double) == 0 &&
-                                (m['expense'] as double) == 0))
-                          const Center(
-                              child: Padding(
-                                  padding: EdgeInsets.all(16),
-                                  child: Text('No data to display',
-                                      style: TextStyle(color: Colors.grey))))
+                        if (rangedReversed.isEmpty)
+                          Padding(padding: const EdgeInsets.all(16),
+                              child: Text('No transactions $periodLabel.', style: const TextStyle(color: Colors.grey)))
                         else
-                          SizedBox(
-                              height: 220,
-                              child: BarChart(BarChartData(
-                                  alignment: BarChartAlignment.spaceAround,
-                                  maxY: maxY,
-                                  barGroups:
-                                      monthlyData.asMap().entries.map((entry) {
-                                    final idx = entry.key;
-                                    final data = entry.value;
-                                    return BarChartGroupData(x: idx, barRods: [
-                                      BarChartRodData(
-                                          toY: data['income'] as double,
-                                          color: Colors.green,
-                                          width: 12),
-                                      BarChartRodData(
-                                          toY: data['expense'] as double,
-                                          color: Colors.red,
-                                          width: 12)
-                                    ]);
-                                  }).toList(),
-                                  titlesData: FlTitlesData(
-                                      bottomTitles: AxisTitles(
-                                          sideTitles: SideTitles(
-                                              showTitles: true,
-                                              getTitlesWidget: (value, meta) {
-                                                final index = value.toInt();
-                                                if (index < 0 ||
-                                                    index >= monthlyData.length)
-                                                  return const Text('');
-                                                return Padding(
-                                                    padding:
-                                                        const EdgeInsets.only(
-                                                            top: 4),
-                                                    child: Text(
-                                                        monthlyData[index]
-                                                            ['label'] as String,
-                                                        style: const TextStyle(
-                                                            color: Colors.grey,
-                                                            fontSize: 12)));
-                                              })),
-                                      leftTitles: AxisTitles(
-                                          sideTitles: SideTitles(
-                                              showTitles: true,
-                                              reservedSize: 40,
-                                              getTitlesWidget: (value, meta) =>
-                                                  Text('\$${value.toInt()}',
-                                                      style: const TextStyle(
-                                                          color: Colors.grey,
-                                                          fontSize: 10)))),
-                                      topTitles: const AxisTitles(
-                                          sideTitles:
-                                              SideTitles(showTitles: false)),
-                                      rightTitles: const AxisTitles(
-                                          sideTitles:
-                                              SideTitles(showTitles: false))),
-                                  borderData: FlBorderData(show: false),
-                                  gridData: FlGridData(
-                                      show: true, drawVerticalLine: false)))),
-                        const SizedBox(height: 8),
-                        Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: const [
-                              _LegendItem(color: Colors.green, label: 'Income'),
-                              SizedBox(width: 16),
-                              _LegendItem(color: Colors.red, label: 'Expense'),
-                              SizedBox(width: 16),
-                              _LegendItem(
-                                  color: Colors.blue, label: 'Cumulative Net')
-                            ]),
-                      ])),
-              const SizedBox(height: 20),
-              Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                      color: const Color(0xFF1E1E1E),
-                      borderRadius: BorderRadius.circular(12)),
-                  child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text('Expense Breakdown',
-                            style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white)),
-                        const SizedBox(height: 12),
-                        if (expenseCategories.isEmpty)
-                          const Center(
-                              child: Padding(
-                                  padding: EdgeInsets.all(16),
-                                  child: Text('No expenses yet',
-                                      style: TextStyle(color: Colors.grey))))
-                        else
-                          Row(children: [
-                            SizedBox(
-                                height: 120,
-                                width: 120,
-                                child: PieChart(PieChartData(sections: [
-                                 ...topCategories.map((e) => PieChartSectionData(
-                                      value: e.value,
-                                      color: _categoryColor(e.key),
-                                      radius: 20,
-                                      title:
-                                          '${(e.value / expenses * 100).toStringAsFixed(0)}%',
-                                      titleStyle: const TextStyle(
-                                          fontSize: 10,
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold))),
-                                  if (otherTotal > 0)
-                                    PieChartSectionData(
-                                        value: otherTotal,
-                                        color: Colors.grey,
-                                        radius: 20,
-                                        title:
-                                            '${(otherTotal / expenses * 100).toStringAsFixed(0)}%',
-                                        titleStyle: const TextStyle(
-                                            fontSize: 10,
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.bold))
-                                ], centerSpaceRadius: 0, sectionsSpace: 2))),
-                            const SizedBox(width: 16),
-                            Expanded(
-                                child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                 ...topCategories.map((e) =>
-                                      _buildCategoryLegend(
-                                          e.key, e.value, expenses)),
-                                  if (otherTotal > 0)
-                                    _buildCategoryLegend(
-                                        'Other', otherTotal, expenses)
-                                ])),
-                          ]),
-                      ])),
-              const SizedBox(height: 20),
-              Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                      color: const Color(0xFF1E1E1E),
-                      borderRadius: BorderRadius.circular(12)),
-                  child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text('📈 12‑Month Projection',
-                            style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white)),
-                        const SizedBox(height: 8),
-                        Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text('Current Net Worth',
-                                  style: TextStyle(color: Colors.grey)),
-                              Text('\$${net.toStringAsFixed(0)}',
-                                  style: const TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold))
-                            ]),
-                        const SizedBox(height: 4),
-                        Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text('Projected (12 mo)',
-                                  style: TextStyle(color: Colors.grey)),
-                              Text('\$${projectedNet.toStringAsFixed(0)}',
-                                  style: TextStyle(
-                                      color: projectedNet >= 0
-                                         ? Colors.green
-                                          : Colors.red,
-                                      fontWeight: FontWeight.bold))
-                            ]),
-                        const SizedBox(height: 8),
-                        LinearProgressIndicator(
-                            value: projectedNet >= 0? 1 : 0.5,
-                            backgroundColor: Colors.grey[800],
-                            color:
-                                projectedNet >= 0? Colors.green : Colors.red),
-                      ])),
-              const SizedBox(height: 20),
-              Container(
-                  decoration: BoxDecoration(
-                      color: const Color(0xFF1E1E1E),
-                      borderRadius: BorderRadius.circular(12)),
-                  child: Theme(
-                      data: Theme.of(context)
-                         .copyWith(dividerColor: Colors.transparent),
-                      child: ExpansionTile(
-                          title: const Text('📋 Recent Activity',
-                              style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white)),
-                          initiallyExpanded: _showRecentActivity,
-                          onExpansionChanged: (expanded) {
-                            setState(() => _showRecentActivity = expanded);
-                          },
-                          children: [
-                            if (transactions.isEmpty)
-                              const Padding(
-                                  padding: EdgeInsets.all(16),
-                                  child: Text('No transactions yet.',
-                                      style: TextStyle(color: Colors.grey)))
-                            else
-                             ...transactions.reversed
-                                 .take(10)
-                                 .map((tx) => _buildActivityTile(tx))
-                          ]))),
-              const SizedBox(height: 20),
-            ]));
+                          ...rangedReversed.take(10).map((tx) => _buildActivityTile(tx))
+                      ]))),
+          const SizedBox(height: 20),
+        ],
+      ),
+    );
+  }
+
+  Widget _financesPill(String value, String label) {
+    final active = _financesPeriod == value;
+    return GestureDetector(
+      onTap: () => setState(() => _financesPeriod = value),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: active ? Colors.tealAccent[700] : Colors.transparent,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Text(label, style: TextStyle(
+            color: active ? Colors.black : Colors.grey,
+            fontSize: 12,
+            fontWeight: FontWeight.bold)),
+      ),
+    );
   }
 
   Widget _buildRecordsTab(List<Loan> loans) {

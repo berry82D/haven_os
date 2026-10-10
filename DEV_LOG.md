@@ -13,7 +13,16 @@
 **Next:** (1) Candice phone: pull base.apk and check the signing key matches, add her email to the rules allowlist, install -r, test legacy-account migration. (2) Firestore household record at sign-up, one complete file at a time. (3) Show an error, not an endless loading screen, when Firestore denies access.
 
 ---
-## 2026-10-10 -- a08ccee -- fix(auth): write auth_username on EVERY sign-in path
+## 2026-10-10 -- PENDING -- feat(cfo): Week/Month toggle + Left This Period hero on Finances tab
+**Status:** PENDING push
+**Files:**
+- lib/features/haven_central/haven_central_screen.dart -- _buildFinancesTab: added _financesPeriod state, This week/Month pill toggle in header, gradient Left-This-Period hero with visible formula (income - spent - bills due - $100 buffer), summary cards now ranged, pie chart + recent activity filtered to selected range. Bar chart left as monthly trend (unchanged behavior).
+- DEV_LOG.md -- this entry
+**Why:** Chunk 1 of 6 of the Finances redesign. Ranged totals match the mockup's intent. Hero formula stays visible per coaching principle.
+**Tested:** flutter analyze -- No issues found! (9.6s)
+**Not touched:** householdId 'pending_join', cumulative toggle (currently non-functional, left as-is)
+**Next:** Sign in on device, confirm toggle switches all ranges, hero formula shows correct math
+---## 2026-10-10 -- a08ccee -- fix(auth): write auth_username on EVERY sign-in path
 **Status:** PENDING push
 **Files:**
 - lib/features/auth/presentation/sign_in_screen.dart -- _resolveUsername now 3-tier (Firestore profile -> Auth displayName -> fallback); _finalizeLogin writes FlutterSecureStorage key 'auth_username' on every sign-in path. This is the value FirestoreService._getUserId uses to pick the users/{folder}. Root cause: stale 'Cberry16' from last night's signup meant Candice's data reads hit the wrong folder even though greeting showed 'Coberry16'.
