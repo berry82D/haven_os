@@ -1,4 +1,10 @@
-## 2026-10-10 -- b22dd53 -- feat(household): Firestore publish on create, cloud join, catch-up
+## 2026-10-10 -- 4ff37dd -- feat(auth): ensure cloud household on sign-in
+**Files:**
+- lib/features/auth/presentation/sign_in_screen.dart -- _ensureCloudHousehold: on every sign-in finds or creates the Firestore household for this Firebase uid (hh_<uid>), publishes household + invite index, saves household_id in secure storage; 12s timeouts, orange non-blocking warning on failure. _finalizeLogin keeps UserAccount.householdId='pending_join' so existing local data (bills, gig income, animals) stays visible until the data sync chunk.
+**Why:** publishes every user's household at sign-in so invite codes resolve cross-phone.
+**Tested:** flutter analyze clean; cloud build pending
+**Next:** cloud build, install -r both phones, 2-phone join test
+---## 2026-10-10 -- b22dd53 -- feat(household): Firestore publish on create, cloud join, catch-up
 **Files:**
 - lib/domain/services/household_service.dart -- createHouseholdRecord publishes to Firestore via HouseholdCloudService (try/catch, offline-safe)
 - lib/features/settings/widgets/household_management_screen.dart -- _joinWithCode rewired to HouseholdCloudService.instance.joinByInviteCode; _loadHousehold does catch-up publish for pre-existing households
