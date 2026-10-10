@@ -1,4 +1,4 @@
-## 2026-10-10 -- PENDING -- feat(household): sign-in finds or creates the Firestore household by uid; household screen reads it
+## 2026-10-10 -- faed632 -- feat(household): sign-in finds or creates the Firestore household by uid; household screen reads it
 
 **Status:** PENDING push
 **Files:**
