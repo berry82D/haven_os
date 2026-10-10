@@ -1,4 +1,13 @@
-﻿## CURRENT STATE - [2026-10-09 - Cloud signing, household design correction]
+## 2026-10-10 -- b22dd53 -- feat(household): Firestore publish on create, cloud join, catch-up
+**Files:**
+- lib/domain/services/household_service.dart -- createHouseholdRecord publishes to Firestore via HouseholdCloudService (try/catch, offline-safe)
+- lib/features/settings/widgets/household_management_screen.dart -- _joinWithCode rewired to HouseholdCloudService.instance.joinByInviteCode; _loadHousehold does catch-up publish for pre-existing households
+- DEV_LOG.md -- this entry (repaired 2026-10-10: b22dd53 edit duplicated the entry and garbled em dashes via Get-Content/Set-Content re-encoding; restored clean copy from 795b813)
+**Why:** cross-phone household join needs the household + invite index in Firestore.
+**Tested:** cloud build
+**Known gaps - do NOT run the 2-phone join test yet:** (1) catch-up publish only fires for real household ids, but sign-in still hardcodes 'pending_join'; (2) published Firestore rules cover only users/**, so households/household_invites writes are denied silently inside try/catch; (3) memberIds are local account ids, not Firebase uids. Fix planned in sign_in_screen.dart _finalizeLogin + rules.
+**Next:** sign-in fix (query/create household by Firebase uid, publish, visible errors) and Firestore rules for households/{id} + household_invites/{code}
+---## CURRENT STATE - [2026-10-09 - Cloud signing, household design correction]
 **Branch:** main. Check HEAD with git log (last known f30c3e0).
 **Cloud build:** .github/workflows/build.yml, Flutter 3.44.8. Needs a REPOSITORY secret (not an Environment secret) named DEBUG_KEYSTORE_B64 = base64 of the PC file %USERPROFILE%\.android\debug.keystore. Key SHA-256 starts 387faa51 and ends 554624.
 **Signing:** release uses the debug signingConfig. The app on phone R3GL40HW72K is signed with the PC key (apksigner verified 2026-10-09). The first cloud APK with the keystore step was signed with a DIFFERENT key (ce398dbd...) and failed install -r with INSTALL_FAILED_UPDATE_INCOMPATIBLE. f30c3e0 adds ANDROID_USER_HOME plus fingerprint checks before and after the build. RESULT 2026-10-09: run 7 green, APK fingerprint 387faa51...554624 matches the PC key. Installed with install -r over the existing app on R3GL40HW72K (a wiped test phone, no real data) and signed in.
@@ -13,18 +22,6 @@
 **Next:** (1) Candice phone: pull base.apk and check the signing key matches, add her email to the rules allowlist, install -r, test legacy-account migration. (2) Firestore household record at sign-up, one complete file at a time. (3) Show an error, not an endless loading screen, when Firestore denies access.
 
 ---
-## 2026-10-10 -- PENDING -- feat(household): Firestore publish + cloud join + catch-up
-
-**Status:** PENDING push
-**Files:**
-- lib/domain/services/household_service.dart -- createHouseholdRecord publishes to Firestore via HouseholdCloudService
-- lib/features/settings/widgets/household_management_screen.dart -- imports cloud service, join uses cloud joinByInviteCode, _loadHousehold does catch-up publish for pre-existing households
-- DEV_LOG.md -- this entry
-
-**Why:** Cross-phone household sharing. Existing David/Candice households publish on next screen open. New households publish on create.
-**Not touched:** local HouseholdService storage (offline fallback stays), invite code format
-**Next:** Firestore rules for households/household_invites, then 2-phone test
----
 ## 2026-10-10 -- 4e0e5e1 -- feat(cfo): Week/Month toggle + Left This Period hero on Finances tab
 **Status:** PENDING push
 **Files:**
@@ -34,19 +31,7 @@
 **Tested:** flutter analyze -- No issues found! (9.6s)
 **Not touched:** householdId 'pending_join', cumulative toggle (currently non-functional, left as-is)
 **Next:** Sign in on device, confirm toggle switches all ranges, hero formula shows correct math
----## 2026-10-10 -- PENDING -- feat(household): Firestore publish + cloud join + catch-up
-
-**Status:** PENDING push
-**Files:**
-- lib/domain/services/household_service.dart -- createHouseholdRecord publishes to Firestore via HouseholdCloudService
-- lib/features/settings/widgets/household_management_screen.dart -- imports cloud service, join uses cloud joinByInviteCode, _loadHousehold does catch-up publish for pre-existing households
-- DEV_LOG.md -- this entry
-
-**Why:** Cross-phone household sharing. Existing David/Candice households publish on next screen open. New households publish on create.
-**Not touched:** local HouseholdService storage (offline fallback stays), invite code format
-**Next:** Firestore rules for households/household_invites, then 2-phone test
----
-## 2026-10-10 -- a08ccee -- fix(auth): write auth_username on EVERY sign-in path
+---## 2026-10-10 -- a08ccee -- fix(auth): write auth_username on EVERY sign-in path
 **Status:** PENDING push
 **Files:**
 - lib/features/auth/presentation/sign_in_screen.dart -- _resolveUsername now 3-tier (Firestore profile -> Auth displayName -> fallback); _finalizeLogin writes FlutterSecureStorage key 'auth_username' on every sign-in path. This is the value FirestoreService._getUserId uses to pick the users/{folder}. Root cause: stale 'Cberry16' from last night's signup meant Candice's data reads hit the wrong folder even though greeting showed 'Coberry16'.
@@ -98,8 +83,8 @@
 **Files:** lib/domain/services/household_service.dart (createHouseholdRecord), lib/features/auth/presentation/create_account_screen.dart
 **Note:** the household record is LOCAL only. See CURRENT STATE.
 ---
-# Haven OS â€” DEV LOG
-Live log â€” LAW 16 + LAW 17 ENFORCED
+# Haven OS — DEV LOG
+Live log — LAW 16 + LAW 17 ENFORCED
 LAW 16: Every AI must keep this log up-to-date. No push without a log entry.
 LAW 17: Every AI must READ DEV_LOG.md + CLAUDE.md BEFORE assisting.
 
@@ -117,20 +102,20 @@ LAW 17: Every AI must READ DEV_LOG.md + CLAUDE.md BEFORE assisting.
 **analyze:** No issues found! (user_account.dart, 0.6s)
 **Push:** done
 **Next:** File 2 -- lib/models/invite.dart (NEW)
-## 2026-09-19 â€” 19a8295 â€” feat: Phase 3b nav wiring verified â€” COMPLETE
-**Status:** VERIFIED â€” origin/feature/haven-central-fixes up to date, flutter analyze No issues found! 22.5s
-**Change:** Verified haven_central_screen.dart Phase 3b wiring complete â€” Line 1 import gig_income_screen.dart, Line 1978 const GigIncomeScreen() in IndexedStack, Bottom nav 7 items Home/Batches/Finances/Records/Schedule/Budgets/Gig, AppBar titles 7 entries including 'ðŸ’¼ Gig Income' â€” No code change needed, already wired by previous AI
+## 2026-09-19 — 19a8295 — feat: Phase 3b nav wiring verified — COMPLETE
+**Status:** VERIFIED — origin/feature/haven-central-fixes up to date, flutter analyze No issues found! 22.5s
+**Change:** Verified haven_central_screen.dart Phase 3b wiring complete — Line 1 import gig_income_screen.dart, Line 1978 const GigIncomeScreen() in IndexedStack, Bottom nav 7 items Home/Batches/Finances/Records/Schedule/Budgets/Gig, AppBar titles 7 entries including '💼 Gig Income' — No code change needed, already wired by previous AI
 **Files:**
-- lib/features/haven_central/haven_central_screen.dart â€” 103089 bytes â€” 7 tabs wired
-- lib/screens/gig_income/gig_income_screen.dart â€” 5756 bytes â€” exists
-- DEV_LOG.md â€” this update
-**Why:** David brain fog check â€” Phase 3b was thought incomplete but Select-String showed GigIncomeScreen already in nav â€” Law 5, 16, 17 compliance, Noob Mode reassurance
+- lib/features/haven_central/haven_central_screen.dart — 103089 bytes — 7 tabs wired
+- lib/screens/gig_income/gig_income_screen.dart — 5756 bytes — exists
+- DEV_LOG.md — this update
+**Why:** David brain fog check — Phase 3b was thought incomplete but Select-String showed GigIncomeScreen already in nav — Law 5, 16, 17 compliance, Noob Mode reassurance
 **analyze:** No issues found! (22.5s Sep 19 2026)
 **Push:** 86df4e2..19a8295 verified via GitHub branches page Sep 19 2026
 **Next:** Phase 4 forgot-password
 
-## 2026-05-13 â€” 86df4e2 â€” docs: full history preserved - add fbca4ed handoff + detailed 949d358-4dc39f9
-**Status:** PUSHED â€” origin/feature/haven-central-fixes up to date
+## 2026-05-13 — 86df4e2 — docs: full history preserved - add fbca4ed handoff + detailed 949d358-4dc39f9
+**Status:** PUSHED — origin/feature/haven-central-fixes up to date
 **Change:** Added fbca4ed handoff entry + detailed 949d358 fix, e034289 UI, 60170b5, 4dc39f9 env details, system info, workflow notes - 60+ ins, 21 del - No info removed
 **Why:** David requested full replacement, ensure everything included
 **analyze:** No issues - docs only
@@ -138,8 +123,8 @@ LAW 17: Every AI must READ DEV_LOG.md + CLAUDE.md BEFORE assisting.
 
 ---
 
-## 2026-05-13 â€” c4a82ee â€” docs: Law16 91c5075 full history preserved + memory + biweekly
-**Status:** PUSHED â€” origin/feature/haven-central-fixes up to date
+## 2026-05-13 — c4a82ee — docs: Law16 91c5075 full history preserved + memory + biweekly
+**Status:** PUSHED — origin/feature/haven-central-fixes up to date
 **Change:** Fixed binary UTF-16 corruption (Binary files differ -> text diff) via Get-Content | Set-Content utf8, preserved full history, no data loss, added EOF newline
 **Files:** DEV_LOG.md only
 **Why:** Notepad saved UTF-16 with spaced chars 2 0 2 6, git saw binary - Law 16 docs push, David flagged info removal concern
@@ -148,13 +133,13 @@ LAW 17: Every AI must READ DEV_LOG.md + CLAUDE.md BEFORE assisting.
 
 ---
 
-## 2026-05-13 â€” 91c5075 â€” fix: restore haven_central_screen after local syntax break
-**Status:** PUSHED â€” origin/feature/haven-central-fixes up to date
+## 2026-05-13 — 91c5075 — fix: restore haven_central_screen after local syntax break
+**Status:** PUSHED — origin/feature/haven-central-fixes up to date
 **Change:** Restored after syntax break line 294 Expected ';' - fixed else... spread, withOpacity->withValues(alpha:), value->initialValue
 **Files:**
-- haven_central_screen.dart â€” fixed collection if else... -> else ...map() â€” removed 2 nested Scaffold, 4 nested AppBar violations
-- app_state.dart â€” retains _recordCategoryMemory, _rebuildMemoryFromHistory, getLearnedIsIncome, householdId scope
-- category_memory_service.dart â€” condensed 400->150 lines + expandable logic, biweekly pattern 12-16d avg detection, nextBiweeklyDate +14d, confidence scoring
+- haven_central_screen.dart — fixed collection if else... -> else ...map() — removed 2 nested Scaffold, 4 nested AppBar violations
+- app_state.dart — retains _recordCategoryMemory, _rebuildMemoryFromHistory, getLearnedIsIncome, householdId scope
+- category_memory_service.dart — condensed 400->150 lines + expandable logic, biweekly pattern 12-16d avg detection, nextBiweeklyDate +14d, confidence scoring
 **Why:** David Berry Sr. request: salary/paycheck biweekly + remember my entries if used alot - No hardcoded rhbarringer list, learning from usage
 **analyze:** No issues found! 24.4s at 2026-05-13
 **Push:** 4dc39f9..91c5075
@@ -162,8 +147,8 @@ LAW 17: Every AI must READ DEV_LOG.md + CLAUDE.md BEFORE assisting.
 
 ---
 
-## 2026-05-13 â€” 4dc39f9 â€” fix: disk full - move gradle/pub to D:
-**Status:** PUSHED â€” origin/feature/haven-central-fixes
+## 2026-05-13 — 4dc39f9 — fix: disk full - move gradle/pub to D:
+**Status:** PUSHED — origin/feature/haven-central-fixes
 **Change:** C: drive full 11.67GB free - Moved GRADLE_USER_HOME to D:\gradle_cache (was C:\Users\corch\.gradle), PUB_CACHE to D:\pub_cache (was C:\Users\corch\AppData\Local\Pub\Cache), deleted .gradle\build-cache, .gradle\caches\build-cache-1, D:\ deleted build folder, freed C: to 14.08GB (+2.4GB)
 **Files:** Environment vars, gradle wrapper, pub cache
 **Why:** Build failed mergeDebugNativeLibs - Out of disk space, LAW 5 bill tracker unblocked e61ac07 needs build
@@ -173,17 +158,17 @@ LAW 17: Every AI must READ DEV_LOG.md + CLAUDE.md BEFORE assisting.
 
 ---
 
-## 2026-09-06 â€” 60170b5 â€” docs: Law16 log e034289
-**Status:** PUSHED â€” origin/feature/haven-central-fixes
+## 2026-09-06 — 60170b5 — docs: Law16 log e034289
+**Status:** PUSHED — origin/feature/haven-central-fixes
 **Change:** Log update for e034289 GigIncome screen
 **analyze:** No issues
 **Push:** e034289..60170b5
 
 ---
 
-## 2026-09-06 â€” e034289 â€” feat: Phase 3 GigIncome screen
-**Status:** PUSHED â€” handoff proven via Grok using AI_HANDOFF.md @ fbca4ed (Grok read log, verified fbca4ed, implemented feature)
-**File:** lib/screens/gig_income/gig_income_screen.dart â€” 350 lines
+## 2026-09-06 — e034289 — feat: Phase 3 GigIncome screen
+**Status:** PUSHED — handoff proven via Grok using AI_HANDOFF.md @ fbca4ed (Grok read log, verified fbca4ed, implemented feature)
+**File:** lib/screens/gig_income/gig_income_screen.dart — 350 lines
 **UI:** Summary card total gig income month, ListTile with gig name + amount + date, edit/delete swipe, FAB add dialog with amount controller, householdId filter, app_state integration
 **Why:** Phase 3 budget tracking - gig income separate from salary
 **analyze:** No issues found!
@@ -192,22 +177,22 @@ LAW 17: Every AI must READ DEV_LOG.md + CLAUDE.md BEFORE assisting.
 
 ---
 
-## 2026-09-06 â€” fbca4ed â€” feat: AI_HANDOFF.md + Law 16/17 enforcement
-**Status:** PUSHED â€” Handoff system created, tested with Grok success
-**File:** AI_HANDOFF.md â€” instructions for any AI to read DEV_LOG.md + CLAUDE.md before assisting, log template, branch info
+## 2026-09-06 — fbca4ed — feat: AI_HANDOFF.md + Law 16/17 enforcement
+**Status:** PUSHED — Handoff system created, tested with Grok success
+**File:** AI_HANDOFF.md — instructions for any AI to read DEV_LOG.md + CLAUDE.md before assisting, log template, branch info
 **Why:** David NOOB MODE needs any AI (ChatGPT, Grok, Claude, Meta) to continue without losing context
 **analyze:** No issues
 **Push:** 949d358..fbca4ed
 
 ---
 
-## 2026-09-06 â€” 949d358 â€” fix: household-scope models + Transaction bug
-**Status:** PUSHED â€” origin/feature/haven-central-fixes
+## 2026-09-06 — 949d358 — fix: household-scope models + Transaction bug
+**Status:** PUSHED — origin/feature/haven-central-fixes
 **Change:** Transaction model had late field bug - amount null crash, budget spent calc wrong, householdId missing from some models
 **Files:**
-- transaction.dart â€” fixed late initialization, amount double? -> double with default 0.0
-- budget.dart â€” fixed spent calc household scope
-- app_state.dart â€” added householdId to all queries
+- transaction.dart — fixed late initialization, amount double? -> double with default 0.0
+- budget.dart — fixed spent calc household scope
+- app_state.dart — added householdId to all queries
 **Why:** Bills showing wrong amounts, crash on null amount, LAW 5 household scoping
 **analyze:** No issues found! (91.1s)
 **Push:** previous..949d358
@@ -215,16 +200,16 @@ LAW 17: Every AI must READ DEV_LOG.md + CLAUDE.md BEFORE assisting.
 ---
 
 ## TEMPLATE FOR FUTURE ENTRIES
-## YYYY-MM-DD â€” HASH â€” short description
+## YYYY-MM-DD — HASH — short description
 **Status:** **File(s):** **Change:** **Why:** **analyze:** **Push:** **Next:**
 Keep chronologically newest on top, after CURRENT STATE. No spaced UTF-16, always UTF-8.
 
 ---
 
 ## NOTES
-- David Berry Sr. â€” NOOB MODE â€” Olivia, NC â€” 28326
-- Haven OS â€” Household finance, Law 5 bills, Gig income, Category memory
-- Laws 1-17 enforced â€” Read Before Assist mandatory
+- David Berry Sr. — NOOB MODE — Olivia, NC — 28326
+- Haven OS — Household finance, Law 5 bills, Gig income, Category memory
+- Laws 1-17 enforced — Read Before Assist mandatory
 - Branch workflow: feature/haven-central-fixes -> main via PR, Law 16 docs commit before every push
 - System: Windows 11, Flutter 3.x, C: 14GB free, D: gradle_cache + pub_cache
 
@@ -258,5 +243,4 @@ User wants REAL email send to provided email, verify code matches in Haven.
 
 ### NOTE
 Use `flutter run` NOT `adb uninstall` to preserve SharedPreferences for testing. Uninstall wipes registered_users.
-
 
