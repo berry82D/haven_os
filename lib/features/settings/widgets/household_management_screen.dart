@@ -1,4 +1,4 @@
-﻿// lib/features/settings/widgets/household_management_screen.dart
+// lib/features/settings/widgets/household_management_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -7,7 +7,8 @@ import 'package:haven_os/models/user_account.dart';
 import 'package:haven_os/models/household.dart';
 import 'package:haven_os/models/join_request.dart';
 import 'package:haven_os/services/app_state.dart';
-import 'package:haven_os/domain/services/household_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:haven_os/services/household_cloud_service.dart';
 
 class HouseholdManagementScreen extends StatefulWidget {
@@ -28,9 +29,7 @@ class _HouseholdManagementScreenState extends State<HouseholdManagementScreen> {
   @override
   void initState() {
     super.initState();
-    final appState = Provider.of<AppState>(context, listen: false);
-    final householdId = appState.currentUser?.householdId ?? '';
-    _membersFuture = appState.getHouseholdMembers(householdId);
+    _membersFuture = Future.value(<UserAccount>[]);
     _loadHousehold();
   }
 
@@ -42,61 +41,67 @@ class _HouseholdManagementScreenState extends State<HouseholdManagementScreen> {
 
   Future<void> _loadHousehold() async {
     setState(() => _loadingHousehold = true);
-    final appState = Provider.of<AppState>(context, listen: false);
-    final id = appState.currentUser?.householdId ?? '';
     Household? hh;
-    if (id.isNotEmpty && id != 'pending_join' && id != 'default') {
-      hh = await HouseholdService.getHouseholdById(id);
+    String? problem;
+    try {
+      final id = await const FlutterSecureStorage().read(key: 'household_id');
+      if (id != null && id.isNotEmpty) {
+        final snap = await FirebaseFirestore.instance
+            .collection('households')
+            .doc(id)
+            .get();
+        if (snap.exists && snap.data() != null) {
+          hh = Household.fromJson(snap.data()!);
+        }
+      }
+    } catch (e) {
+      problem = '$e';
     }
     if (!mounted) return;
-    if (hh != null) {
-      try {
-        await HouseholdCloudService.instance.publishHousehold(hh);
-      } catch (_) {}
-    }
     setState(() {
       _household = hh;
+      _membersFuture =
+          hh == null ? Future.value(<UserAccount>[]) : _cloudMembers(hh);
       _loadingHousehold = false;
     });
+    if (problem != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Could not load household: $problem'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  /// Member names come from each member's profile doc users/{uid}.username.
+  Future<List<UserAccount>> _cloudMembers(Household hh) async {
+    final out = <UserAccount>[];
+    for (final uid in hh.memberIds) {
+      var name = uid;
+      try {
+        final snap = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(uid)
+            .get();
+        final u = (snap.data()?['username'] ?? '').toString().trim();
+        if (u.isNotEmpty) name = u;
+      } catch (_) {}
+      out.add(UserAccount(id: uid, householdId: hh.id, name: name));
+    }
+    return out;
   }
 
   Future<void> _createMyHousehold() async {
-    final appState = Provider.of<AppState>(context, listen: false);
-    final user = appState.currentUser;
-    if (user == null) return;
-    try {
-      final hh = await HouseholdService.createHouseholdRecord(
-        "${user.name}'s Household",
-        ownerUserId: user.id,
-      );
-      final updated = UserAccount(
-        id: user.id,
-        householdId: hh.id,
-        name: user.name,
-        type: user.type,
-        role: user.role,
-        hasPin: user.hasPin,
-        useBiometrics: user.useBiometrics,
-        autoLogin: user.autoLogin,
-        permissions: user.permissions,
-      );
-      appState.setCurrentUser(updated);
-      setState(() {
-        _household = hh;
-        _membersFuture = appState.getHouseholdMembers(hh.id);
-      });
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Household created. Code: ${hh.inviteCode}')),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
-        );
-      }
-    }
+    await _loadHousehold();
+    if (!mounted || _household != null) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+            'Could not find your household. Sign out and sign back in to set it up.'),
+        backgroundColor: Colors.orange,
+      ),
+    );
   }
 
   Future<void> _joinWithCode() async {
@@ -117,21 +122,11 @@ class _HouseholdManagementScreenState extends State<HouseholdManagementScreen> {
         inviteCode: code,
         userId: user.id,
       );
-      final updated = UserAccount(
-        id: user.id,
-        householdId: hh.id,
-        name: user.name,
-        type: user.type,
-        role: user.role,
-        hasPin: user.hasPin,
-        useBiometrics: user.useBiometrics,
-        autoLogin: user.autoLogin,
-        permissions: user.permissions,
-      );
-      appState.setCurrentUser(updated);
+      await const FlutterSecureStorage()
+          .write(key: 'household_id', value: hh.id);
       setState(() {
         _household = hh;
-        _membersFuture = appState.getHouseholdMembers(hh.id);
+        _membersFuture = _cloudMembers(hh);
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -186,12 +181,12 @@ class _HouseholdManagementScreenState extends State<HouseholdManagementScreen> {
                             ),
                             const SizedBox(height: 8),
                             const Text(
-                              'Create one to get an invite code for your partner.',
+                              'Your household is set up when you sign in. If it is missing, check again.',
                             ),
                             const SizedBox(height: 12),
                             ElevatedButton(
                               onPressed: _createMyHousehold,
-                              child: const Text('Create household'),
+                              child: const Text('Check again'),
                             ),
                           ],
                         )

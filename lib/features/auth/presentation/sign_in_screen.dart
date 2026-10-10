@@ -7,8 +7,11 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../../services/app_state.dart';
 import '../../../services/firebase_auth_service.dart';
 import '../../../models/user_account.dart';
+import '../../../models/household.dart';
+import '../../../services/household_cloud_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+import 'dart:math';
 import 'package:crypto/crypto.dart';
 import 'sign_up_screen.dart';
 import 'forgot_password_screen.dart';
@@ -95,6 +98,77 @@ class _SignInScreenState extends State<SignInScreen> {
     return resolved;
   }
 
+  /// Finds (or creates) the household this Firebase user belongs to in
+  /// Firestore, makes sure its invite code is published, and remembers the
+  /// household id in secure storage under 'household_id'.
+  ///
+  /// Order of choice when the user is in more than one household: a
+  /// household they JOINED (someone else owns it) wins over their own solo
+  /// one, so joining a partner sticks after the next sign-in.
+  ///
+  /// NOTE: UserAccount.householdId is deliberately left alone. Local lists
+  /// (bills, gig income, animals) are filtered by it, so changing it here
+  /// would hide data already saved on this phone.
+  ///
+  /// Never blocks sign-in: on any failure it returns a message to show.
+  Future<String?> _ensureCloudHousehold(fb.User user, String username) async {
+    try {
+      final db = FirebaseFirestore.instance;
+      final snap = await db
+          .collection('households')
+          .where('memberIds', arrayContains: user.uid)
+          .limit(10)
+          .get()
+          .timeout(const Duration(seconds: 12));
+
+      Household? chosen;
+      for (final d in snap.docs) {
+        final h = Household.fromJson(d.data());
+        if (h.id.isEmpty) continue;
+        if (chosen == null || (chosen.ownerUserId == user.uid && h.ownerUserId != user.uid)) {
+          chosen = h;
+        }
+      }
+
+      if (chosen == null) {
+        final code = await _freshInviteCode(db);
+        chosen = Household(
+          id: 'hh_${user.uid}',
+          name: "$username's Household",
+          createdAt: DateTime.now(),
+          inviteCode: code,
+          ownerUserId: user.uid,
+          memberIds: [user.uid],
+        );
+      }
+
+      // Publishes the household and its invite-code index (merge, so it is
+      // safe to repeat on every sign-in).
+      await HouseholdCloudService.instance
+          .publishHousehold(chosen)
+          .timeout(const Duration(seconds: 12));
+
+      await const FlutterSecureStorage()
+          .write(key: 'household_id', value: chosen.id);
+      return null;
+    } catch (e) {
+      debugPrint('cloud household error: $e');
+      return 'Signed in, but household sharing could not be set up: $e';
+    }
+  }
+
+  Future<String> _freshInviteCode(FirebaseFirestore db) async {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    final r = Random.secure();
+    for (var i = 0; i < 6; i++) {
+      final body = List.generate(4, (_) => chars[r.nextInt(chars.length)]).join();
+      final code = 'HAVEN-$body';
+      final existing = await db.collection('household_invites').doc(code).get();
+      if (!existing.exists) return code;
+    }
+    return 'HAVEN-${List.generate(6, (_) => chars[r.nextInt(chars.length)]).join()}';
+  }
+
   Future<void> _finalizeLogin(fb.User firebaseUser, String fallbackUsername) async {
     if (!mounted) return;
 
@@ -111,7 +185,20 @@ class _SignInScreenState extends State<SignInScreen> {
       debugPrint('auth_username write error: $e');
     }
 
+    final householdProblem =
+        await _ensureCloudHousehold(firebaseUser, displayUsername);
+
     if (!mounted) return;
+
+    if (householdProblem != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(householdProblem),
+          backgroundColor: Colors.orange.shade800,
+          duration: const Duration(seconds: 8),
+        ),
+      );
+    }
 
     final appState = context.read<AppState>();
     final u = UserAccount(

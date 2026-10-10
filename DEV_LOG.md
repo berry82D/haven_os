@@ -1,10 +1,18 @@
-## 2026-10-10 -- 4ff37dd -- feat(auth): ensure cloud household on sign-in
+## 2026-10-10 -- PENDING -- feat(household): sign-in finds or creates the Firestore household by uid; household screen reads it
+
+**Status:** PENDING push
 **Files:**
-- lib/features/auth/presentation/sign_in_screen.dart -- _ensureCloudHousehold: on every sign-in finds or creates the Firestore household for this Firebase uid (hh_<uid>), publishes household + invite index, saves household_id in secure storage; 12s timeouts, orange non-blocking warning on failure. _finalizeLogin keeps UserAccount.householdId='pending_join' so existing local data (bills, gig income, animals) stays visible until the data sync chunk.
-**Why:** publishes every user's household at sign-in so invite codes resolve cross-phone.
-**Tested:** flutter analyze clean; cloud build pending
-**Next:** cloud build, install -r both phones, 2-phone join test
----## 2026-10-10 -- b22dd53 -- feat(household): Firestore publish on create, cloud join, catch-up
+- lib/features/auth/presentation/sign_in_screen.dart -- _finalizeLogin calls _ensureCloudHousehold: queries households where memberIds contains the Firebase uid (a joined household wins over a solo one), otherwise creates hh_<uid> with an invite code, publishes household + household_invites index, saves the id in secure storage key household_id. Failures show an orange snackbar and never block sign-in; each call times out after 12 seconds.
+- lib/features/settings/widgets/household_management_screen.dart -- loads the household from Firestore using household_id, member names from users/{uid}.username, join saves household_id and no longer switches UserAccount.householdId. The old local create path is now a "Check again" button.
+- DEV_LOG.md -- this entry. It replaces an entry stamped 4ff37dd (commit f1ef153) that described this change before any of the code was pushed.
+
+**Why:** b22dd53 only published when householdId was already real, but sign-in set pending_join every time, so nothing was ever published. Member ids are now Firebase uids, which membership rules need.
+**Deliberately NOT changed:** UserAccount.householdId stays pending_join. AppState myBills, myGigIncomes, myAnimals and others filter local data by householdId, so changing it now would hide data already on the phones. That moves with the data sync chunk.
+**Tested:** flutter analyze on each file -- No issues found! Full app compile is checked by the cloud build.
+**Needs before install:** Firestore rules for households + household_invites PUBLISHED. Without them the household write is denied and the orange message shows.
+**Next:** (1) publish rules, (2) install -r on one phone, sign in, confirm Household Management shows a HAVEN- code, (3) sign in on the other phone and join with that code, (4) data sync chunk.
+---
+## 2026-10-10 -- b22dd53 -- feat(household): Firestore publish on create, cloud join, catch-up
 **Files:**
 - lib/domain/services/household_service.dart -- createHouseholdRecord publishes to Firestore via HouseholdCloudService (try/catch, offline-safe)
 - lib/features/settings/widgets/household_management_screen.dart -- _joinWithCode rewired to HouseholdCloudService.instance.joinByInviteCode; _loadHousehold does catch-up publish for pre-existing households
