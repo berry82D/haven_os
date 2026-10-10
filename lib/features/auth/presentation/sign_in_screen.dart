@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../../services/app_state.dart';
 import '../../../services/firebase_auth_service.dart';
 import '../../../models/user_account.dart';
@@ -52,13 +53,13 @@ class _SignInScreenState extends State<SignInScreen> {
     );
   }
 
-  /// Resolves the real username for this user and stores it on the
-  /// Firebase Auth record if it is missing or wrong. Firestore
-  /// users/{uid}.username is the source of truth. The Firebase Auth
-  /// displayName is often null, and older account-creation paths may
-  /// have accidentally set it to the uid - so we never trust it directly.
+  /// Resolves the real username for this user. Order of trust:
+  ///   1. Firestore users/{uid}.username (the profile - source of truth)
+  ///   2. the Firebase Auth displayName, if it is set and is not the uid
+  ///   3. the fallback passed in (legacy username or email prefix)
+  /// Also repairs the Auth displayName so it matches the profile.
   Future<String> _resolveUsername(fb.User user, String fallback) async {
-    String resolved = fallback;
+    String? fromProfile;
     try {
       final snap = await FirebaseFirestore.instance
           .collection('users')
@@ -66,16 +67,26 @@ class _SignInScreenState extends State<SignInScreen> {
           .get();
       if (snap.exists) {
         final stored = (snap.data()?['username'] ?? '').toString().trim();
-        if (stored.isNotEmpty) resolved = stored;
+        if (stored.isNotEmpty && stored != user.uid) fromProfile = stored;
       }
     } catch (e) {
       debugPrint('profile lookup error: $e');
     }
 
-    // Repair the Firebase Auth displayName so future logins don't
-    // fall back to the uid again.
-    final current = user.displayName?.trim();
-    if (current == null || current.isEmpty || current == user.uid) {
+    final current = user.displayName?.trim() ?? '';
+    final currentUsable = current.isNotEmpty && current != user.uid;
+
+    final String resolved;
+    if (fromProfile != null) {
+      resolved = fromProfile;
+    } else if (currentUsable) {
+      resolved = current;
+    } else {
+      resolved = fallback;
+    }
+
+    // Keep the Auth displayName in step with the resolved username.
+    if (current != resolved) {
       try {
         await user.updateDisplayName(resolved);
       } catch (_) {}
@@ -88,6 +99,17 @@ class _SignInScreenState extends State<SignInScreen> {
     if (!mounted) return;
 
     final displayUsername = await _resolveUsername(firebaseUser, fallbackUsername);
+
+    // The Firestore folder the app reads is chosen from this stored value
+    // (see FirestoreService._getUserId). Set it here, on EVERY sign-in path,
+    // from the resolved username - otherwise a stale value from an earlier
+    // login or sign-up keeps pointing at the wrong folder.
+    try {
+      await const FlutterSecureStorage()
+          .write(key: 'auth_username', value: displayUsername);
+    } catch (e) {
+      debugPrint('auth_username write error: $e');
+    }
 
     if (!mounted) return;
 
@@ -232,9 +254,8 @@ class _SignInScreenState extends State<SignInScreen> {
       await FirebaseAuthService().login(identifier, password);
       final user = fb.FirebaseAuth.instance.currentUser!;
 
-      // Pass the email prefix as the FALLBACK - never user.displayName.
-      // displayName is often null or (older accounts) accidentally the uid.
-      // _finalizeLogin prefers Firestore users/{uid}.username anyway.
+      // The email prefix is only the last-resort fallback. _finalizeLogin
+      // prefers the Firestore profile username, then a usable displayName.
       final fallback = identifier.split('@')[0];
       await _finalizeLogin(user, fallback);
     } on fb.FirebaseAuthException catch (e) {
