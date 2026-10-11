@@ -1,3 +1,50 @@
+## 2026-10-11 -- PENDING -- ci(version): build number = Actions run number, shown in settings footer
+
+**Status:** PENDING push
+**Files:**
+- .github/workflows/build.yml -- flutter build apk --release --build-number=<run number>; artifact and APK are now named haven_os-<version>-b<run>-<sha>. Signing and fingerprint checks unchanged.
+- DEV_LOG.md -- this entry
+
+**Why:** the footer showed v1.0.1+1 on every build, so a new and an old APK looked the same. Footer now reads v1.0.1+<run number>; higher means newer.
+**Note:** the APK inside the zip is now named haven_os-<version>-b<run>-<sha>.apk. List the folder before installing.
+**Next:** download the new artifact, install -r one phone at a time, confirm the footer shows the run number.
+---
+## 2026-10-11 07:00 -- 9a173e3 -- chore(version): bump pubspec to 1.0.1+1
+**Status:** PUSHED
+**Files:** pubspec.yaml, WIP.md
+**Change:** version 1.0.0+1 -> 1.0.1+1. WIP.md now has "Last touched" timestamp at top.
+**Why:** Version labeling task, File 1 of 3. Timestamp convention for WIP entries.
+**Next:** File 2 workflow
+
+---
+
+## 2026-10-11 07:00 -- 5e90a0f -- ci: extract version + SHA into APK artifact name
+**Status:** PUSHED
+**Files:** .github/workflows/build.yml
+**Change:** Added "Extract version and short SHA" step (reads pubspec version + git short SHA into GITHUB_OUTPUT); added "Rename APK with version + SHA" step; artifact name is now `haven_os-$version-$sha`. Old name was `app-release`.
+**Why:** Version labeling task, File 2 of 3. Artifact now self-identifies.
+**Next:** File 3 settings footer
+
+---
+
+## 2026-10-11 07:00 -- 9c1c545 -- feat(version): package_info_plus + settings footer
+**Status:** PUSHED
+**Files:** pubspec.yaml (added package_info_plus ^8.0.0), lib/features/haven_central/haven_central_screen.dart (import + footer in _showSettings showing "Haven OS v<version>+<buildNumber>"), WIP.md
+**Change:** Version footer at bottom of settings dialog reads from APK metadata via package_info_plus. No SHA in-app (decision A) - version alone suffices; SHA lives in artifact name.
+**Why:** Version labeling task, File 3 of 3.
+**Fix during session:** accidentally inserted duplicate footer in Add Task dialog; removed first occurrence.
+**Next:** verify cloud build artifact name
+
+---
+
+## 2026-10-11 07:00 -- 73f00f8 -- chore: sync pubspec.lock + macOS plugin registrant
+**Status:** PUSHED
+**Files:** pubspec.lock, macos/Flutter/GeneratedPluginRegistrant.swift
+**Change:** Auto-generated files after adding package_info_plus dependency. Committed so cloud build resolves identical versions as local.
+**Why:** Reproducible builds.
+**Next:** confirm build green + artifact named haven_os-1.0.1-<sha>.apk
+
+---
 ## 2026-10-10 -- PENDING -- docs: add ROADMAP.md
 
 **Status:** PENDING push

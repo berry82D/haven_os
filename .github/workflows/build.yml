@@ -44,13 +44,14 @@ jobs:
           SHA=$(git rev-parse --short HEAD)
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "sha=$SHA" >> "$GITHUB_OUTPUT"
-          echo "Artifact will be: haven_os-${VERSION}-${SHA}.apk"
+          echo "run=${{ github.run_number }}" >> "$GITHUB_OUTPUT"
+          echo "Artifact will be: haven_os-${VERSION}-b${{ github.run_number }}-${SHA}.apk"
 
       - name: Flutter pub get
         run: flutter pub get
 
       - name: Build APK (release)
-        run: flutter build apk --release
+        run: flutter build apk --release --build-number=${{ github.run_number }}
 
       - name: Verify APK is signed with the expected key
         run: |
@@ -61,11 +62,11 @@ jobs:
       - name: Rename APK with version + SHA
         run: |
           cd build/app/outputs/flutter-apk
-          cp app-release.apk haven_os-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.sha }}.apk
+          cp app-release.apk haven_os-${{ steps.vars.outputs.version }}-b${{ steps.vars.outputs.run }}-${{ steps.vars.outputs.sha }}.apk
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: haven_os-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.sha }}
-          path: build/app/outputs/flutter-apk/haven_os-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.sha }}.apk
+          name: haven_os-${{ steps.vars.outputs.version }}-b${{ steps.vars.outputs.run }}-${{ steps.vars.outputs.sha }}
+          path: build/app/outputs/flutter-apk/haven_os-${{ steps.vars.outputs.version }}-b${{ steps.vars.outputs.run }}-${{ steps.vars.outputs.sha }}.apk
           retention-days: 30
