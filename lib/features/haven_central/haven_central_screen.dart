@@ -93,6 +93,15 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
     super.dispose();
   }
 
+  double _homeMonthlyLeft(List<Transaction> transactions) {
+    final now = DateTime.now();
+    final start = DateTime(now.year, now.month, 1);
+    final end = DateTime(now.year, now.month + 1, 1);
+    final m = transactions.where((t) => !t.date.isBefore(start) && t.date.isBefore(end));
+    final inc = m.where((t) => t.isIncome).fold(0.0, (s, t) => s + t.amount);
+    final exp = m.where((t) => !t.isIncome).fold(0.0, (s, t) => s + t.amount);
+    return inc - exp - 100.0;
+  }
   Widget _buildHomeTab(
       List<Transaction> transactions, List<Task> tasks, List<Budget> budgets) {
     final upcomingTasks = tasks.where((t) =>!t.isDone).take(5).toList();
@@ -133,7 +142,45 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                         }),
                   ])),
           const SizedBox(height: 16),
-          Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
+          // Home bridge card
+          Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                  color: const Color(0xFF1E1E1E),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey[800]!)),
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Left this month',
+                        style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 6),
+                    Text(_money(_homeMonthlyLeft(transactions), decimals: 2),
+                        style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.tealAccent)),
+                    const SizedBox(height: 12),
+                    Row(children: [
+                      Expanded(
+                          child: ElevatedButton.icon(
+                              onPressed: () => _buildAddTransactionSheet(),
+                              icon: const Icon(Icons.add, size: 18),
+                              label: const Text('Add expense'),
+                              style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.tealAccent[700],
+                                  foregroundColor: Colors.black,
+                                  padding: const EdgeInsets.symmetric(vertical: 12)))),
+                      const SizedBox(width: 8),
+                      Expanded(
+                          child: OutlinedButton.icon(
+                              onPressed: () => setState(() => _currentIndex = 2),
+                              icon: const Icon(Icons.arrow_forward, size: 18),
+                              label: const Text('Finances'),
+                              style: OutlinedButton.styleFrom(
+                                  foregroundColor: Colors.tealAccent,
+                                  side: const BorderSide(color: Colors.tealAccent),
+                                  padding: const EdgeInsets.symmetric(vertical: 12)))),
+                    ]),
+                  ])),
+          const SizedBox(height: 16),          Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
             _buildToggleTab('🌱 Breeding', _currentIndex == 1, () {
               setState(() => _currentIndex = 1);
             }),

@@ -1,3 +1,17 @@
+## 2026-10-11 19:00 -- PENDING -- feat(home): bridge card (Left this month + Add expense + Finances)
+
+**Status:** PENDING push
+**Steps:** added _homeMonthlyLeft() helper (income - spent - 100 buffer for current month) -> inserted bridge card after hero -> Left this month via _money(decimals: 2) -> Add expense opens _buildAddTransactionSheet -> Finances opens _currentIndex = 2
+**Files:**
+- lib/features/haven_central/haven_central_screen.dart -- Home tab now shows money card under hero. Fills empty space and creates entry/view bridge.
+- WIP.md -- bridge card marked
+- DEV_LOG.md -- this entry
+
+**Why:** Home had large empty area with no primary action. Money card + Add expense gives one-tap entry to the main workflow; Finances button bridges to detail view.
+**Not touched:** hero, toggle tabs, tasks tile, AI Insights tile, Edit-icon snackbar (still placeholder)
+**Next:** push -> cloud build -> phone check (bridge card shows, both buttons work)
+
+---
 ## 2026-10-11 13:30 -- 9530768 -- VERIFIED on phone: search + collapse + stepper + version footer
 
 **Status:** VERIFIED on R3GL40HW72K (David's phone)
