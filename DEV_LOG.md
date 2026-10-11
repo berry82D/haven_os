@@ -1,3 +1,16 @@
+## 2026-10-10 -- PENDING -- feat(cfo): chart tap sets month, week chips with real date ranges
+
+**Status:** PENDING push
+**Files:**
+- lib/features/haven_central/haven_central_screen.dart -- added _financesAnchor + _financesWeekIdx state; _weeksOfMonth() helper (Monday-anchored, clipped at month edges, real date range labels); range calc uses anchor + week index; week chips row (Wk N - Mon-DD format); BarTouchData taps set anchor and clear week index; maxY 1.2 -> 1.3 + FlClipData.all() to stop red bar overshoot.
+- WIP.md -- new file at root. Contains live chunk state so any AI reading the repo knows what is mid-flight. Delete when chunk ships.
+- DEV_LOG.md -- this entry.
+
+**Why:** Chunk #2 of the Finances redesign. Users tap a bar chart month to select it, then pick a week from chips. Weeks clip at month boundaries so no transaction bleeds into two weeks.
+**Not touched:** bills/animals/gig sync (still local), householdId 'pending_join', cumulative toggle (still inert).
+**Blocked on:** cloud build validation. flutter analyze hangs on this machine (4GB RAM).
+**Next:** after green build, install -r on both phones, verify chips appear when toggled to Week, verify bar tap swaps months.
+---
 ## 2026-10-10 -- 2f06a87 -- feat(sync): household data root with one-time merge from the users folder
 
 **Status:** PENDING push

@@ -45,7 +45,9 @@ class HavenCentralScreen extends StatefulWidget {
 class _HavenCentralScreenState extends State<HavenCentralScreen> {
   int _currentIndex = 0;
   bool _showCumulativeLine = false;
-  String _financesPeriod = 'month'; // 'week' | 'month'
+  String _financesPeriod = 'month';
+  DateTime _financesAnchor = DateTime.now();
+  int? _financesWeekIdx;
   bool _showRecentActivity = true;
   final FirestoreService _firestore = FirestoreService();
   final TextEditingController _loanNameController = TextEditingController();
@@ -384,21 +386,46 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
         ]));
   }
 
+  List<Map<String, dynamic>> _weeksOfMonth(DateTime month) {
+    final first = DateTime(month.year, month.month, 1);
+    final last = DateTime(month.year, month.month + 1, 0);
+    final weeks = <Map<String, dynamic>>[];
+    DateTime cursor = first;
+    int num = 1;
+    while (!cursor.isAfter(last)) {
+      final daysUntilSunday = 7 - cursor.weekday;
+      DateTime weekEnd = cursor.add(Duration(days: daysUntilSunday));
+      if (weekEnd.isAfter(last)) weekEnd = last;
+      weeks.add({'num': num, 'start': cursor, 'end': weekEnd});
+      cursor = DateTime(weekEnd.year, weekEnd.month, weekEnd.day + 1);
+      num++;
+    }
+    return weeks;
+  }
+
   Widget _buildFinancesTab(List<Transaction> transactions) {
-    final now = DateTime.now();
+    final weeksOfAnchor = _weeksOfMonth(_financesAnchor);
     final DateTime rangeStart;
     final DateTime rangeEnd;
     final String periodLabel;
-    if (_financesPeriod == 'week') {
-      final weekday = now.weekday;
-      final todayMid = DateTime(now.year, now.month, now.day);
-      rangeStart = todayMid.subtract(Duration(days: weekday - 1));
-      rangeEnd = rangeStart.add(const Duration(days: 7));
-      periodLabel = 'this week';
+    if (_financesPeriod == 'week' && _financesWeekIdx != null && weeksOfAnchor.isNotEmpty) {
+      final idx = _financesWeekIdx!.clamp(0, weeksOfAnchor.length - 1);
+      final w = weeksOfAnchor[idx];
+      final DateTime s = w['start'] as DateTime;
+      final DateTime e = w['end'] as DateTime;
+      rangeStart = s;
+      rangeEnd = e.add(const Duration(days: 1));
+      periodLabel = 'Wk ' + w['num'].toString() + ' - ' + DateFormat('MMM d').format(s) + '-' + DateFormat('d').format(e);
+    } else if (_financesPeriod == 'week') {
+      final mFirst = DateTime(_financesAnchor.year, _financesAnchor.month, 1);
+      final mLast = DateTime(_financesAnchor.year, _financesAnchor.month + 1, 0);
+      rangeStart = mFirst;
+      rangeEnd = mLast.add(const Duration(days: 1));
+      periodLabel = 'all weeks';
     } else {
-      rangeStart = DateTime(now.year, now.month, 1);
-      rangeEnd = DateTime(now.year, now.month + 1, 1);
-      periodLabel = 'this month';
+      rangeStart = DateTime(_financesAnchor.year, _financesAnchor.month, 1);
+      rangeEnd = DateTime(_financesAnchor.year, _financesAnchor.month + 1, 1);
+      periodLabel = DateFormat('MMM yyyy').format(_financesAnchor);
     }
     final ranged = transactions
         .where((t) => !t.date.isBefore(rangeStart) && t.date.isBefore(rangeEnd))
@@ -473,7 +500,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
       if (exp > maxVal) maxVal = exp;
     }
     if (maxVal == 0) maxVal = 100;
-    final maxY = maxVal * 1.2;
+    final maxY = maxVal * 1.3;
     final rangedReversed = ranged.reversed.toList();
     return Container(
       color: const Color(0xFF121212),
@@ -498,6 +525,35 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
             ],
           ),
           const SizedBox(height: 16),
+          if (_financesPeriod == 'week')
+            Padding(
+              padding: const EdgeInsets.only(top: 12),
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: weeksOfAnchor.asMap().entries.map((entry) {
+                  final idx = entry.key;
+                  final w = entry.value;
+                  final s = w['start'] as DateTime;
+                  final e = w['end'] as DateTime;
+                  final selected = _financesWeekIdx == idx;
+                  return GestureDetector(
+                    onTap: () => setState(() => _financesWeekIdx = idx),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: selected ? Colors.tealAccent[700] : const Color(0xFF1E1E1E),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Text(
+                        'Wk ' + w['num'].toString() + ' - ' + DateFormat('MMM d').format(s) + '-' + DateFormat('d').format(e),
+                        style: TextStyle(color: selected ? Colors.black : Colors.grey, fontSize: 11, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -563,6 +619,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                       child: BarChart(BarChartData(
                           alignment: BarChartAlignment.spaceAround,
                           maxY: maxY,
+                          clipData: const FlClipData.all(),
                           barGroups: monthlyData.asMap().entries.map((entry) {
                             final idx = entry.key;
                             final data = entry.value;
@@ -571,6 +628,17 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                               BarChartRodData(toY: data['expense'] as double, color: Colors.red, width: 12)
                             ]);
                           }).toList(),
+                          barTouchData: BarTouchData(
+                              enabled: true,
+                              touchCallback: (event, response) {
+                                final i = response?.spot?.touchedBarGroupIndex;
+                                if (i != null && i >= 0 && i < monthRange.length) {
+                                  setState(() {
+                                    _financesAnchor = monthRange[i];
+                                    _financesWeekIdx = null;
+                                  });
+                                }
+                              }),
                           titlesData: FlTitlesData(
                               bottomTitles: AxisTitles(sideTitles: SideTitles(showTitles: true, getTitlesWidget: (value, meta) {
                                 final index = value.toInt();
