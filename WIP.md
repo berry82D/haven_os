@@ -1,59 +1,37 @@
 # WORK IN PROGRESS
 
-**Last touched:** 2026-10-11 10:59
-**Active task:** Formula Drawer - tap hero -> slide up "why this number"
-**Driver:** DeepSeek (via David's PC)
+**Last touched:** 2026-10-11 12:51
 **Branch:** main
-**ROADMAP:** NEXT #4
+**HEAD:** 5981256
+**Driver:** DeepSeek (via David's PC)
 
-## Status: IN PROGRESS - inspection phase
+## Status: PAUSED - awaiting build 5981256 + phone verification
 
-### Goal
-Tapping the "Left this period" hero card opens a bottom sheet showing the math:
-income - spent - bills due - $100 buffer = left. Same number as hero, broken down.
+## Just shipped (uncommitted? no - pushed, awaiting phone check)
+- [x] Search + windowed Recent Activity (commit 5981256)
+- [x] Pie + 12-Month Projection collapsed into ExpansionTiles (commit aa619e0)
+- [x] Step D money format - commas + sign-before-$ (commit 82aa213)
+- [x] Week stepper replaces chip grid (commit 1177e1a)
 
-### Steps
-- [x] 1. Inspect current hero card + tap handlers
-- [x] 2. Add _showFormulaDrawer() helper
-- [x] 3. Wrap hero in tap gesture
-- [ ] 4. Commit + push
-- [ ] 5. Cloud build green
-- [ ] 6. Phone check: tap hero -> sheet opens, math correct, dismisses cleanly
-- [ ] 7. Close WIP (delete)
+## Awaiting phone verification (blocking WIP close)
+- [ ] Build 5981256 green in GitHub Actions
+- [ ] Install APK on R3GL40HW72K (and Candice's R5CY2180YTH when awake)
+- [ ] Verify search: type "circle k" -> only matches show; clear -> full list
+- [ ] Verify window: fixed-height box scrolls; page stays short
+- [ ] Verify collapse: pie + 12-Month Projection start collapsed, tap to expand
+- [ ] Verify stepper: chevrons step, first/last disabled, label opens picker, bar tap swaps month
+- [ ] Verify settings footer shows Haven OS v1.0.1+NN
 
-### Home tab polish (new)
+## Queued for next session (do in this order)
+1. [ ] Home bridge card: money card on Home showing "Left this month $X" + "+ Add expense" button + tap-through to Finances; remove placeholder "Reports coming soon" / "Edit Widgets coming next update"
+2. [ ] Finances display bugs (3): pie title overlapped by pie; Transport+Groceries both cyan; "Other" legend pink but slice gray
+3. [ ] Projection math: allTimeNet + avgSavings*12 = straight multiple of net worth, not real forecast. Add label or better formula.
 
-- [ ] Condense Home layout so it fits one screen (hero smaller, pills tighter, cards tighter)
-- [ ] Fix AI Insights money text: strip `**`, add `\$`, add commas, use _money if applicable
-- [ ] 12-Month Projection on Finances: switch from decimals:0 to decimals:2 (brief spec)
-### Finances long-page fix (chosen: A - collapse sections)
-- [ ] Wrap Expense Breakdown (pie) in ExpansionTile, collapsed by default
-- [ ] Wrap 12-Month Projection in ExpansionTile, collapsed by default
-- [ ] Keep Recent Activity as-is (already ExpansionTile)
-- [ ] Hero + 4 cards + bar chart stay visible
+## RESOLVED
+- [x] Net worth swing +$246 -> -$56: wife deleted a duplicate $301 wage entry. Not a bug.
 
-### Finances display bugs (queued)
-- [ ] Pie title "Expense Breakdown (X)" overlapped by pie - move label above or add padding
-- [ ] Transport + Groceries both cyan - assign distinct colors
-- [ ] "Other" legend pink but slice gray - align legend to slice
-
-### Home bridge card (queued)
-- [ ] Home: money card "Left this month X" + "+ Add expense" + tap-through to Finances
-- [ ] Remove placeholder "Reports coming soon" / "Edit Widgets coming next update"
-
-### RESOLVED - net worth swing
-- [x] +246 -> -56 caused by wife deleting a duplicate 301 wage entry. Not a bug. Data integrity fine.
-
-### Backlog
-- [ ] Projection math: allTimeNet + avgSavings*12 = straight multiple of net worth, not real forecast. Label or better formula.
-### Finances window+search for transactions
-- [x] Add _txSearchCtrl field
-- [ ] Replace .take(10) list with search field + fixed-height ListView
-- [x] Search filters rangedReversed by description + place (case-insensitive)
-- [x] Empty-state text: no-data and no-match
-- [ ] Commit + push + phone test
 ## Rule (Law 18)
-WIP.md deleted ONLY after install + real-phone verification.
+WIP.md deleted ONLY after install + real-phone verification on ALL active chunks.
 
 ## If Another AI Reads This
-Resume at first unchecked [ ] item.
+Resume at the first unchecked [ ] in "Awaiting phone verification". Do NOT redo completed steps.

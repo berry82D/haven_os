@@ -1,3 +1,30 @@
+## 2026-10-11 13:00 -- PENDING -- state: all shipped features pending phone verification
+
+**Status:** PAUSED - awaiting phone test
+**HEAD:** 5981256 on main, clean tree
+**Shipped today (all pushed, cloud green):**
+- 5981256 searchable window for Recent Activity (search filters rangedReversed by description/place, fixed-height 360 box)
+- aa619e0 pie + 12-Month Projection collapsed into ExpansionTiles
+- 82aa213 Step D money format (comma thousands, sign before $)
+- 1177e1a Week stepper replaces chip grid
+- plus earlier: version labeling (1.0.1+bNN), household Firestore sync, auth username resolution
+
+**Pending phone verification:**
+- Search + window on Finances Recent Activity
+- Pie + Projection start collapsed
+- Week stepper: chevrons, disabled edges, picker, bar tap
+- Settings footer Haven OS v1.0.1+NN
+
+**Queued next session:**
+1. Home bridge card (money card + Add expense + link to Finances)
+2. Finances display bugs (pie title overlap, cyan duplication, Other legend color mismatch)
+3. Projection math label/formula
+
+**RESOLVED:** net worth +246 -> -56 was wife deleting duplicate $301 wage, not a bug.
+
+**Next AI:** read WIP.md first. Resume at phone verification, then Home bridge.
+
+---
 ## 2026-10-11 12:45 -- PENDING -- feat(cfo): searchable window for Recent Activity
 
 **Status:** PENDING push
