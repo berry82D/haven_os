@@ -597,7 +597,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.chevron_left, color: Colors.tealAccent),
+                    icon: Opacity(opacity: (_financesWeekIdx == null || _financesWeekIdx! <= 0) ? 0.25 : 1.0, child: const Icon(Icons.chevron_left, color: Colors.tealAccent)),
                     onPressed: (_financesWeekIdx == null || _financesWeekIdx! <= 0) ? null : () => setState(() => _financesWeekIdx = _financesWeekIdx! - 1),
                   ),
                   GestureDetector(
@@ -615,7 +615,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.chevron_right, color: Colors.tealAccent),
+                    icon: Opacity(opacity: (_financesWeekIdx == null || _financesWeekIdx! >= weeksOfAnchor.length - 1) ? 0.25 : 1.0, child: const Icon(Icons.chevron_right, color: Colors.tealAccent)),
                     onPressed: (_financesWeekIdx == null || _financesWeekIdx! >= weeksOfAnchor.length - 1) ? null : () => setState(() => _financesWeekIdx = _financesWeekIdx! + 1),
                   ),
                 ],

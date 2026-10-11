@@ -1,3 +1,17 @@
+## 2026-10-11 09:15 -- PENDING -- fix(cfo): chevron opacity on stepper edges + colorblind roadmap line
+
+**Status:** PENDING push
+**Steps:** wrapped both stepper chevrons in Opacity -> 0.25 when at first/last week (disabled), 1.0 otherwise -> added colorblind mode line to ROADMAP NEXT
+**Files:**
+- lib/features/haven_central/haven_central_screen.dart -- chevron_left + chevron_right now use Opacity to show disabled state (colorblind-safe). Tap behavior was already correct (onPressed: null at edges) but visual didn't match.
+- ROADMAP.md -- added "7. Colorblind mode setting (Deuteranopia / Protanopia / Tritanopia palettes across all screens)" under NEXT.
+- DEV_LOG.md -- this entry.
+
+**Why:** David is red-green colorblind; color-only signal for disabled state was ambiguous. Opacity works universally. Full colorblind mode deferred to proper session.
+**Not touched:** stepper range math, picker, bar-tap anchor.
+**Next:** push -> phone check (grey/faded chevron at first/last week) -> resume #6 bar-tap test
+
+---
 ## 2026-10-11 09:30 -- PENDING -- fix(cfo): Step D2 - activity commas + clean chart axis max
 
 **Status:** PENDING push

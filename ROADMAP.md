@@ -21,14 +21,15 @@
 4. Finances Chunks #3-6 (per `finances-redesign-mockup` artifact: formula drawer, coaching, period control polish)
 5. Move bills / animals / gig income from per-phone local to household sync; retire the `pending_join` workaround
 6. Monarch/Jarvis visual pass on dense screens ("fancy when it's complicated", dark theme stays, app teaches)
+7. Colorblind mode setting (Deuteranopia / Protanopia / Tritanopia palettes across all screens)
 
 ## LATER
-7. Kitchen Aid: real Recipes / Pantry / Shopping behind the placeholder tab
-8. Show an error (not endless loading) on Firestore PERMISSION_DENIED
-9. Forgotten-username hint on sign-in
-10. Clean up duplicate Firebase Auth accounts (2 each for David and Candice - review in console first)
-11. Package rename (`com.example.haven_os`) before any Play Store release
-12. D:\ flash-drive update once a stable build is confirmed (contents TBD - David provides `dir` listing)
+8. Kitchen Aid: real Recipes / Pantry / Shopping behind the placeholder tab
+9. Show an error (not endless loading) on Firestore PERMISSION_DENIED
+10. Forgotten-username hint on sign-in
+11. Clean up duplicate Firebase Auth accounts (2 each for David and Candice - review in console first)
+12. Package rename (`com.example.haven_os`) before any Play Store release
+13. D:\ flash-drive update once a stable build is confirmed (contents TBD - David provides `dir` listing)
 
 ## RULES FOR THIS FILE
 - Keep it short. One line per item.
