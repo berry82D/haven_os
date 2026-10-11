@@ -9,7 +9,9 @@
 - Settings gear -> Household Management link (invite code + join UI)
 - Household cloud join: sign-in publishes household + invite index, Firestore rules for `households/{id}` + `household_invites/{code}`
 - Data sync: household data root + one-time non-destructive merge - both phones synced
-- Finances Chunk #2: chart tap -> month anchor -> week chips (Monday-anchored, clipped, no bleed), overshoot fix - code shipped, awaiting phone test
+- Finances Chunk #2: chart tap -> month anchor -> week stepper (chevrons + picker, faded edges), overshoot fix - VERIFIED on phone
+- Money format: comma thousands + sign-before-dollar across Finances - VERIFIED on phone
+- Household sync: add + delete propagate across two phones - VERIFIED
 - Laws 18 (WIP.md) + 19 (HANDOFF block) + 20 (ROADMAP LAW)
 
 ## NOW
