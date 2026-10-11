@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import '../../services/app_state.dart';
 import '../settings/widgets/household_management_screen.dart';
@@ -1748,6 +1749,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                           setState(() => _taskDueDate = picked);
                         }
                       }),),
+
                 ]),
                 actions: [
                   TextButton(
@@ -2094,6 +2096,16 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                         Navigator.pushAndRemoveUntil(
                             context, MaterialPageRoute(builder: (_) => const SignInScreen()), (r) => false /* fixed logout */);
                       }),),
+                  const SizedBox(height: 12),
+                  Center(child: FutureBuilder<PackageInfo>(
+                    future: PackageInfo.fromPlatform(),
+                    builder: (context, snap) {
+                      if (!snap.hasData) return const SizedBox.shrink();
+                      final v = '${snap.data!.version}+${snap.data!.buildNumber}';
+                      return Text('Haven OS v$v',
+                          style: const TextStyle(color: Colors.grey, fontSize: 11));
+                    },
+                  )),
                 ]),
                 actions: [
                   TextButton(
