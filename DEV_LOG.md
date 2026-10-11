@@ -1,4 +1,4 @@
-## 2026-10-11 -- PENDING -- ci(version): build number = Actions run number, shown in settings footer
+## 2026-10-11 -- f9e47d1 -- ci(version): build number = Actions run number, shown in settings footer
 
 **Status:** PENDING push
 **Files:**
