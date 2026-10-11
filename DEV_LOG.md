@@ -1,3 +1,17 @@
+## 2026-10-11 11:15 -- PENDING -- feat(cfo): formula drawer on hero tap
+
+**Status:** PENDING push
+**Steps:** added _showFormulaDrawer() + _formulaRow() helper -> wrapped hero Container in GestureDetector with onTap -> drawer shows Income / Spent / Bills due / Buffer / Left with same math as hero
+**Files:**
+- lib/features/haven_central/haven_central_screen.dart -- _showFormulaDrawer takes income, spent, billsDue, buffer, left, periodLabel; renders modal bottom sheet with label/value rows; hero Container now tappable
+- WIP.md -- updated (new file for this task)
+- DEV_LOG.md -- this entry
+
+**Why:** ROADMAP NEXT #4. Transparent math builds trust - user can see exactly why "Left this period" is the number it is.
+**Not touched:** hero display, range math, stepper, money helper
+**Next:** push -> cloud build -> phone check (tap hero -> sheet opens with correct numbers, dismisses cleanly)
+
+---
 ## 2026-10-11 10:30 -- PENDING -- docs: close WIP (stepper + Step D + sync all verified)
 
 **Status:** PENDING push

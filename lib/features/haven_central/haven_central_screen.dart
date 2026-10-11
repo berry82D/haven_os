@@ -621,7 +621,16 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                 ],
               ),
             ),
-          Container(
+          GestureDetector(
+            onTap: () => _showFormulaDrawer(
+              income: rangedIncomes,
+              spent: rangedExpenses,
+              billsDue: rangedBillsDue,
+              buffer: rangeBuffer,
+              left: leftThisPeriod,
+              periodLabel: 'Left ' + periodLabel,
+            ),
+            child: Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
@@ -645,6 +654,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                 ),
               ],
             ),
+          ),
           ),
           const SizedBox(height: 16),
           Row(children: [
@@ -807,6 +817,77 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
           const SizedBox(height: 20),
         ],
       ),
+    );
+  }
+
+  void _showFormulaDrawer({
+    required double income,
+    required double spent,
+    required double billsDue,
+    required double buffer,
+    required double left,
+    required String periodLabel,
+  }) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF1E1E1E),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Why ' + _money(left) + ' is left',
+                  style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 4),
+              Text(periodLabel,
+                  style: const TextStyle(color: Colors.grey, fontSize: 12)),
+              const SizedBox(height: 20),
+              _formulaRow('Income', _money(income), Colors.green),
+              const SizedBox(height: 10),
+              _formulaRow('Spent', '-' + _money(spent), Colors.red),
+              const SizedBox(height: 10),
+              _formulaRow('Bills due', '-' + _money(billsDue), Colors.orange),
+              const SizedBox(height: 10),
+              _formulaRow('Buffer', '-' + _money(buffer), Colors.grey),
+              const SizedBox(height: 16),
+              const Divider(color: Colors.grey),
+              const SizedBox(height: 8),
+              _formulaRow('Left', _money(left), Colors.tealAccent, bold: true),
+              const SizedBox(height: 20),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('Close', style: TextStyle(color: Colors.grey)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _formulaRow(String label, String value, Color valueColor, {bool bold = false}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label,
+            style: TextStyle(
+                color: Colors.grey,
+                fontSize: 14,
+                fontWeight: bold ? FontWeight.bold : FontWeight.normal)),
+        Text(value,
+            style: TextStyle(
+                color: valueColor,
+                fontSize: 14,
+                fontWeight: bold ? FontWeight.bold : FontWeight.w600)),
+      ],
     );
   }
 
