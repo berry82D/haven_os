@@ -1,3 +1,14 @@
+## 2026-10-10 -- PENDING -- docs: add ROADMAP.md
+
+**Status:** PENDING push
+**Files:**
+- ROADMAP.md -- new at repo root. DONE / NOW / NEXT / LATER sections. Rule at bottom: AI picks up at NOW #1, else top of NEXT.
+- DEV_LOG.md -- this entry
+**Why:** Single source of truth for what is done vs next. Prevents the "AI starts blind" problem.
+**Not touched:** code, WIP.md, CLAUDE.md
+**Next:** phone-test Chunk #2 (still open in WIP.md), then live sync test
+
+---
 ## WORK IN PROGRESS - SEE WIP.md at repo root
 
 ## 2026-10-10 -- 6ae6d8c -- fix(cfo): remove invalid clipData param (not in fl_chart 0.69.2)

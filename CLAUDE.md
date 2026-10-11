@@ -26,6 +26,7 @@ Rule 16 (LOG LAW): Every AI must keep DEV_LOG.md's CURRENT STATE block up to dat
 Rule 17 (READ BEFORE ASSIST): Every AI must read DEV_LOG.md + CLAUDE.md before assisting
 Rule 18 (WIP LAW): Before any multi-step task, create/update WIP.md at repo root (task, driver, file(s), branch, HEAD, step checklist, blockers, DO-NOT-PUSH-UNTIL). Every AI reads WIP.md FIRST - before DEV_LOG. Resume, never redo completed steps. Delete WIP.md ONLY after install + real-phone verification; a green build is not enough. Taking over abandoned work? Update driver + status lines first.
 Rule 19 (HANDOFF POINT): Every AI response ends with a HANDOFF block: file, last command run, current build status, next exact action, uncommitted state, WIP open/closed. Never end mid-task without it. Next AI resumes at 'next exact action' - does not re-verify or redo completed steps.
+Rule 20 (ROADMAP LAW): Every push that changes what is done/next must update ROADMAP.md in the same commit. Move items DONE -> NOW -> NEXT -> LATER. No push that ships a feature without updating its line. If NOW is empty, top of NEXT becomes the active task.
 
 ## ARCHITECTURE
 - app_state.dart (ChangeNotifier) + SharedPreferences is the real state layer - NOT a repository/provider pattern
@@ -37,4 +38,4 @@ Rule 19 (HANDOFF POINT): Every AI response ends with a HANDOFF block: file, last
 - David Berry Sr. - sole maintainer, NOOB MODE (directs product/architecture, AI writes the code)
 - Location context: Olivia, NC / NMB hotspot - connection can be flaky, --verbose helps diagnose push issues
 
-All AIs assisting on this project must follow Rules 1-19 above and read DEV_LOG.md first.
+All AIs assisting on this project must follow Rules 1-20 above and read DEV_LOG.md first.
