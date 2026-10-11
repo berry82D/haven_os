@@ -1,6 +1,16 @@
+## 2026-10-10 -- 6ae6d8c -- fix(cfo): remove invalid clipData param (not in fl_chart 0.69.2)
+
+**Status:** PUSHED (cloud build green)
+**Files:** lib/features/haven_central/haven_central_screen.dart
+**Change:** clipData: FlClipData.all() is not a valid BarChartData param in fl_chart 0.69.2. Removed. maxY * 1.3 (from ac2233c) stays - that is the actual overshoot fix.
+**Why:** ac2233c cloud build failed on this param. Invented API - Law 12 violation, corrected.
+**Push:** 4c6c3e2..6ae6d8c
+**Next:** install -r on both phones, test Finances Week chips + bar tap
+
+---
 ## WORK IN PROGRESS - SEE WIP.md at repo root
 
-## 2026-10-10 -- ac2233c -- feat(cfo): chart tap sets month, week chips with real date ranges
+## 2026-10-10 -- ac2233c -- feat(cfo): chart tap [SUPERSEDED by 6ae6d8c - clipData removed] sets month, week chips with real date ranges
 
 **Status:** PENDING push
 **Files:**
