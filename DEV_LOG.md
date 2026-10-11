@@ -1,4 +1,6 @@
-## 2026-10-10 -- PENDING -- feat(cfo): chart tap sets month, week chips with real date ranges
+## WORK IN PROGRESS - SEE WIP.md at repo root
+
+## 2026-10-10 -- ac2233c -- feat(cfo): chart tap sets month, week chips with real date ranges
 
 **Status:** PENDING push
 **Files:**
