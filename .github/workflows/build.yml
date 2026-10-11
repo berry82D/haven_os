@@ -37,6 +37,15 @@ jobs:
           echo "Restored key fingerprint: $FP"
           echo "$FP" | grep -q "387faa5178e938201b4dae11514db74d22febaafe3d5667a32aedeb3e3554624"
 
+      - name: Extract version and short SHA
+        id: vars
+        run: |
+          VERSION=$(grep '^version:' pubspec.yaml | awk '{print $2}' | cut -d'+' -f1)
+          SHA=$(git rev-parse --short HEAD)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+          echo "Artifact will be: haven_os-${VERSION}-${SHA}.apk"
+
       - name: Flutter pub get
         run: flutter pub get
 
@@ -49,9 +58,14 @@ jobs:
           $AS verify --print-certs build/app/outputs/flutter-apk/app-release.apk | tee /tmp/certs.txt
           grep -q "387faa5178e938201b4dae11514db74d22febaafe3d5667a32aedeb3e3554624" /tmp/certs.txt
 
+      - name: Rename APK with version + SHA
+        run: |
+          cd build/app/outputs/flutter-apk
+          cp app-release.apk haven_os-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.sha }}.apk
+
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: app-release
-          path: build/app/outputs/flutter-apk/app-release.apk
+          name: haven_os-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.sha }}
+          path: build/app/outputs/flutter-apk/haven_os-${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.sha }}.apk
           retention-days: 30
