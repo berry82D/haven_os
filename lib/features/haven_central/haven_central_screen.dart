@@ -899,7 +899,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                             ),
                           );
                         }),
-                      ])),
+                      ]))),
           const SizedBox(height: 20),
         ],
       ),
