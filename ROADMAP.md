@@ -1,6 +1,6 @@
 # Haven OS - Roadmap
 
-**Updated:** 2026-10-10 evening. **HEAD:** c290f26. Read with `AI_HANDOFF.md`, `WIP.md` (if present), `DEV_LOG.md`.
+**Updated:** 2026-10-11 morning. **HEAD:** f085fa1. Read with `AI_HANDOFF.md`, `WIP.md` (if present), `DEV_LOG.md`.
 
 ## DONE
 - Cloud build + signing (Flutter 3.44.8, fingerprint-verified, `install -r` only)
@@ -15,9 +15,7 @@
 - Laws 18 (WIP.md) + 19 (HANDOFF block) + 20 (ROADMAP LAW)
 
 ## NOW
-1. Phone-test Chunk #2 (5 tests in `WIP.md`: chips appear, chip tap recalcs, bar tap swaps month, no overshoot, no errors)
-2. Live sync test: add transaction on one phone -> appears on the other
-3. Delete `WIP.md` after both pass
+_(empty - start at NEXT #4)_
 
 ## NEXT
 4. Finances Chunks #3-6 (per `finances-redesign-mockup` artifact: formula drawer, coaching, period control polish)
