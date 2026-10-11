@@ -1,26 +1,27 @@
 # WORK IN PROGRESS
 
-**Last touched:** 2026-10-11 08:03
-**Active task:** Chunk #2 polish - week stepper (control UI only)
+**Last touched:** 2026-10-11 08:31
+**Active task:** Step D - money format (display only)
 **Driver:** DeepSeek (via David's PC)
 **Branch:** main
 
-## Status: IN PROGRESS - awaiting build + phone test
+## Status: IN PROGRESS
 
-### Stepper edits (this session)
-- [x] Edit 1: pill label 'This week' -> 'Week'
-- [x] Edit 2: tap [Week] defaults _financesWeekIdx = 0
-- [x] Edit 3a: added _weekLabel() + _showWeekPicker() helpers
-- [x] Edit 3b: replaced Wrap chips with chevron stepper row
+### Step D - money format edits
+Add _money(v, [decimals=2]) helper. Comma-separated thousands, sign before $, 2 decimals default.
+- [x] Helper added
+- [x] Hero amount -> _money(leftThisPeriod)
+- [x] Formula line: 4 values -> _money(x, decimals: 0)
+- [x] Cards Income/Expenses/Net -> _money(x, decimals: 0)
+- [x] Chart Y-axis -> _money(x, decimals: 0)
+- [x] 12-month projection: allTimeNet, projectedNet -> _money(x, decimals: 0)
 - [ ] Commit + push
-- [ ] Cloud build green
-- [ ] Phone test: chevrons step, label opens picker, first/last disabled, pills read Week/Month, bar tap still works
+- [ ] Phone check: hero $211.06, negative -$347.66, thousands $1,570.00
 
-### PAUSED - Version task
-Files 1-3 pushed, awaiting build #39 verification (artifact name = haven_os-1.0.1-<sha>.apk).
-
-### PAUSED - Finances Chunk #2 phone test
-Code shipped, cloud green, both phones installed. 4 tests not yet reported.
+### Still open from earlier - stepper + chunk #2 phone test
+- [ ] Phone taps: 2 (chevron advance), 3 (first/last disabled), 4 (label opens picker), 6 (bar tap swaps month), 8 (settings footer v1.0.1+1)
+- [ ] Sync test: wife adds $1 -> appears on yours
+- [ ] Confirm remaining -> close WIP
 
 ## Rule (Law 18)
 WIP.md deleted ONLY after install + real-phone verification on ALL active chunks.

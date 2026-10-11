@@ -387,6 +387,19 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
         ]));
   }
 
+  String _money(double v, {int decimals = 2}) {
+    final neg = v < 0;
+    final parts = v.abs().toStringAsFixed(decimals).split('.');
+    final intPart = parts[0];
+    final buf = StringBuffer();
+    for (int i = 0; i < intPart.length; i++) {
+      if (i > 0 && (intPart.length - i) % 3 == 0) buf.write(',');
+      buf.write(intPart[i]);
+    }
+    final dec = parts.length > 1 ? '.' + parts[1] : '';
+    return (neg ? '-\$' : '\$') + buf.toString() + dec;
+  }
+
   String _weekLabel(List<Map<String, dynamic>> weeks) {
     if (weeks.isEmpty) return 'No weeks';
     final idx = (_financesWeekIdx ?? 0).clamp(0, weeks.length - 1);
@@ -623,11 +636,11 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                 Text('Left $periodLabel',
                     style: const TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600)),
                 const SizedBox(height: 6),
-                Text('\$${leftThisPeriod.toStringAsFixed(2)}',
+                Text(_money(leftThisPeriod),
                     style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: Colors.white)),
                 const SizedBox(height: 8),
                 Text(
-                  '\$${rangedIncomes.toStringAsFixed(0)} in - \$${rangedExpenses.toStringAsFixed(0)} spent - \$${rangedBillsDue.toStringAsFixed(0)} bills due - \$${rangeBuffer.toStringAsFixed(0)} buffer',
+                  _money(rangedIncomes, decimals: 0) + ' in - ' + _money(rangedExpenses, decimals: 0) + ' spent - ' + _money(rangedBillsDue, decimals: 0) + ' bills due - ' + _money(rangeBuffer, decimals: 0) + ' buffer',
                   style: const TextStyle(color: Colors.white70, fontSize: 12),
                 ),
               ],
@@ -635,13 +648,13 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
           ),
           const SizedBox(height: 16),
           Row(children: [
-            _buildSummaryCard('Income', '\$${rangedIncomes.toStringAsFixed(0)}', Colors.green),
+            _buildSummaryCard('Income', _money(rangedIncomes, decimals: 0), Colors.green),
             const SizedBox(width: 8),
-            _buildSummaryCard('Expenses', '\$${rangedExpenses.toStringAsFixed(0)}', Colors.red)
+            _buildSummaryCard('Expenses', _money(rangedExpenses, decimals: 0), Colors.red)
           ]),
           const SizedBox(height: 8),
           Row(children: [
-            _buildSummaryCard('Net', '\$${rangedNet.toStringAsFixed(0)}', rangedNet >= 0 ? Colors.teal : Colors.orange),
+            _buildSummaryCard('Net', _money(rangedNet, decimals: 0), rangedNet >= 0 ? Colors.teal : Colors.orange),
             const SizedBox(width: 8),
             _buildSummaryCard('Savings Rate', '${rangedSavingsRate.toStringAsFixed(1)}%', Colors.blue)
           ]),
@@ -702,7 +715,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                               })),
                               leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: true, reservedSize: 40,
                                   getTitlesWidget: (value, meta) =>
-                                      Text('\$${value.toInt()}', style: const TextStyle(color: Colors.grey, fontSize: 10)))),
+                                      Text(_money(value.toDouble(), decimals: 0), style: const TextStyle(color: Colors.grey, fontSize: 10)))),
                               topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
                               rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false))),
                           borderData: FlBorderData(show: false),
@@ -759,12 +772,12 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                 Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                   Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     const Text('Current Net Worth', style: TextStyle(color: Colors.grey)),
-                    Text('\$${allTimeNet.toStringAsFixed(0)}',
+                    Text(_money(allTimeNet, decimals: 0),
                         style: TextStyle(color: allTimeNet >= 0 ? Colors.green : Colors.red, fontWeight: FontWeight.bold))
                   ]),
                   Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
                     const Text('Projected (12 mo)', style: TextStyle(color: Colors.grey)),
-                    Text('\$${projectedNet.toStringAsFixed(0)}',
+                    Text(_money(projectedNet, decimals: 0),
                         style: TextStyle(color: projectedNet >= 0 ? Colors.green : Colors.red, fontWeight: FontWeight.bold))
                   ])
                 ]),

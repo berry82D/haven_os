@@ -1,3 +1,17 @@
+## 2026-10-11 08:30 -- PENDING -- feat(cfo): Step D money format (display only)
+
+**Status:** PENDING push
+**Steps:** added _money(v,{decimals=2}) helper -> hero -> formula line (4 values, decimals:0) -> Income card -> Expenses card -> Net card -> chart Y-axis -> 12-month projection (allTimeNet + projectedNet)
+**Files:**
+- lib/features/haven_central/haven_central_screen.dart -- _money helper with comma thousands + sign-before-dollar; 8 display sites swapped to use it. Stored values and math untouched.
+- WIP.md -- Step D checkboxes updated.
+- DEV_LOG.md -- this entry.
+
+**Why:** Inconsistent money formatting across Finances. Hero was $211.06, cards showed $1570 (no comma), sign placed after $ on negatives.
+**Not touched:** stored values, range math, stepper, bar-tap month anchor.
+**Next:** push -> cloud build -> phone check (hero $211.06, negative -$347.66, thousands $1,570.00)
+
+---
 ## 2026-10-11 07:45 -- PENDING -- feat(cfo): week stepper replaces chip grid
 
 **Status:** PENDING push
