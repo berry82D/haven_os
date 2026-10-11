@@ -565,7 +565,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
       if (exp > maxVal) maxVal = exp;
     }
     if (maxVal == 0) maxVal = 100;
-    final maxY = maxVal * 1.3;
+    final rawMax = maxVal * 1.15; final mag = rawMax >= 10000 ? 5000.0 : (rawMax >= 1000 ? 1000.0 : (rawMax >= 100 ? 100.0 : 10.0)); final maxY = (rawMax / mag).ceil() * mag;
     final rangedReversed = ranged.reversed.toList();
     return Container(
       color: const Color(0xFF121212),
@@ -1104,7 +1104,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                 Text('${tx.place} • ${tx.formattedDate}',
                     style: const TextStyle(color: Colors.grey, fontSize: 12))
               ])),
-          Text(tx.formattedAmount,
+          Text((tx.isIncome ? '+' : '-') + _money(tx.amount.abs()),
               style: TextStyle(
                   color: tx.isIncome? Colors.green : Colors.red,
                   fontWeight: FontWeight.bold)),

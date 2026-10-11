@@ -1,3 +1,16 @@
+## 2026-10-11 09:30 -- PENDING -- fix(cfo): Step D2 - activity commas + clean chart axis max
+
+**Status:** PENDING push
+**Steps:** (1) swapped tx.formattedAmount for (tx.isIncome ? '+' : '-') + _money(tx.amount.abs()) in activity rows so thousand values get commas; (2) replaced maxY = maxVal * 1.3 with nice-step rounding (rawMax = maxVal * 1.15, then ceil to 5k/1k/100/10) so the top axis label is a clean round number.
+**Files:**
+- lib/features/haven_central/haven_central_screen.dart -- 2 replacements. Stored values and math untouched.
+- DEV_LOG.md -- this entry.
+
+**Why:** Post-test review. Activity rows missed the Step D money fix; chart top showed $7,005 instead of a clean $7,000.
+**Not touched:** stored values, stepper, bar-tap month anchor.
+**Next:** push -> cloud build -> reinstall -> verify activity commas + clean axis top.
+
+---
 ## 2026-10-11 08:30 -- PENDING -- feat(cfo): Step D money format (display only)
 
 **Status:** PENDING push
