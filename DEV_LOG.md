@@ -1,3 +1,17 @@
+## 2026-10-11 12:45 -- PENDING -- feat(cfo): searchable window for Recent Activity
+
+**Status:** PENDING push
+**Steps:** added _txSearchCtrl field -> replaced static .take(10) list with TextField + Builder -> search filters rangedReversed by description/place (case-insensitive) -> fixed-height (360) ListView.builder -> empty-state text for no-data and no-match cases
+**Files:**
+- lib/features/haven_central/haven_central_screen.dart -- Recent Activity inside Finances tab is now searchable + windowed. Scope A (search within current Week/Month range). Fixed-height box keeps rest of Finances visible.
+- WIP.md -- window+search task marked; net worth swing resolved (wife deleted duplicate $301 wage)
+- DEV_LOG.md -- this entry
+
+**Why:** Endless downward list felt wrong; user wants a window with search. Search stacks with period toggle.
+**Not touched:** range math, bar tap, pie/projection ExpansionTiles, expansion state
+**Next:** push -> cloud build -> phone check (search filters; window scrolls; page stays short)
+
+---
 ## 2026-10-11 12:15 -- PENDING -- feat(cfo): collapse pie + projection into ExpansionTiles
 
 **Status:** PENDING push

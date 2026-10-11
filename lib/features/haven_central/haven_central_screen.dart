@@ -49,6 +49,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
   String _financesPeriod = 'month';
   DateTime _financesAnchor = DateTime.now();
   int? _financesWeekIdx;
+  final TextEditingController _txSearchCtrl = TextEditingController();
   bool _showRecentActivity = true;
   final FirestoreService _firestore = FirestoreService();
   final TextEditingController _loanNameController = TextEditingController();
@@ -861,12 +862,44 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                       initiallyExpanded: _showRecentActivity,
                       onExpansionChanged: (expanded) { setState(() => _showRecentActivity = expanded); },
                       children: [
-                        if (rangedReversed.isEmpty)
-                          Padding(padding: const EdgeInsets.all(16),
-                              child: Text('No transactions $periodLabel.', style: const TextStyle(color: Colors.grey)))
-                        else
-                          ...rangedReversed.take(10).map((tx) => _buildActivityTile(tx))
-                      ]))),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
+                          child: TextField(
+                            controller: _txSearchCtrl,
+                            style: const TextStyle(color: Colors.white),
+                            onChanged: (_) => setState(() {}),
+                            decoration: const InputDecoration(
+                              hintText: 'Search description or place...',
+                              hintStyle: TextStyle(color: Colors.grey),
+                              prefixIcon: Icon(Icons.search, color: Colors.grey),
+                              border: OutlineInputBorder(),
+                              enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.grey)),
+                              isDense: true,
+                            ),
+                          ),
+                        ),
+                        Builder(builder: (context) {
+                          final q = _txSearchCtrl.text.trim().toLowerCase();
+                          final filtered = q.isEmpty
+                              ? rangedReversed
+                              : rangedReversed.where((tx) =>
+                                  tx.description.toLowerCase().contains(q) ||
+                                  tx.place.toLowerCase().contains(q)).toList();
+                          if (filtered.isEmpty) {
+                            return Padding(padding: const EdgeInsets.all(16),
+                                child: Text(q.isEmpty ? 'No transactions $periodLabel.' : 'No matches for "$q".',
+                                    style: const TextStyle(color: Colors.grey)));
+                          }
+                          return SizedBox(
+                            height: 360,
+                            child: ListView.builder(
+                              padding: EdgeInsets.zero,
+                              itemCount: filtered.length,
+                              itemBuilder: (_, i) => _buildActivityTile(filtered[i]),
+                            ),
+                          );
+                        }),
+                      ])),
           const SizedBox(height: 20),
         ],
       ),

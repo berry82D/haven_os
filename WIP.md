@@ -46,6 +46,12 @@ income - spent - bills due - $100 buffer = left. Same number as hero, broken dow
 
 ### Backlog
 - [ ] Projection math: allTimeNet + avgSavings*12 = straight multiple of net worth, not real forecast. Label or better formula.
+### Finances window+search for transactions
+- [x] Add _txSearchCtrl field
+- [ ] Replace .take(10) list with search field + fixed-height ListView
+- [x] Search filters rangedReversed by description + place (case-insensitive)
+- [x] Empty-state text: no-data and no-match
+- [ ] Commit + push + phone test
 ## Rule (Law 18)
 WIP.md deleted ONLY after install + real-phone verification.
 
