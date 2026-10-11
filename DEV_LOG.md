@@ -1,3 +1,5 @@
+## WORK IN PROGRESS - SEE WIP.md at repo root
+
 ## 2026-10-10 -- 6ae6d8c -- fix(cfo): remove invalid clipData param (not in fl_chart 0.69.2)
 
 **Status:** PUSHED (cloud build green)
@@ -8,8 +10,6 @@
 **Next:** install -r on both phones, test Finances Week chips + bar tap
 
 ---
-## WORK IN PROGRESS - SEE WIP.md at repo root
-
 ## 2026-10-10 -- ac2233c -- feat(cfo): chart tap [SUPERSEDED by 6ae6d8c - clipData removed] sets month, week chips with real date ranges
 
 **Status:** PENDING push
