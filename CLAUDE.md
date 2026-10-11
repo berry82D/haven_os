@@ -1,7 +1,7 @@
-﻿[paste CLAUDE.md content here]
+[paste CLAUDE.md content here]
 # CLAUDE'S DEVELOPMENT RULES — HAVEN OS — NOOB MODE
-Last Updated: 2026-09-06 — reorganized for clean AI handoff, no content changes to Laws 1-17
-Branch: feature/haven-central-fixes — HEAD: 60170b5 — update this line on every push, no exceptions
+Last Updated: 2026-10-10 — added Rule 18 (WIP LAW). Branch updated to main.
+Branch: main — HEAD: cc61581 — update this line on every push, no exceptions
 
 ## CURRENT STATE
 See DEV_LOG.md's CURRENT STATE block for the live status — that file is the source of truth for what's done vs. in progress. This file is for stable rules and architecture, not changing status.
@@ -24,6 +24,7 @@ Rule 14: Do not change multiple architectural layers at once — Phase 1 Models,
 Rule 15: Do not casually delete working code — verify usage (grep in build(), event handlers, etc.) before removing anything another AI calls "unused"
 Rule 16 (LOG LAW): Every AI must keep DEV_LOG.md's CURRENT STATE block up to date — no push without updating it
 Rule 17 (READ BEFORE ASSIST): Every AI must read DEV_LOG.md + CLAUDE.md before assisting
+Rule 18 (WIP LAW): Before any multi-step task, create/update WIP.md at repo root (task, driver, file(s), branch, HEAD, step checklist, blockers, DO-NOT-PUSH-UNTIL). Every AI reads WIP.md FIRST - before DEV_LOG. Resume, never redo completed steps. Delete WIP.md ONLY after install + real-phone verification; a green build is not enough. Taking over abandoned work? Update driver + status lines first.
 
 ## ARCHITECTURE
 - app_state.dart (ChangeNotifier) + SharedPreferences is the real state layer — NOT a repository/provider pattern
@@ -35,4 +36,4 @@ Rule 17 (READ BEFORE ASSIST): Every AI must read DEV_LOG.md + CLAUDE.md before a
 - David Berry Sr. — sole maintainer, NOOB MODE (directs product/architecture, AI writes the code)
 - Location context: Olivia, NC / NMB hotspot — connection can be flaky, --verbose helps diagnose push issues
 
-All AIs assisting on this project must follow Rules 1-17 above and read DEV_LOG.md first.
+All AIs assisting on this project must follow Rules 1-18 above and read DEV_LOG.md first.
