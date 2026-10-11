@@ -161,7 +161,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                     Row(children: [
                       Expanded(
                           child: ElevatedButton.icon(
-                              onPressed: () => _buildAddTransactionSheet(),
+                              onPressed: () => _showAddTransactionSheet(),
                               icon: const Icon(Icons.add, size: 18),
                               label: const Text('Add expense'),
                               style: ElevatedButton.styleFrom(
