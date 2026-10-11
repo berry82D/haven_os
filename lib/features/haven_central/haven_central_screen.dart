@@ -232,7 +232,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
     if (catExp.isNotEmpty) {
       final topCat = catExp.entries.reduce((a, b) => a.value > b.value? a : b);
       insights.add(
-          '💡 Your top spending category is **${topCat.key}** (${topCat.value.toStringAsFixed(0)}).');
+          '💡 Your top spending category is ${topCat.key} (${_money(topCat.value, decimals: 0)}).');
     }
     if (transactions.isNotEmpty) {
       final earliest = transactions
@@ -247,7 +247,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
       if (months > 0) {
         final avgExpense = totalExpense / months;
         insights.add(
-            '📆 Average monthly spending: \$${avgExpense.toStringAsFixed(0)}.');
+            '📆 Average monthly spending: ${_money(avgExpense, decimals: 0)}.');
       }
     }
     if (net > 0) {
@@ -271,7 +271,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
             budget.limit > 0? (spent / budget.limit * 100).clamp(0, 100) : 0;
         if (percent >= 80) {
           insights.add(
-              '⚠ You\'ve used ${percent.toStringAsFixed(0)}% of your "${budget.category}" budget (\$${spent.toStringAsFixed(0)} of \$${budget.limit.toStringAsFixed(0)}). Consider cutting back.');
+              '⚠ You\'ve used ${percent.toStringAsFixed(0)}% of your "${budget.category}" budget (${_money(spent, decimals: 0)} of ${_money(budget.limit, decimals: 0)}). Consider cutting back.');
         } else if (percent >= 50) {
           insights.add(
               '📊 You\'ve used ${percent.toStringAsFixed(0)}% of your "${budget.category}" budget. You\'re on track.');

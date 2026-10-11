@@ -21,6 +21,11 @@ income - spent - bills due - $100 buffer = left. Same number as hero, broken dow
 - [ ] 6. Phone check: tap hero -> sheet opens, math correct, dismisses cleanly
 - [ ] 7. Close WIP (delete)
 
+### Home tab polish (new)
+
+- [ ] Condense Home layout so it fits one screen (hero smaller, pills tighter, cards tighter)
+- [ ] Fix AI Insights money text: strip `**`, add `\$`, add commas, use _money if applicable
+- [ ] 12-Month Projection on Finances: switch from decimals:0 to decimals:2 (brief spec)
 ## Rule (Law 18)
 WIP.md deleted ONLY after install + real-phone verification.
 
