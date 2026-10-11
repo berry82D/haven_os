@@ -1,3 +1,15 @@
+## 2026-10-11 10:30 -- PENDING -- docs: close WIP (stepper + Step D + sync all verified)
+
+**Status:** PENDING push
+**Steps:** stepper 1-6 verified on phone -> money format A/B/C verified -> sync add + delete verified across two phones -> WIP.md deleted per Law 18
+**Files:**
+- WIP.md -- DELETED. All active chunks closed.
+- DEV_LOG.md -- this entry.
+
+**Why:** Stepper renders/advances/fades/picks/bar-tap all confirmed. Money format commas + sign-before-dollar confirmed. Cross-phone sync (add + delete) confirmed live. Nothing left requiring phone verification.
+**Next:** Chunks #3-6 of Finances redesign per ROADMAP NEXT #4
+
+---
 ## 2026-10-11 09:15 -- PENDING -- fix(cfo): chevron opacity on stepper edges + colorblind roadmap line
 
 **Status:** PENDING push
@@ -120,8 +132,6 @@
 **Next:** phone-test Chunk #2 (still open in WIP.md), then live sync test
 
 ---
-## WORK IN PROGRESS - SEE WIP.md at repo root
-
 ## 2026-10-10 -- 6ae6d8c -- fix(cfo): remove invalid clipData param (not in fl_chart 0.69.2)
 
 **Status:** PUSHED (cloud build green)
