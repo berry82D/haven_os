@@ -1,27 +1,24 @@
 # WORK IN PROGRESS
 
-**Task:** Finances Chunk #2 - chart tap -> month -> week chips
+**Last touched:** 2026-10-11 06:36
+**Active task:** Version labeling - no more mystery APKs
 **Driver:** DeepSeek (via David's PC)
-**File:** lib/features/haven_central/haven_central_screen.dart
 **Branch:** main
-**HEAD:** b647c9c
+**Started:** 2026-10-11 morning
 
-## Status: CODE SHIPPED, AWAITING PHONE TEST
+## Status: IN PROGRESS
 
-- [x] All 6 code steps done
-- [x] Pushed (ac2233c, 6ae6d8c)
-- [x] Cloud build green (after 6ae6d8c clipData fix)
-- [x] Dev log entry written
-- [x] WIP.md was deleted by mistake (build green != tested)
-- [ ] **Install APK on David's phone + Candice's phone**
-- [ ] **Test: Finances tab -> toggle Week -> week chips appear**
-- [ ] **Test: tap a chip -> hero/list recalc**
-- [ ] **Test: tap a bar chart month -> screen jumps to that month**
-- [ ] **Test: red bar no longer overshoots**
+### Version work (this session)
+- [ ] File 1: pubspec.yaml - bump 1.0.0+1 -> 1.0.1+1
+- [ ] File 2: .github/workflows/build.yml - version + short SHA in artifact name
+- [ ] File 3: haven_central_screen.dart _showSettings() - footer shows version
 
-## Rule
-WIP.md is deleted ONLY after install + test confirmed working.
-Build green is NOT enough.
+### PAUSED - Finances Chunk #2 phone test
+Chunk #2 code shipped, cloud green, both phones installed. Phone tests not yet reported.
+DO NOT delete this file until BOTH chunks are done.
+
+## Rule (Law 18)
+WIP.md deleted ONLY after install + real-phone verification on all active chunks.
 
 ## If Another AI Reads This
-Resume at install step. Do NOT delete this file until tests pass.
+Resume at the first unchecked [ ] item above. Do not redo completed steps.
