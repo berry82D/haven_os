@@ -774,12 +774,18 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
               ])),
           const SizedBox(height: 20),
           Container(
-              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(color: const Color(0xFF1E1E1E), borderRadius: BorderRadius.circular(12)),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text('Expense Breakdown ($periodLabel)',
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
-                const SizedBox(height: 12),
+              child: Theme(
+                  data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                  child: ExpansionTile(
+                      initiallyExpanded: false,
+                      title: Text('Expense Breakdown ($periodLabel)',
+                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                      children: [
+                        Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                              const SizedBox(height: 12),
                 if (topCategories.isEmpty)
                   const Center(child: Padding(padding: EdgeInsets.all(16),
                       child: Text('No expense data for this period', style: TextStyle(color: Colors.grey))))
@@ -802,16 +808,26 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                   const SizedBox(height: 12),
                   ...topCategories.map((e) => _buildCategoryLegend(e.key, e.value, rangedExpenses)),
                   if (otherTotal > 0) _buildCategoryLegend('Other', otherTotal, rangedExpenses),
-                ],
-              ])),
+                              ],
+                            ])),
+                      ],
+                    ),
+                  ),
+                ),
           const SizedBox(height: 20),
           Container(
-              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(color: const Color(0xFF1E1E1E), borderRadius: BorderRadius.circular(12)),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                const Text('12-Month Projection',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
-                const SizedBox(height: 12),
+              child: Theme(
+                  data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                  child: ExpansionTile(
+                      initiallyExpanded: false,
+                      title: const Text('12-Month Projection',
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                      children: [
+                        Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                              const SizedBox(height: 12),
                 Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                   Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     const Text('Current Net Worth', style: TextStyle(color: Colors.grey)),
@@ -829,7 +845,11 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                     value: projectedNet >= 0 ? 1 : 0.5,
                     backgroundColor: Colors.grey[800],
                     color: projectedNet >= 0 ? Colors.green : Colors.red),
-              ])),
+                            ])),
+                      ],
+                    ),
+                  ),
+                ),
           const SizedBox(height: 20),
           Container(
               decoration: BoxDecoration(color: const Color(0xFF1E1E1E), borderRadius: BorderRadius.circular(12)),

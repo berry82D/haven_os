@@ -1,3 +1,17 @@
+## 2026-10-11 12:15 -- PENDING -- feat(cfo): collapse pie + projection into ExpansionTiles
+
+**Status:** PENDING push
+**Steps:** Expense Breakdown Container -> Theme/ExpansionTile/collapsed -> kept pie + legend inside Padding -> same for 12-Month Projection -> Recent Activity already collapsible stays
+**Files:**
+- lib/features/haven_central/haven_central_screen.dart -- wrapped pie (line ~780) and 12-Month Projection (line ~822) in ExpansionTile, initiallyExpanded:false. Hero + 4 cards + bar chart stay visible. Padding moved inside the ExpansionTile child.
+- WIP.md -- collapse task marked; net worth resolved (wife deleted duplicate $301 wage)
+- DEV_LOG.md -- this entry
+
+**Why:** Finances was 6 stacked blocks, felt like 2 pages. Now pie + projection are collapsed by default, cutting visible scroll by ~40%.
+**Not touched:** hero, cards, bar chart, Recent Activity, math
+**Next:** push -> cloud build -> phone check (pie + projection collapsed, tap title expands, no layout bugs)
+
+---
 ## 2026-10-11 11:15 -- PENDING -- feat(cfo): formula drawer on hero tap
 
 **Status:** PENDING push
