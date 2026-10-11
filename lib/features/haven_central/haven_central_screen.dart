@@ -100,7 +100,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
         color: const Color(0xFF121212),
         child: ListView(padding: const EdgeInsets.all(16), children: [
           Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
                   gradient: const LinearGradient(
                       colors: [Color(0xFF00695C), Color(0xFF004D40)],
@@ -162,54 +162,87 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
             })),
           ]),
           const SizedBox(height: 16),
-          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-            const Text('📅 Upcoming Tasks',
-                style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white)),
-            TextButton(
-                onPressed: () {
-                  setState(() => _currentIndex = 4);
-                },
-                child: const Text('View All >',
-                    style: TextStyle(color: Colors.tealAccent)))
-          ]),
-          if (upcomingTasks.isEmpty)
-            const Padding(
-                padding: EdgeInsets.all(16),
-                child: Text('No tasks yet. Add one!',
-                    style: TextStyle(color: Colors.grey)))
-          else
-           ...upcomingTasks.map((task) => _buildTaskTile(task)),
-          const SizedBox(height: 16),
-          Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                  color: const Color(0xFF1E1E1E),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey[800]!)),
-              child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(children: const [
-                      Icon(Icons.auto_awesome, color: Colors.tealAccent),
-                      SizedBox(width: 8),
-                      Text('🧠 AI Insights',
-                          style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white))
-                    ]),
-                    const SizedBox(height: 8),
-                   ...insights.map((text) => Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4),
-                        child: Text(text,
-                            style: const TextStyle(
-                                color: Colors.white70, fontSize: 14)))),
-                  ])),
-          const SizedBox(height: 16),
+          GestureDetector(
+              onTap: () => setState(() => _currentIndex = 4),
+              child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                      color: const Color(0xFF1E1E1E),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey[800]!)),
+                  child: Row(children: [
+                    const Icon(Icons.calendar_month, color: Colors.tealAccent, size: 20),
+                    const SizedBox(width: 8),
+                    const Text('Upcoming Tasks',
+                        style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white)),
+                    const SizedBox(width: 8),
+                    Expanded(
+                        child: Text(
+                            upcomingTasks.isEmpty
+                                ? 'No tasks yet'
+                                : '${upcomingTasks.length} task${upcomingTasks.length == 1 ? '' : 's'}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(color: Colors.white70, fontSize: 12))),
+                    const Icon(Icons.chevron_right, color: Colors.tealAccent, size: 20),
+                  ]))),          const SizedBox(height: 16),
+          GestureDetector(
+              onTap: () => _showInsightsSheet(insights),
+              child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                      color: const Color(0xFF1E1E1E),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey[800]!)),
+                  child: Row(children: [
+                    const Icon(Icons.auto_awesome, color: Colors.tealAccent, size: 20),
+                    const SizedBox(width: 8),
+                    const Text('AI Insights',
+                        style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white)),
+                    const SizedBox(width: 8),
+                    Expanded(
+                        child: Text(
+                            insights.isNotEmpty ? insights.first : 'No insights yet',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(color: Colors.white70, fontSize: 12))),
+                    const Icon(Icons.chevron_right, color: Colors.tealAccent, size: 20),
+                  ]))),          const SizedBox(height: 16),
         ]));
+  }
+
+  void _showInsightsSheet(List<String> insights) {
+    showModalBottomSheet(
+        context: context,
+        backgroundColor: const Color(0xFF1E1E1E),
+        isScrollControlled: true,
+        builder: (ctx) => DraggableScrollableSheet(
+            initialChildSize: 0.5,
+            maxChildSize: 0.9,
+            minChildSize: 0.3,
+            expand: false,
+            builder: (ctx2, scroll) => ListView(
+                controller: scroll,
+                padding: const EdgeInsets.all(20),
+                children: [
+                  const Text('AI Insights',
+                      style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white)),
+                  const SizedBox(height: 12),
+                  ...insights.map((text) => Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      child: Text(text,
+                          style: const TextStyle(
+                              color: Colors.white70, fontSize: 14)))),
+                ])));
   }
 
   List<String> _generateAIInsights(
