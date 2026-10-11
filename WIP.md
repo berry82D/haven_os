@@ -1,25 +1,29 @@
 # WORK IN PROGRESS
 
-**Last touched:** 2026-10-11 06:42
-**Active task:** Version labeling - no more mystery APKs
+**Last touched:** 2026-10-11 08:03
+**Active task:** Chunk #2 polish - week stepper (control UI only)
 **Driver:** DeepSeek (via David's PC)
 **Branch:** main
-**Started:** 2026-10-11 morning
 
-## Status: IN PROGRESS
+## Status: IN PROGRESS - awaiting build + phone test
 
-### Version work (this session)
-- [x] File 1: pubspec.yaml - bumped to 1.0.1+1 (pushed 9a173e3)
-- [x] File 2: .github/workflows/build.yml - version + SHA in artifact name (pushed 5e90a0f)
-- [~] File 3: haven_central_screen.dart _showSettings() - footer shows version (IN PROGRESS)
-- [ ] Final: commit + push File 3, verify cloud build artifact name
+### Stepper edits (this session)
+- [x] Edit 1: pill label 'This week' -> 'Week'
+- [x] Edit 2: tap [Week] defaults _financesWeekIdx = 0
+- [x] Edit 3a: added _weekLabel() + _showWeekPicker() helpers
+- [x] Edit 3b: replaced Wrap chips with chevron stepper row
+- [ ] Commit + push
+- [ ] Cloud build green
+- [ ] Phone test: chevrons step, label opens picker, first/last disabled, pills read Week/Month, bar tap still works
+
+### PAUSED - Version task
+Files 1-3 pushed, awaiting build #39 verification (artifact name = haven_os-1.0.1-<sha>.apk).
 
 ### PAUSED - Finances Chunk #2 phone test
-Chunk #2 code shipped, cloud green, both phones installed. Phone tests not yet reported.
-DO NOT delete this file until BOTH chunks are done.
+Code shipped, cloud green, both phones installed. 4 tests not yet reported.
 
 ## Rule (Law 18)
-WIP.md deleted ONLY after install + real-phone verification on all active chunks.
+WIP.md deleted ONLY after install + real-phone verification on ALL active chunks.
 
 ## If Another AI Reads This
-Resume at File 3 - get body of _showSettings() (line 2035), insert version footer, commit, push.
+Resume at first unchecked [ ] item above.

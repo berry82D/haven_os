@@ -387,6 +387,57 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
         ]));
   }
 
+  String _weekLabel(List<Map<String, dynamic>> weeks) {
+    if (weeks.isEmpty) return 'No weeks';
+    final idx = (_financesWeekIdx ?? 0).clamp(0, weeks.length - 1);
+    final w = weeks[idx];
+    final s = w['start'] as DateTime;
+    final e = w['end'] as DateTime;
+    return 'Wk ' + w['num'].toString() + ' - ' + DateFormat('MMM d').format(s) + '-' + DateFormat('d').format(e);
+  }
+
+  Future<void> _showWeekPicker() async {
+    final weeks = _weeksOfMonth(_financesAnchor);
+    if (weeks.isEmpty) return;
+    final picked = await showModalBottomSheet<int>(
+      context: context,
+      backgroundColor: const Color(0xFF1E1E1E),
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Padding(
+              padding: EdgeInsets.all(16),
+              child: Text('Pick a week',
+                  style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+            ),
+            ...weeks.asMap().entries.map((entry) {
+              final idx = entry.key;
+              final w = entry.value;
+              final s = w['start'] as DateTime;
+              final e = w['end'] as DateTime;
+              final selected = _financesWeekIdx == idx;
+              return ListTile(
+                title: Text(
+                  'Wk ' + w['num'].toString() + ' - ' + DateFormat('MMM d').format(s) + '-' + DateFormat('d').format(e),
+                  style: TextStyle(
+                    color: selected ? Colors.tealAccent : Colors.white,
+                    fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+                  ),
+                ),
+                onTap: () => Navigator.pop(ctx, idx),
+              );
+            }),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+    if (picked != null && mounted) {
+      setState(() => _financesWeekIdx = picked);
+    }
+  }
+
   List<Map<String, dynamic>> _weeksOfMonth(DateTime month) {
     final first = DateTime(month.year, month.month, 1);
     final last = DateTime(month.year, month.month + 1, 0);
@@ -519,7 +570,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                     borderRadius: BorderRadius.circular(20)),
                 padding: const EdgeInsets.all(3),
                 child: Row(children: [
-                  _financesPill('week', 'This week'),
+                  _financesPill('week', 'Week'),
                   _financesPill('month', 'Month'),
                 ]),
               ),
@@ -529,30 +580,32 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
           if (_financesPeriod == 'week')
             Padding(
               padding: const EdgeInsets.only(top: 12),
-              child: Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: weeksOfAnchor.asMap().entries.map((entry) {
-                  final idx = entry.key;
-                  final w = entry.value;
-                  final s = w['start'] as DateTime;
-                  final e = w['end'] as DateTime;
-                  final selected = _financesWeekIdx == idx;
-                  return GestureDetector(
-                    onTap: () => setState(() => _financesWeekIdx = idx),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.chevron_left, color: Colors.tealAccent),
+                    onPressed: (_financesWeekIdx == null || _financesWeekIdx! <= 0) ? null : () => setState(() => _financesWeekIdx = _financesWeekIdx! - 1),
+                  ),
+                  GestureDetector(
+                    onTap: _showWeekPicker,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       decoration: BoxDecoration(
-                        color: selected ? Colors.tealAccent[700] : const Color(0xFF1E1E1E),
+                        color: const Color(0xFF1E1E1E),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Text(
-                        'Wk ' + w['num'].toString() + ' - ' + DateFormat('MMM d').format(s) + '-' + DateFormat('d').format(e),
-                        style: TextStyle(color: selected ? Colors.black : Colors.grey, fontSize: 11, fontWeight: FontWeight.bold),
+                        _weekLabel(weeksOfAnchor),
+                        style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
                       ),
                     ),
-                  );
-                }).toList(),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.chevron_right, color: Colors.tealAccent),
+                    onPressed: (_financesWeekIdx == null || _financesWeekIdx! >= weeksOfAnchor.length - 1) ? null : () => setState(() => _financesWeekIdx = _financesWeekIdx! + 1),
+                  ),
+                ],
               ),
             ),
           Container(
@@ -747,7 +800,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
   Widget _financesPill(String value, String label) {
     final active = _financesPeriod == value;
     return GestureDetector(
-      onTap: () => setState(() => _financesPeriod = value),
+      onTap: () => setState(() { _financesPeriod = value; if (value == 'week' && _financesWeekIdx == null) _financesWeekIdx = 0; }),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(

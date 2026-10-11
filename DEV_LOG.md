@@ -1,3 +1,16 @@
+## 2026-10-11 07:45 -- PENDING -- feat(cfo): week stepper replaces chip grid
+
+**Status:** PENDING push
+**Files:**
+- lib/features/haven_central/haven_central_screen.dart -- pill label 'This week' -> 'Week'; tap [Week] defaults _financesWeekIdx = 0; added _weekLabel() + _showWeekPicker() helpers; replaced Wrap chips with single-row chevron stepper `[<] Wk N - Mon-DD [>]`. Chevrons disable at first/last week. Label taps open modal bottom sheet listing all weeks.
+- WIP.md -- updated with stepper session + paused items.
+- DEV_LOG.md -- this entry.
+
+**Why:** 5-chip grid wrapped into a blocky layout competing with the toggle. Stepper is cleaner and matches control-UI pattern.
+**Not touched:** range math, chip data model, bar-tap month anchor (still works).
+**Next:** push -> cloud build -> phone test (chevrons step, picker opens, first/last disabled, pills read Week/Month, bar tap still swaps month)
+
+---
 ## 2026-10-11 -- 4aecb02 -- docs(rules): Rule 21 BUILD WAIT + Rule 22 ONE PHONE PER BLOCK
 
 **Status:** PENDING push (docs only, [skip ci], no build)
