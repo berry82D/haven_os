@@ -1,3 +1,13 @@
+## 2026-10-11 -- PENDING -- docs(rules): Rule 21 BUILD WAIT + Rule 22 ONE PHONE PER BLOCK
+
+**Status:** PENDING push (docs only, [skip ci], no build)
+**Files:**
+- CLAUDE.md -- added Rules 21 and 22, header + rule count updated, removed stray first line "[paste CLAUDE.md content here]"
+- AI_HANDOFF.md -- rule count 1-22, mandatory list now includes 21 and 22
+- DEV_LOG.md -- this entry
+
+**Why:** David asked that every AI say clearly when a push starts a cloud build and we are waiting, and give install commands one phone per block (one USB connection).
+---
 ## 2026-10-11 -- f9e47d1 -- ci(version): build number = Actions run number, shown in settings footer
 
 **Status:** PENDING push
