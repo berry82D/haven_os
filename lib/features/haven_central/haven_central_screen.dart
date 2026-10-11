@@ -619,7 +619,6 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                       child: BarChart(BarChartData(
                           alignment: BarChartAlignment.spaceAround,
                           maxY: maxY,
-                          clipData: const FlClipData.all(),
                           barGroups: monthlyData.asMap().entries.map((entry) {
                             final idx = entry.key;
                             final data = entry.value;
