@@ -1,6 +1,6 @@
 # Haven OS - Roadmap
 
-**Updated:** 2026-10-10 evening. **HEAD:** cc61581. Read with `AI_HANDOFF.md`, `WIP.md` (if present), `DEV_LOG.md`.
+**Updated:** 2026-10-10 evening. **HEAD:** c290f26. Read with `AI_HANDOFF.md`, `WIP.md` (if present), `DEV_LOG.md`.
 
 ## DONE
 - Cloud build + signing (Flutter 3.44.8, fingerprint-verified, `install -r` only)
@@ -10,7 +10,7 @@
 - Household cloud join: sign-in publishes household + invite index, Firestore rules for `households/{id}` + `household_invites/{code}`
 - Data sync: household data root + one-time non-destructive merge - both phones synced
 - Finances Chunk #2: chart tap -> month anchor -> week chips (Monday-anchored, clipped, no bleed), overshoot fix - code shipped, awaiting phone test
-- Laws 18 (WIP.md) + 19 (HANDOFF block)
+- Laws 18 (WIP.md) + 19 (HANDOFF block) + 20 (ROADMAP LAW)
 
 ## NOW
 1. Phone-test Chunk #2 (5 tests in `WIP.md`: chips appear, chip tap recalcs, bar tap swaps month, no overshoot, no errors)
