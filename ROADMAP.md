@@ -1,6 +1,6 @@
 # Haven OS - Roadmap
 
-**Updated:** 2026-10-11 13:15. **HEAD:** 10a0412. Read with `AI_HANDOFF.md`, `WIP.md` (if present), `DEV_LOG.md`.
+**Updated:** 2026-10-11 13:15. **HEAD:** 9530768. Read with `AI_HANDOFF.md`, `WIP.md` (if present), `DEV_LOG.md`.
 
 ## DONE
 - Cloud build + signing (Flutter 3.44.8, fingerprint-verified, `install -r` only)
@@ -12,8 +12,8 @@
 - Finances Chunk #1: Week/Month toggle + "Left this period" hero
 - Finances Chunk #2: chart tap -> month anchor -> week stepper (chevrons + picker, faded edges), overshoot fix - VERIFIED on phone
 - Money format: comma thousands + sign-before-dollar across Finances - VERIFIED on phone
-- Finances: pie + 12-Month Projection collapsed into ExpansionTiles (shorter scroll) - shipped, awaiting phone verify
-- Finances: searchable window for Recent Activity (fixed-height + search field) - shipped, awaiting phone verify
+- Finances: pie + 12-Month Projection collapsed into ExpansionTiles (shorter scroll) - VERIFIED on phone
+- Finances: searchable window for Recent Activity (fixed-height + search field) - VERIFIED on phone
 - Laws 18 (WIP.md) + 19 (HANDOFF block) + 20 (ROADMAP LAW)
 
 ## NOW

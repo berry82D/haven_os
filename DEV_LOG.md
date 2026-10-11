@@ -1,3 +1,18 @@
+## 2026-10-11 13:30 -- 9530768 -- VERIFIED on phone: search + collapse + stepper + version footer
+
+**Status:** VERIFIED on R3GL40HW72K (David's phone)
+**HEAD:** 9530768 (b57)
+**Confirmed working:**
+- Recent Activity search filters by description/place (typed "spectrum" -> filtered)
+- Window: fixed-height box, rest of Finances stays visible
+- Pie + 12-Month Projection start collapsed, tap to expand
+- Week stepper: chevrons step, first/last faded, label opens picker, bar tap swaps month
+- Settings footer shows Haven OS v1.0.1+57
+
+**Not yet verified:** Candice's phone (R5CY2180YTH) with same build; cross-phone sync test.
+**WIP closed** for this chunk. Next: Home bridge card (ROADMAP NOW #1).
+
+---
 ## 2026-10-11 13:00 -- PENDING -- state: all shipped features pending phone verification
 
 **Status:** PAUSED - awaiting phone test
