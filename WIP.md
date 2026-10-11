@@ -8,6 +8,7 @@
 ## Status: IN PROGRESS
 
 ### Step D - money format edits
+- [x] Step D2: activity commas + clean axis max (pushed 2ebecda)
 Add _money(v, [decimals=2]) helper. Comma-separated thousands, sign before $, 2 decimals default.
 - [x] Helper added
 - [x] Hero amount -> _money(leftThisPeriod)
