@@ -1,3 +1,17 @@
+## 2026-10-12 -- PENDING -- feat(insights): powerhouse insights + hugging sheet
+
+**Status:** PENDING push
+**Steps:** _generateAIInsights -> comparative (calendar vs prior month) + top mover + yearly projection + what-if on top category + budget alerts, capped at 5. _showInsightsSheet -> removed DraggableScrollableSheet, uses SingleChildScrollView + Padding + sparkle title + rounded card per insight.
+**Files:**
+- lib/features/haven_central/haven_central_screen.dart -- insight engine + sheet layout. Teaching tone, no shame, one action per insight.
+- WIP.md -- checkboxes updated
+- DEV_LOG.md -- this entry
+
+**Why:** Empty sheet looked wrong; insights were static. Now Hugging layout + comparative + projection + what-if for real coaching feel.
+**Not touched:** Home AI Insights card bars (verified earlier), bridge card, hero, other sheets (Add Transaction/Add Loan retain DraggableScrollableSheet).
+**Next:** push -> cloud build -> install -r -> verify sheet
+
+---
 ## 2026-10-12 -- PENDING -- feat(home): AI Insights card + Reports moved to settings
 
 **Status:** PENDING push

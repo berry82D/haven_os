@@ -321,102 +321,150 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
         context: context,
         backgroundColor: const Color(0xFF1E1E1E),
         isScrollControlled: true,
-        builder: (ctx) => DraggableScrollableSheet(
-            initialChildSize: 0.5,
-            maxChildSize: 0.9,
-            minChildSize: 0.3,
-            expand: false,
-            builder: (ctx2, scroll) => ListView(
-                controller: scroll,
-                padding: const EdgeInsets.all(20),
-                children: [
-                  const Text('AI Insights',
-                      style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white)),
-                  const SizedBox(height: 12),
-                  ...insights.map((text) => Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 6),
-                      child: Text(text,
-                          style: const TextStyle(
-                              color: Colors.white70, fontSize: 14)))),
-                ])));
+        shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+        builder: (ctx) => SafeArea(
+            child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
+                child: SingleChildScrollView(
+                    child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                      Row(children: const [
+                        Icon(Icons.auto_awesome,
+                            color: Colors.tealAccent, size: 22),
+                        SizedBox(width: 8),
+                        Text('AI Insights',
+                            style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white)),
+                      ]),
+                      const SizedBox(height: 16),
+                      ...insights.map((text) => Container(
+                            margin: const EdgeInsets.only(bottom: 10),
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                                color: const Color(0xFF262626),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                    color: Colors.grey[800]!)),
+                            child: Text(text,
+                                style: const TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 14,
+                                    height: 1.4)),
+                          )),
+                    ])))));
   }
-
   List<String> _generateAIInsights(
       List<Transaction> transactions, List<Budget> budgets) {
     final insights = <String>[];
     if (transactions.isEmpty) {
-      insights.add('📊 No transactions yet. Start tracking to get insights!');
+      insights.add('No transactions yet. Add one to see insights here.');
       return insights;
     }
-    final totalIncome =
-        transactions.where((t) => t.isIncome).fold(0.0, (s, t) => s + t.amount);
-    final totalExpense = transactions
-       .where((t) =>!t.isIncome)
-       .fold(0.0, (s, t) => s + t.amount);
-    final net = totalIncome - totalExpense;
-    final catExp = <String, double>{};
-    for (final t in transactions.where((t) =>!t.isIncome)) {
-      catExp[t.category] = (catExp[t.category]?? 0) + t.amount;
-    }
-    if (catExp.isNotEmpty) {
-      final topCat = catExp.entries.reduce((a, b) => a.value > b.value? a : b);
-      insights.add(
-          '💡 Your top spending category is ${topCat.key} (${_money(topCat.value, decimals: 0)}).');
-    }
-    if (transactions.isNotEmpty) {
-      final earliest = transactions
-         .map((t) => t.date)
-         .reduce((a, b) => a.isBefore(b)? a : b);
-      final latest = transactions
-         .map((t) => t.date)
-         .reduce((a, b) => a.isAfter(b)? a : b);
-      final months = (latest.year - earliest.year) * 12 +
-          (latest.month - earliest.month) +
-          1;
-      if (months > 0) {
-        final avgExpense = totalExpense / months;
-        insights.add(
-            '📆 Average monthly spending: ${_money(avgExpense, decimals: 0)}.');
-      }
-    }
-    if (net > 0) {
-      insights.add('✅ You\'re saving money! Keep it up.');
-    } else if (net < 0) {
-      insights.add(
-          '⚠ You\'re spending more than you earn. Consider cutting back on "${catExp.keys.first}" if possible.');
-    } else {
-      insights.add('⚖ You\'re breaking even.');
-    }
-    if (budgets.isNotEmpty) {
-      final now = DateTime.now();
-      final monthKey = DateFormat('yyyy-MM').format(now);
-      final relevantBudgets =
-          budgets.where((b) => b.month == monthKey).toList();
-      for (final budget in relevantBudgets) {
-        final spent = transactions
-           .where((t) =>!t.isIncome && t.category == budget.category)
-           .fold(0.0, (s, t) => s + t.amount);
-        final percent =
-            budget.limit > 0? (spent / budget.limit * 100).clamp(0, 100) : 0;
-        if (percent >= 80) {
-          insights.add(
-              '⚠ You\'ve used ${percent.toStringAsFixed(0)}% of your "${budget.category}" budget (${_money(spent, decimals: 0)} of ${_money(budget.limit, decimals: 0)}). Consider cutting back.');
-        } else if (percent >= 50) {
-          insights.add(
-              '📊 You\'ve used ${percent.toStringAsFixed(0)}% of your "${budget.category}" budget. You\'re on track.');
+    final now = DateTime.now();
+    final curStart = DateTime(now.year, now.month, 1);
+    final curEnd = DateTime(now.year, now.month + 1, 1);
+    final prevStart = DateTime(now.year, now.month - 1, 1);
+
+    double curInc = 0, curExp = 0, prevExp = 0;
+    final curByCat = <String, double>{};
+    final prevByCat = <String, double>{};
+    for (final t in transactions) {
+      if (!t.date.isBefore(curStart) && t.date.isBefore(curEnd)) {
+        if (t.isIncome) {
+          curInc += t.amount;
+        } else {
+          curExp += t.amount;
+          curByCat[t.category] = (curByCat[t.category] ?? 0) + t.amount;
+        }
+      } else if (!t.date.isBefore(prevStart) && t.date.isBefore(curStart)) {
+        if (!t.isIncome) {
+          prevExp += t.amount;
+          prevByCat[t.category] = (prevByCat[t.category] ?? 0) + t.amount;
         }
       }
     }
-    if (insights.isEmpty) {
-      insights.add(
-          '🧠 AI is learning your habits. Add more transactions for better insights!');
-    }
-    return insights;
-  }
 
+    // Small picture - comparative
+    if (prevExp > 0) {
+      final pct = ((curExp - prevExp) / prevExp * 100);
+      if (pct.abs() >= 5) {
+        final dir = pct > 0 ? 'up' : 'down';
+        insights.add('Spending is $dir ${pct.abs().toStringAsFixed(0)}% '
+            'vs last month.');
+      } else {
+        insights.add('Spending is steady vs last month.');
+      }
+    }
+
+    // Top mover
+    if (curByCat.isNotEmpty && prevByCat.isNotEmpty) {
+      String? topMover;
+      double topDelta = 0;
+      for (final e in curByCat.entries) {
+        final prev = prevByCat[e.key] ?? 0;
+        final delta = e.value - prev;
+        if (delta > topDelta) {
+          topDelta = delta;
+          topMover = e.key;
+        }
+      }
+      if (topMover != null && topDelta > 10) {
+        insights.add('$topMover rose by '
+            '${_money(topDelta, decimals: 0)} vs last month.');
+      }
+    }
+
+    // Big picture - projection
+    if (curInc > 0) {
+      final savingsRate = ((curInc - curExp) / curInc);
+      if (savingsRate > 0) {
+        final yearly = (curInc - curExp) * 12;
+        insights.add('At this pace you save '
+            '${_money(yearly, decimals: 0)} this year.');
+      } else {
+        insights.add('You are spending more than you earn so far.');
+      }
+    }
+
+    // What-if on top category
+    if (curByCat.isNotEmpty) {
+      final sorted = curByCat.entries.toList()
+        ..sort((a, b) => b.value.compareTo(a.value));
+      final top = sorted.first;
+      const weeklyCut = 5.0;
+      final yearlySave = weeklyCut * 52;
+      insights.add('Cut ${_money(weeklyCut, decimals: 0)}/week from '
+          '${top.key} -> ${_money(yearlySave, decimals: 0)}/year back.');
+    }
+
+    // Budget status (80%+)
+    if (budgets.isNotEmpty) {
+      final monthKey = DateFormat('yyyy-MM').format(now);
+      final relevant = budgets.where((b) => b.month == monthKey).toList();
+      for (final budget in relevant) {
+        final spent = curByCat[budget.category] ?? 0;
+        final percent = budget.limit > 0
+            ? (spent / budget.limit * 100).clamp(0, 100)
+            : 0;
+        if (percent >= 80) {
+          insights.add('${budget.category} budget is at '
+              '${percent.toStringAsFixed(0)}% '
+              '(${_money(spent, decimals: 0)} of '
+              '${_money(budget.limit, decimals: 0)}).');
+        }
+      }
+    }
+
+    if (insights.isEmpty) {
+      insights.add('Add more transactions for richer insights.');
+    }
+    return insights.take(5).toList();
+  }
   Widget _buildBatchesTab(List<Map<String, dynamic>> farmItems, String unit) {
     return Container(
         color: const Color(0xFF121212),

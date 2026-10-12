@@ -41,3 +41,8 @@ Resume at first unchecked [ ] item above.
 
 ### Also pending (yesterday)
 - [ ] Verify bridge card on Home — money card + Add expense + Finances button
+### AI Insights - layout + powerhouse content (this session)
+- [x] _generateAIInsights rewritten: comparative + top mover + projection + what-if + budget alerts, capped at 5
+- [x] _showInsightsSheet: hugs content (no DraggableScrollableSheet), sparkle title, each insight in rounded card
+- [ ] Commit + push
+- [ ] Phone verify: sheet opens hugging content, 4-5 insight cards visible
