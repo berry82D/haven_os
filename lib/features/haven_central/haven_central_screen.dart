@@ -102,6 +102,62 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
     final exp = m.where((t) => !t.isIncome).fold(0.0, (s, t) => s + t.amount);
     return inc - exp - 100.0;
   }
+  String _homeComparativeInsight(List<Transaction> transactions) {
+    final now = DateTime.now();
+    final curStart = DateTime(now.year, now.month, 1);
+    final curEnd = DateTime(now.year, now.month + 1, 1);
+    final prevStart = DateTime(now.year, now.month - 1, 1);
+    double cur = 0, prev = 0;
+    for (final t in transactions.where((t) => !t.isIncome)) {
+      if (!t.date.isBefore(curStart) && t.date.isBefore(curEnd)) {
+        cur += t.amount;
+      } else if (!t.date.isBefore(prevStart) && t.date.isBefore(curStart)) {
+        prev += t.amount;
+      }
+    }
+    if (prev == 0) {
+      return cur > 0 ? 'First month of data - no comparison yet.' : 'No spending yet this month.';
+    }
+    final pct = ((cur - prev) / prev * 100);
+    if (pct > 5) return 'Spending up ' + pct.toStringAsFixed(0) + '% vs last month.';
+    if (pct < -5) return 'Spending down ' + (-pct).toStringAsFixed(0) + '% vs last month.';
+    return 'Spending steady vs last month.';
+  }
+
+  List<Widget> _buildTopCategoryBars(List<Transaction> transactions) {
+    final now = DateTime.now();
+    final curStart = DateTime(now.year, now.month, 1);
+    final curEnd = DateTime(now.year, now.month + 1, 1);
+    final catExp = <String, double>{};
+    for (final t in transactions.where((t) => !t.isIncome)) {
+      if (!t.date.isBefore(curStart) && t.date.isBefore(curEnd)) {
+        catExp[t.category] = (catExp[t.category] ?? 0) + t.amount;
+      }
+    }
+    if (catExp.isEmpty) {
+      return [const Text('No spending this month yet.', style: TextStyle(color: Colors.grey, fontSize: 12))];
+    }
+    final entries = catExp.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
+    final top = entries.take(4).toList();
+    final maxVal = top.first.value;
+    return top.map((e) {
+      final frac = maxVal > 0 ? (e.value / maxVal) : 0.0;
+      return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 3),
+          child: Row(children: [
+            SizedBox(width: 90, child: Text(e.key, style: const TextStyle(color: Colors.white, fontSize: 12))),
+            Expanded(
+                child: Stack(children: [
+                  Container(height: 10, decoration: BoxDecoration(color: const Color(0xFF2C2C2C), borderRadius: BorderRadius.circular(5))),
+                  FractionallySizedBox(
+                      widthFactor: frac,
+                      child: Container(height: 10, decoration: BoxDecoration(color: Colors.tealAccent, borderRadius: BorderRadius.circular(5)))),
+                ])),
+            const SizedBox(width: 8),
+            SizedBox(width: 70, child: Text(_money(e.value, decimals: 0), textAlign: TextAlign.right, style: const TextStyle(color: Colors.grey, fontSize: 12))),
+          ]));
+    }).toList();
+  }
   Widget _buildHomeTab(
       List<Transaction> transactions, List<Task> tasks, List<Budget> budgets) {
     final upcomingTasks = tasks.where((t) =>!t.isDone).take(5).toList();
@@ -192,23 +248,42 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
             }),
           ]),
           const SizedBox(height: 16),
-          Row(children: [
-            Expanded(
-                child: _buildActionCard(
-                    '📝', 'New', () => _showAddTransactionSheet())),
-            const SizedBox(width: 12),
-            Expanded(
-                child: _buildActionCard('📥', 'Reports', () {
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                  content: Text('Download Reports coming soon'),
-                  backgroundColor: Colors.grey));
-            })),
-            const SizedBox(width: 12),
-            Expanded(
-                child: _buildActionCard('👁', 'View All', () {
-              setState(() => _currentIndex = 2);
-            })),
-          ]),
+          Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                  color: const Color(0xFF1E1E1E),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey[800]!)),
+              child: GestureDetector(
+                  onTap: () => _showInsightsSheet(insights),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Row(children: [
+                      const Icon(Icons.auto_awesome, color: Colors.tealAccent, size: 20),
+                      const SizedBox(width: 8),
+                      const Text('AI Insights',
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                      const Spacer(),
+                      const Icon(Icons.chevron_right, color: Colors.tealAccent, size: 20),
+                    ]),
+                    const SizedBox(height: 12),
+                    ..._buildTopCategoryBars(transactions),
+                    const SizedBox(height: 12),
+                    Text(_homeComparativeInsight(transactions),
+                        style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                  ]))),
+          const SizedBox(height: 16),
+          SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                  onPressed: () => setState(() => _currentIndex = 2),
+                  icon: const Icon(Icons.visibility, size: 18),
+                  label: const Text('View All Transactions'),
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF1E1E1E),
+                      foregroundColor: Colors.tealAccent,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      side: BorderSide(color: Colors.grey[800]!),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))))),
           const SizedBox(height: 16),
           GestureDetector(
               onTap: () => setState(() => _currentIndex = 4),
@@ -237,31 +312,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                             style: const TextStyle(color: Colors.white70, fontSize: 12))),
                     const Icon(Icons.chevron_right, color: Colors.tealAccent, size: 20),
                   ]))),          const SizedBox(height: 16),
-          GestureDetector(
-              onTap: () => _showInsightsSheet(insights),
-              child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  decoration: BoxDecoration(
-                      color: const Color(0xFF1E1E1E),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey[800]!)),
-                  child: Row(children: [
-                    const Icon(Icons.auto_awesome, color: Colors.tealAccent, size: 20),
-                    const SizedBox(width: 8),
-                    const Text('AI Insights',
-                        style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white)),
-                    const SizedBox(width: 8),
-                    Expanded(
-                        child: Text(
-                            insights.isNotEmpty ? insights.first : 'No insights yet',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(color: Colors.white70, fontSize: 12))),
-                    const Icon(Icons.chevron_right, color: Colors.tealAccent, size: 20),
-                  ]))),          const SizedBox(height: 16),
+                    const SizedBox(height: 16),
         ]));
   }
 
@@ -2363,7 +2414,18 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                                 builder: (_) =>
                                     const HouseholdManagementScreen()));
                       }),),
-                  const Divider(color: Colors.grey),
+                  Material(type: MaterialType.transparency, child: ListTile(
+                      title: const Text('Reports',
+                          style: TextStyle(color: Colors.white)),
+                      leading: const Icon(Icons.description_outlined,
+                          color: Colors.tealAccent),
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                            content: Text('Reports coming soon'),
+                            backgroundColor: Colors.grey));
+                      }),),
+                  const Divider(color: Colors.grey),const Divider(color: Colors.grey),
                   Material(type: MaterialType.transparency, child: ListTile(
                       title: const Text('Logout',
                           style: TextStyle(color: Colors.red)),

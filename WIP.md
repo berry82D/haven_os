@@ -27,3 +27,17 @@ Resume at first unchecked [ ] item above.
 - [ ] Add expense button opens form
 - [ ] Finances button jumps to Finances tab
 - [ ] After verification: close WIP, log in DEV_LOG, update ROADMAP
+## NEW TASK — Home dashboard rework (AI Insights card)
+
+### Remove
+- [x] Removed "New" tile
+- [x] Moved "Reports" to settings dialog
+
+### Add
+- [x] AI Insights card: title + sparkle + horizontal bars + comparative line
+- [x] Tap card -> _showInsightsSheet
+- [x] View All Transactions button full-width
+- [ ] Don't touch: hero, Add expense/Finances buttons, pills, bottom sheet logic
+
+### Also pending (yesterday)
+- [ ] Verify bridge card on Home — money card + Add expense + Finances button

@@ -1,3 +1,17 @@
+## 2026-10-12 -- PENDING -- feat(home): AI Insights card + Reports moved to settings
+
+**Status:** PENDING push
+**Steps:** added _homeComparativeInsight + _buildTopCategoryBars helpers -> removed New tile -> removed Reports tile from Home -> replaced teaser with full AI Insights card (sparkle + top-4 horizontal bars + comparative line) -> View All becomes full-width button -> added Reports to settings dialog
+**Files:**
+- lib/features/haven_central/haven_central_screen.dart -- Home tab reworked. AI Insights card now shows this-month top-4 spending categories as horizontal bars + one comparative sentence vs prior month. Tap opens existing bottom sheet. Reports moves to settings (permanent home).
+- WIP.md -- checkboxes updated
+- DEV_LOG.md -- this entry
+
+**Why:** New tile was redundant with bridge card Add expense. Reports belonged in settings. Empty space under hero now has a live insights visual.
+**Not touched:** hero, bridge card, pills, Upcoming Tasks tile, bottom sheet logic
+**Next:** push -> cloud build -> install -r -> verify Home layout
+
+---
 ## 2026-10-11 19:00 -- PENDING -- feat(home): bridge card (Left this month + Add expense + Finances)
 
 **Status:** PENDING push
