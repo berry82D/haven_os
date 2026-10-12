@@ -628,7 +628,8 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
 
   List<String> _sortedCategoriesByUse() {
     final counts = <String, int>{};
-    for (final t in _transactions) {
+    final txs = context.read<AppState>().myTransactions;
+    for (final t in txs) {
       counts[t.category] = (counts[t.category] ?? 0) + 1;
     }
     final used = counts.keys.toList()
