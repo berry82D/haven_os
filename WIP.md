@@ -58,3 +58,9 @@ Resume at first unchecked [ ] item above.
 
 ## Code cleanliness standing rules
 - Max 100 chars/line, 2-space indent, no inline monsters
+## Finances cleanup (new)
+- [x] Tappable Income/Expenses cards -> content-hugging sheet, isIncome filter
+- [x] Category dropdown frequency-sorted (used desc, unused alpha)
+
+## Roadmap (don't build)
+- Dedicated all-transactions view -> NEXT

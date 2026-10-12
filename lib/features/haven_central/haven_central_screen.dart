@@ -626,6 +626,24 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
     }
   }
 
+  List<String> _sortedCategoriesByUse() {
+    final counts = <String, int>{};
+    for (final t in _transactions) {
+      counts[t.category] = (counts[t.category] ?? 0) + 1;
+    }
+    final used = counts.keys.toList()
+      ..sort((a, b) {
+        final ca = counts[a] ?? 0;
+        final cb = counts[b] ?? 0;
+        if (ca != cb) return cb.compareTo(ca);
+        return a.compareTo(b);
+      });
+    final unused = transactionCategories
+        .where((c) => !counts.containsKey(c))
+        .toList()
+      ..sort();
+    return [...used, ...unused];
+  }
   List<Map<String, dynamic>> _weeksOfMonth(DateTime month) {
     final first = DateTime(month.year, month.month, 1);
     final last = DateTime(month.year, month.month + 1, 0);
@@ -833,9 +851,17 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
           ),
           const SizedBox(height: 16),
           Row(children: [
-            _buildSummaryCard('Income', _money(rangedIncomes, decimals: 0), Colors.green),
+            _buildSummaryCard('Income', _money(rangedIncomes, decimals: 0), Colors.green,
+                onTap: () => _showTransactionListSheet(
+                    title: 'Income',
+                    total: rangedIncomes,
+                    txs: ranged.where((t) => t.isIncome).toList())),
             const SizedBox(width: 8),
-            _buildSummaryCard('Expenses', _money(rangedExpenses, decimals: 0), Colors.red)
+            _buildSummaryCard('Expenses', _money(rangedExpenses, decimals: 0), Colors.red,
+                onTap: () => _showTransactionListSheet(
+                    title: 'Expenses',
+                    total: rangedExpenses,
+                    txs: ranged.where((t) => !t.isIncome).toList()))
           ]),
           const SizedBox(height: 8),
           Row(children: [
@@ -1452,24 +1478,72 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                 ]));
   }
 
-  Widget _buildSummaryCard(String label, String value, Color color) {
-    return Expanded(
-        child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            decoration: BoxDecoration(
-                color: const Color(0xFF1E1E1E),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: color.withAlpha(77))),
-            child: Column(children: [
-              Text(label,
-                  style: const TextStyle(color: Colors.grey, fontSize: 12)),
-              const SizedBox(height: 4),
-              Text(value,
-                  style: TextStyle(
-                      color: color, fontSize: 16, fontWeight: FontWeight.bold))
-            ])));
+  void _showTransactionListSheet(
+      {required String title,
+      required double total,
+      required List<Transaction> txs}) {
+    showModalBottomSheet(
+        context: context,
+        backgroundColor: const Color(0xFF1E1E1E),
+        isScrollControlled: true,
+        shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+        builder: (ctx) => SafeArea(
+            child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
+                child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(title,
+                          style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white)),
+                      const SizedBox(height: 4),
+                      Text(_money(total, decimals: 2),
+                          style: const TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.tealAccent)),
+                      const SizedBox(height: 12),
+                      if (txs.isEmpty)
+                        const Padding(
+                            padding: EdgeInsets.all(16),
+                            child: Text('No transactions.',
+                                style: TextStyle(color: Colors.grey)))
+                      else
+                        ConstrainedBox(
+                            constraints:
+                                const BoxConstraints(maxHeight: 400),
+                            child: ListView.builder(
+                                shrinkWrap: true,
+                                itemCount: txs.length,
+                                itemBuilder: (_, i) =>
+                                    _buildActivityTile(txs[i]))),
+                    ]))));
   }
-
+  Widget _buildSummaryCard(String label, String value, Color color,
+      {VoidCallback? onTap}) {
+    final card = Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+            color: const Color(0xFF1E1E1E),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: color.withAlpha(77))),
+        child: Column(children: [
+          Text(label,
+              style: const TextStyle(color: Colors.grey, fontSize: 12)),
+          const SizedBox(height: 4),
+          Text(value,
+              style: TextStyle(
+                  color: color,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold))
+        ]));
+    if (onTap == null) return Expanded(child: card);
+    return Expanded(child: GestureDetector(onTap: onTap, child: card));
+  }
   Widget _buildCategoryLegend(String label, double amount, double total) {
     final percent = total > 0? (amount / total * 100) : 0;
     return Padding(
@@ -1751,7 +1825,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                                   enabledBorder: OutlineInputBorder(
                                       borderSide:
                                           BorderSide(color: Colors.grey))),
-                              items: transactionCategories.map((String cat) {
+                              items: _sortedCategoriesByUse().map((String cat) {
                                 return DropdownMenuItem<String>(
                                     value: cat,
                                     child: Text(cat,
@@ -2174,7 +2248,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                           border: OutlineInputBorder(),
                           enabledBorder: OutlineInputBorder(
                               borderSide: BorderSide(color: Colors.grey))),
-                      items: transactionCategories.map((String cat) {
+                      items: _sortedCategoriesByUse().map((String cat) {
                         return DropdownMenuItem<String>(
                             value: cat,
                             child: Text(cat,

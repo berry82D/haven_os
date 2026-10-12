@@ -1,3 +1,17 @@
+## 2026-10-12 -- PENDING -- feat(finances): tappable summary cards + frequency-sorted categories
+
+**Status:** PENDING push
+**Steps:** added _showTransactionListSheet (title + total + filtered list, hugs content) -> added optional onTap param to _buildSummaryCard -> wired Income tap to isIncome=true list, Expenses tap to !isIncome list -> added _sortedCategoriesByUse (used desc, unused alpha) -> both Add Transaction category dropdowns now use it
+**Files:**
+- lib/features/haven_central/haven_central_screen.dart -- summary cards are interactive; dropdown surfaces your most-used categories first
+- WIP.md -- checkboxes updated
+- DEV_LOG.md -- this entry
+
+**Why:** Summary cards looked tappable but weren't. Categories always showed the same static order; frequency sort matches user habit.
+**Not touched:** range math, hero, chart, dropdown values (only order changes)
+**Next:** push -> cloud build -> install -r -> verify Income/Expenses taps + dropdown order
+
+---
 ## 2026-10-12 -- PENDING -- chore(home): remove redundant paths, rename chip, dedup insights, debounce
 
 **Status:** PENDING push
