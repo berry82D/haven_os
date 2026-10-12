@@ -583,3 +583,11 @@ User wants REAL email send to provided email, verify code matches in Haven.
 ### NOTE
 Use `flutter run` NOT `adb uninstall` to preserve SharedPreferences for testing. Uninstall wipes registered_users.
 
+
+## 2026-10-12 -- 155d846 -- fix(finances): use AppState.myTransactions in category sort
+
+**Status:** PUSHED
+**Why:** c5e768e failed build on undefined _transactions getter (Law 5 violation). Fixed to context.read<AppState>().myTransactions.
+**Next:** wait for green build, install -r, verify Income/Expenses taps + frequency dropdown
+---
+
