@@ -1,6 +1,6 @@
 # WORK IN PROGRESS
 
-**Last touched:** 2026-10-11 19:54
+**Last touched:** 2026-10-12 18:02
 **Active task:** Home bridge card
 **Driver:** DeepSeek (via David's PC)
 **Branch:** main
@@ -46,3 +46,15 @@ Resume at first unchecked [ ] item above.
 - [x] _showInsightsSheet: hugs content (no DraggableScrollableSheet), sparkle title, each insight in rounded card
 - [ ] Commit + push
 - [ ] Phone verify: sheet opens hugging content, 4-5 insight cards visible
+## Home cleanup - purchased-app clean
+- [x] Removed "Finances" chip
+- [x] Removed "View All Transactions" button
+- [x] Renamed Breeding chip to Batches
+- [x] Sheet dedup comparative line
+- [x] _insightsOpen debounce guard (Future<void> return)
+
+## Roadmap note
+- Dedicated all-transactions view -> ROADMAP NEXT (don't build now)
+
+## Code cleanliness standing rules
+- Max 100 chars/line, 2-space indent, no inline monsters

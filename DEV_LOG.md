@@ -1,3 +1,18 @@
+## 2026-10-12 -- PENDING -- chore(home): remove redundant paths, rename chip, dedup insights, debounce
+
+**Status:** PENDING push
+**Steps:** removed "Finances" toggle chip -> removed "View All Transactions" button -> renamed "Breeding" chip to "Batches" (matches target tab) -> sheet skips comparative line already shown on Home card -> _insightsOpen guard prevents stacked sheets; _showInsightsSheet returns Future<void>
+**Files:**
+- lib/features/haven_central/haven_central_screen.dart -- Home tab cleanup. Toggle row now shows Batches + Records only. Bridge card Finances button is the sole Finances path. Insights sheet filters out duplicate comparative line.
+- WIP.md -- checkboxes updated
+- DEV_LOG.md -- this entry
+
+**Why:** Home had 4 paths to Finances; label "Breeding" didn't match target tab; insights sheet repeated the card's comparative line. Debounce guards against rapid double-tap opening two sheets.
+**Not touched:** bridge card, hero, bottom nav, other screens
+**Roadmap:** dedicated all-transactions view queued for NEXT (not built)
+**Next:** push -> cloud build -> install -r -> verify
+
+---
 ## 2026-10-12 -- PENDING -- feat(insights): powerhouse insights + hugging sheet
 
 **Status:** PENDING push

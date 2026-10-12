@@ -50,6 +50,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
   DateTime _financesAnchor = DateTime.now();
   int? _financesWeekIdx;
   final TextEditingController _txSearchCtrl = TextEditingController();
+  bool _insightsOpen = false;
   bool _showRecentActivity = true;
   final FirestoreService _firestore = FirestoreService();
   final TextEditingController _loanNameController = TextEditingController();
@@ -237,11 +238,8 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                     ]),
                   ])),
           const SizedBox(height: 16),          Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
-            _buildToggleTab('🌱 Breeding', _currentIndex == 1, () {
+            _buildToggleTab('🌱 Batches', _currentIndex == 1, () {
               setState(() => _currentIndex = 1);
-            }),
-            _buildToggleTab('💰 Finances', _currentIndex == 2, () {
-              setState(() => _currentIndex = 2);
             }),
             _buildToggleTab('📋 Records', _currentIndex == 3, () {
               setState(() => _currentIndex = 3);
@@ -255,7 +253,16 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: Colors.grey[800]!)),
               child: GestureDetector(
-                  onTap: () => _showInsightsSheet(insights),
+                  onTap: () {
+                    if (_insightsOpen) return;
+                    _insightsOpen = true;
+                    final home = _homeComparativeInsight(transactions);
+                    final filtered =
+                        insights.where((i) => i != home).toList();
+                    _showInsightsSheet(filtered).then((_) {
+                      _insightsOpen = false;
+                    });
+                  },
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Row(children: [
                       const Icon(Icons.auto_awesome, color: Colors.tealAccent, size: 20),
@@ -272,19 +279,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                         style: const TextStyle(color: Colors.grey, fontSize: 12)),
                   ]))),
           const SizedBox(height: 16),
-          SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                  onPressed: () => setState(() => _currentIndex = 2),
-                  icon: const Icon(Icons.visibility, size: 18),
-                  label: const Text('View All Transactions'),
-                  style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF1E1E1E),
-                      foregroundColor: Colors.tealAccent,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      side: BorderSide(color: Colors.grey[800]!),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))))),
-          const SizedBox(height: 16),
+          
           GestureDetector(
               onTap: () => setState(() => _currentIndex = 4),
               child: Container(
@@ -316,8 +311,8 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
         ]));
   }
 
-  void _showInsightsSheet(List<String> insights) {
-    showModalBottomSheet(
+  Future<void> _showInsightsSheet(List<String> insights) {
+    return showModalBottomSheet(
         context: context,
         backgroundColor: const Color(0xFF1E1E1E),
         isScrollControlled: true,
