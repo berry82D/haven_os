@@ -1,3 +1,16 @@
+## 2026-10-13 -- PENDING -- fix(transaction-form): keyboard no longer covers fields
+
+**Status:** PENDING push
+**Steps:** DraggableScrollableSheet config: maxChildSize 0.95 -> 1.0; expand false -> true. Now the sheet expands to fill the reduced viewport when keyboard is up. viewInsets.bottom padding on the Container already handles the keyboard offset.
+**Files:**
+- lib/features/haven_central/haven_central_screen.dart -- one-line config change in Add Transaction sheet wrapper
+- WIP.md -- checkboxes
+- DEV_LOG.md -- this entry
+**Why:** With maxChildSize 0.95 and expand false, sheet couldn't grow past 95% of full screen. When keyboard took ~40%, active field fell below visible area.
+**Not touched:** form fields, toggle, dropdowns, submit
+**Next:** push -> build -> install -> tap each field top-to-bottom; keyboard should never cover active field
+
+---
 ## 2026-10-13 -- 3f066c5 -- VERIFIED: toggle instant + category split
 
 **Status:** VERIFIED on R3GL40HW72K

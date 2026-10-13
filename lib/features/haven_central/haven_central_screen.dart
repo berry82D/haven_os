@@ -1712,9 +1712,9 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
           void setState(VoidCallback fn) => setSheetState(fn);
           return DraggableScrollableSheet(
             initialChildSize: 0.9,
-            maxChildSize: 0.95,
+            maxChildSize: 1.0,
             minChildSize: 0.5,
-            expand: false,
+            expand: true,
             builder: (context, scrollController) => Container(
                 padding: EdgeInsets.only(
                     bottom: MediaQuery.of(context).viewInsets.bottom),
