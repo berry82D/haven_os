@@ -1,3 +1,16 @@
+## 2026-10-13 -- 3f066c5 -- VERIFIED: toggle instant + category split
+
+**Status:** VERIFIED on R3GL40HW72K
+**Confirmed:**
+- Add Transaction toggle turns red/green instantly (StatefulBuilder fix)
+- Income selected -> Category shows income list only (Salary, Gig Income, Crop Sales, etc.)
+- Expense selected -> Category shows expense list only (Gas, Power, Rent, Groceries, etc.)
+- Budget tab -> Add Budget dialog shows expense categories only
+- Sync still working between phones
+
+**WIP closed.** Next: ROADMAP NEXT items.
+
+---
 ## 2026-10-13 -- PENDING -- feat(transaction-form): toggle rebuild + income/expense category split
 
 **Status:** PENDING push
