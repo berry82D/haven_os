@@ -18,6 +18,32 @@ import '../../models/budget.dart';
 import '../../services/firestore_service.dart';
 import '../../screens/gig_income/gig_income_screen.dart';
 
+const List<String> incomeCategories = [
+  'Salary',
+  'Gig Income',
+  'Crop Sales',
+  'Livestock Sales',
+  'Rental Income',
+  'Other Income',
+];
+
+const List<String> expenseCategories = [
+  'Gas',
+  'Power',
+  'Rent',
+  'Water',
+  'Internet',
+  'Phone',
+  'Groceries',
+  'Dining',
+  'Farm Supplies',
+  'Equipment',
+  'Transport',
+  'Healthcare',
+  'Housing',
+  'Utilities',
+  'Other',
+];
 const List<String> transactionCategories = [
   'General',
   'Groceries',
@@ -626,23 +652,20 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
     }
   }
 
-  List<String> _sortedCategoriesByUse() {
+  List<String> _sortedCategoriesByUse(List<String> base) {
     final counts = <String, int>{};
     final txs = context.read<AppState>().myTransactions;
     for (final t in txs) {
       counts[t.category] = (counts[t.category] ?? 0) + 1;
     }
-    final used = counts.keys.toList()
+    final used = base.where((c) => counts.containsKey(c)).toList()
       ..sort((a, b) {
         final ca = counts[a] ?? 0;
         final cb = counts[b] ?? 0;
         if (ca != cb) return cb.compareTo(ca);
         return a.compareTo(b);
       });
-    final unused = transactionCategories
-        .where((c) => !counts.containsKey(c))
-        .toList()
-      ..sort();
+    final unused = base.where((c) => !counts.containsKey(c)).toList()..sort();
     return [...used, ...unused];
   }
   List<Map<String, dynamic>> _weeksOfMonth(DateTime month) {
@@ -1685,7 +1708,9 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
         context: context,
         isScrollControlled: true,
         backgroundColor: Colors.transparent,
-        builder: (context) => DraggableScrollableSheet(
+        builder: (context) => StatefulBuilder(builder: (context, setSheetState) {
+          void setState(VoidCallback fn) => setSheetState(fn);
+          return DraggableScrollableSheet(
             initialChildSize: 0.9,
             maxChildSize: 0.95,
             minChildSize: 0.5,
@@ -1751,7 +1776,10 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                             Expanded(
                                 child: GestureDetector(
                                     onTap: () =>
-                                        setState(() => isIncome = true),
+                                        setState(() {
+                                          isIncome = true;
+                                          selectedCategory = 'Salary';
+                                        }),
                                     child: Container(
                                         padding: const EdgeInsets.symmetric(
                                             vertical: 12),
@@ -1773,7 +1801,10 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                             Expanded(
                                 child: GestureDetector(
                                     onTap: () =>
-                                        setState(() => isIncome = false),
+                                        setState(() {
+                                          isIncome = false;
+                                          selectedCategory = 'Gas';
+                                        }),
                                     child: Container(
                                         padding: const EdgeInsets.symmetric(
                                             vertical: 12),
@@ -1826,7 +1857,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                                   enabledBorder: OutlineInputBorder(
                                       borderSide:
                                           BorderSide(color: Colors.grey))),
-                              items: _sortedCategoriesByUse().map((String cat) {
+                              items: _sortedCategoriesByUse(isIncome ? incomeCategories : expenseCategories).map((String cat) {
                                 return DropdownMenuItem<String>(
                                     value: cat,
                                     child: Text(cat,
@@ -1938,7 +1969,8 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                                           : 'Save Transaction',
                                       style: const TextStyle(
                                           fontSize: 16, color: Colors.black)))),
-                        ])))));
+                        ]))));
+          }));
   }
 
   void _showLoanForm({Loan? existingLoan}) {
@@ -2249,7 +2281,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                           border: OutlineInputBorder(),
                           enabledBorder: OutlineInputBorder(
                               borderSide: BorderSide(color: Colors.grey))),
-                      items: _sortedCategoriesByUse().map((String cat) {
+                      items: _sortedCategoriesByUse(expenseCategories).map((String cat) {
                         return DropdownMenuItem<String>(
                             value: cat,
                             child: Text(cat,

@@ -1,3 +1,17 @@
+## 2026-10-13 -- PENDING -- feat(transaction-form): toggle rebuild + income/expense category split
+
+**Status:** PENDING push
+**Steps:** added incomeCategories + expenseCategories const lists -> _sortedCategoriesByUse now takes base List<String> -> wrapped Add Transaction sheet in StatefulBuilder with local setState alias -> toggle resets selectedCategory to Salary/Gas -> Add Transaction dropdown uses isIncome ? incomeCategories : expenseCategories -> Budget dropdown uses expenseCategories
+**Files:**
+- lib/features/haven_central/haven_central_screen.dart -- toggle now redraws sheet; category list cleanly splits income vs expense
+- WIP.md -- checkboxes
+- DEV_LOG.md -- this entry
+
+**Why:** Toggle taps only updated a variable but not the sheet's context, so UI didn't redraw until Description was typed. Category list mixed income + expense.
+**Not touched:** other sheets, submit logic, amount/date/notes fields, bridge card
+**Next:** push -> cloud build -> install -r on both phones -> verify toggle + dropdown
+
+---
 ## 2026-10-12 -- PENDING -- feat(finances): tappable summary cards + frequency-sorted categories
 
 **Status:** PENDING push
