@@ -1,4 +1,16 @@
-## 2026-10-14 -- 371e7bb -- b72 -- fix(insights): accuracy pass - partial months, tone, what-if, clamp
+## 2026-10-14 -- PENDING -- fix(insights): remove duplicate what-if block from patch 9
+
+**Status:** PENDING push
+**Steps:** Patch 9's brace counter stopped at the `};` of the fixedCats set (a set literal inside a comment-anchored block), replacing only 5 lines. The old unguarded block remained below, leaving two `final varEntries` declarations in one scope. Build b72 red with `'varEntries' is already defined`. Patch 10 deletes the duplicate block.
+**Files:**
+- lib/features/haven_central/haven_central_screen.dart -- removed 14-line duplicate
+- WIP.md -- stamp
+- DEV_LOG.md -- this entry
+**Why:** Brace counting from a comment that contains a set literal stops at the set's close brace, not the block's.
+**Not touched:** the guarded what-if block (kept); rangedSavingsRate clamp; DST add-Duration
+**Next:** push -> b73 -> install -> verify on day < 10 the what-if line is absent
+
+---## 2026-10-14 -- 371e7bb -- b72 -- fix(insights): accuracy pass - partial months, tone, what-if, clamp
 
 **Status:** PENDING push
 **Steps:** 8 patches. Added _spendWindow (day-aligned windows) + _comparativeSentenceFromTotals (shared formatter). Home card and engine comparative now call the same helper, so L287 dedup matches by construction. Engine seed loop day-aligned. Projection gated on now.day >= 15. Tone softened. What-if skips fixed categories; cut = ~10% of extrapolated month. Budget percent unclamped for text and >80 color, clamped only for the bar (engine + budgets screen).

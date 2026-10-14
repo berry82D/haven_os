@@ -4,7 +4,7 @@
 **Active task:** Insights accuracy fix (5 bugs, 8 patches)
 **Driver:** DeepSeek (via David's PC)
 **Branch:** main
-**HEAD:** 371e7bb (b72); patch 9 pending
+**HEAD:** b80bcfd (b72 red); patch 10 fixes
 
 ## Status: IN PROGRESS
 
@@ -22,6 +22,8 @@
 - [x] Patch 7: Engine budget text unclamped
 - [x] Patch 8: Budgets screen - text/color unclamped, bar clamped
 - [x] Patch 9: What-if guards (day >= 10, cut >= - [x] Patch 8: Budgets screen - text/color unclamped, bar clamped
+- [x] Patch 10: delete duplicate what-if block (b72 fix)
+- [x] Patch 10: delete duplicate what-if block (b72 fix)
 , Equipment skipped)
 - [ ] Commit + push
 - [ ] Cloud build green
