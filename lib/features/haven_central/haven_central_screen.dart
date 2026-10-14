@@ -99,9 +99,43 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
 
   @override
   void initState() {
-    WidgetsBinding.instance.addPostFrameCallback((_) { if (mounted) RequireEmailDialog.checkAndPrompt(context); });
+    WidgetsBinding.instance.addPostFrameCallback((_) { if (mounted) RequireEmailDialog.checkAndPrompt(context); _importGigJobs(); });
 
     super.initState();
+  }
+
+  // One-time import: pull gig_jobs from Firebase into Transactions.
+  // Dedup by gigIncomeId so re-runs never double-count.
+  Future<void> _importGigJobs() async {
+    try {
+      final jobs = await _firestore.streamGigJobs().first;
+      final appState = context.read<AppState>();
+      for (final job in jobs) {
+        if (job.net <= 0) continue;
+        final exists = appState.myTransactions
+            .any((t) => t.gigIncomeId == job.id);
+        if (exists) continue;
+        final tx = Transaction(
+          description: ' Gig Job',
+          date: job.date,
+          amount: job.net,
+          isIncome: true,
+          category: 'Gig Income',
+          userId: appState.currentUser?.id ?? 
+''
+,
+          householdId: appState.currentUser?.householdId ?? 
+''
+,
+          gigIncomeId: job.id,
+          notes: job.notes,
+        );
+        appState.addTransaction(tx);
+        await _firestore.saveTransaction(tx);
+      }
+    } catch (e) {
+      debugPrint('Gig import failed: ' + e.toString());
+    }
   }
 
   @override
