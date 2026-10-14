@@ -1,4 +1,18 @@
-## 2026-10-14 -- PENDING -- feat(transaction-form): compact searchable category picker
+## 2026-10-14 -- PENDING -- fix(insights): accuracy pass - partial months, tone, what-if, clamp
+
+**Status:** PENDING push
+**Steps:** 8 patches. Added _spendWindow (day-aligned windows) + _comparativeSentenceFromTotals (shared formatter). Home card and engine comparative now call the same helper, so L287 dedup matches by construction. Engine seed loop day-aligned. Projection gated on now.day >= 15. Tone softened. What-if skips fixed categories; cut = ~10% of extrapolated month. Budget percent unclamped for text and >80 color, clamped only for the bar (engine + budgets screen).
+**Files:**
+- lib/features/haven_central/haven_central_screen.dart -- helpers added; 6 blocks rewritten
+- WIP.md -- checkboxes
+- ROADMAP.md -- #4 to DONE
+- DEV_LOG.md -- this entry
+
+**Why:** Partial month vs full prev month distorted the comparative. Hardcoded $5/week what-if fired on fixed categories like Housing. Clamped percent showed "100% used" on 150% overspend. Tone was blunt.
+**Not touched:** _homeMonthlyLeft 100.0 buffer, rangedSavingsRate (L747), top-category bars
+**Next:** push -> cloud build -> install -> phone verify: partial-month comparison, no Housing what-if, >100% shown honestly, tone
+
+---## 2026-10-14 -- PENDING -- feat(transaction-form): compact searchable category picker
 
 **Status:** PENDING push
 **Steps:** added _showCategoryPicker helper (bottom sheet, search bar on top, frequency-sorted list, constrained to 320px height) -> Add Transaction dropdown replaced with GestureDetector that opens the picker

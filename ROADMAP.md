@@ -26,13 +26,14 @@
 - Compact searchable category picker (partial-match search) - b71 green, phone verification pending
 - Home bridge card: "Left this month" + Add expense + Finances button - VERIFIED on phone
 
+- Insights accuracy fix: day-aligned comparisons, honest budget %, warmer tone, category-aware what-if - b72, phone verify pending
+
 ## NOW
 1. Phone verify: keyboard fix (b70/b71) — keyboard never covers active field
 2. Phone verify: compact searchable category picker (type "tra" -> Transport)
 3. Close WIP.md (delete) once all above pass
 
 ## NEXT
-4. Insights accuracy fix (Claude review): partial-month vs full-month comparison, hardcoded $5/week what-if, clamped budget % hides overspend, tone vs "no shame" goal
 5. Sharing permission model: clean new accounts (no inherited data), explicit linking, leveled invites (viewer/add/edit/admin, adjustable anytime), permanent (changeable/revocable) or temp (1 day min, 1 month max), 6-month check-ins
 6. Household sync: move bills / animals / gig income from per-phone local to household sync; retire the `pending_join` workaround
 7. Wire Settings Export/Import/Reset (buttons exist, methods are empty stubs; backup_service.exportBackup exists but uncalled)

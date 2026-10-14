@@ -129,26 +129,50 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
     final exp = m.where((t) => !t.isIncome).fold(0.0, (s, t) => s + t.amount);
     return inc - exp - 100.0;
   }
+  ({DateTime curStart, DateTime curEnd, DateTime prevStart, DateTime prevEnd})
+      _spendWindow(DateTime now) {
+    final startOfToday = DateTime(now.year, now.month, now.day);
+    final curStart = DateTime(now.year, now.month, 1);
+    final curEnd = startOfToday.add(const Duration(days: 1));
+    final prevStart = DateTime(now.year, now.month - 1, 1);
+    final prevMonthDays = DateTime(now.year, now.month, 0).day;
+    final prevDay = now.day < prevMonthDays ? now.day : prevMonthDays;
+    final prevEnd = prevStart.add(Duration(days: prevDay));
+    return (
+      curStart: curStart,
+      curEnd: curEnd,
+      prevStart: prevStart,
+      prevEnd: prevEnd,
+    );
+  }
+
+  String _comparativeSentenceFromTotals(double cur, double prev) {
+    if (prev == 0) {
+      return cur > 0
+          ? 'First month of data - no comparison yet.'
+          : 'No spending yet this month.';
+    }
+    final pct = (cur - prev) / prev * 100;
+    if (pct > 5) {
+      return 'Spending up ${pct.toStringAsFixed(0)}% vs last month.';
+    }
+    if (pct < -5) {
+      return 'Spending down ${(-pct).toStringAsFixed(0)}% vs last month.';
+    }
+    return 'Spending steady vs last month.';
+  }
   String _homeComparativeInsight(List<Transaction> transactions) {
     final now = DateTime.now();
-    final curStart = DateTime(now.year, now.month, 1);
-    final curEnd = DateTime(now.year, now.month + 1, 1);
-    final prevStart = DateTime(now.year, now.month - 1, 1);
+    final w = _spendWindow(now);
     double cur = 0, prev = 0;
     for (final t in transactions.where((t) => !t.isIncome)) {
-      if (!t.date.isBefore(curStart) && t.date.isBefore(curEnd)) {
+      if (!t.date.isBefore(w.curStart) && t.date.isBefore(w.curEnd)) {
         cur += t.amount;
-      } else if (!t.date.isBefore(prevStart) && t.date.isBefore(curStart)) {
+      } else if (!t.date.isBefore(w.prevStart) && t.date.isBefore(w.prevEnd)) {
         prev += t.amount;
       }
     }
-    if (prev == 0) {
-      return cur > 0 ? 'First month of data - no comparison yet.' : 'No spending yet this month.';
-    }
-    final pct = ((cur - prev) / prev * 100);
-    if (pct > 5) return 'Spending up ' + pct.toStringAsFixed(0) + '% vs last month.';
-    if (pct < -5) return 'Spending down ' + (-pct).toStringAsFixed(0) + '% vs last month.';
-    return 'Spending steady vs last month.';
+    return _comparativeSentenceFromTotals(cur, prev);
   }
 
   List<Widget> _buildTopCategoryBars(List<Transaction> transactions) {
@@ -387,9 +411,11 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
       return insights;
     }
     final now = DateTime.now();
-    final curStart = DateTime(now.year, now.month, 1);
-    final curEnd = DateTime(now.year, now.month + 1, 1);
-    final prevStart = DateTime(now.year, now.month - 1, 1);
+    final w = _spendWindow(now);
+    final curStart = w.curStart;
+    final curEnd = w.curEnd;
+    final prevStart = w.prevStart;
+    final prevEnd = w.prevEnd;
 
     double curInc = 0, curExp = 0, prevExp = 0;
     final curByCat = <String, double>{};
@@ -402,7 +428,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
           curExp += t.amount;
           curByCat[t.category] = (curByCat[t.category] ?? 0) + t.amount;
         }
-      } else if (!t.date.isBefore(prevStart) && t.date.isBefore(curStart)) {
+      } else if (!t.date.isBefore(prevStart) && t.date.isBefore(prevEnd)) {
         if (!t.isIncome) {
           prevExp += t.amount;
           prevByCat[t.category] = (prevByCat[t.category] ?? 0) + t.amount;
@@ -411,16 +437,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
     }
 
     // Small picture - comparative
-    if (prevExp > 0) {
-      final pct = ((curExp - prevExp) / prevExp * 100);
-      if (pct.abs() >= 5) {
-        final dir = pct > 0 ? 'up' : 'down';
-        insights.add('Spending is $dir ${pct.abs().toStringAsFixed(0)}% '
-            'vs last month.');
-      } else {
-        insights.add('Spending is steady vs last month.');
-      }
-    }
+    insights.add(_comparativeSentenceFromTotals(curExp, prevExp));
 
     // Top mover
     if (curByCat.isNotEmpty && prevByCat.isNotEmpty) {
@@ -442,22 +459,34 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
 
     // Big picture - projection
     if (curInc > 0) {
-      final savingsRate = ((curInc - curExp) / curInc);
-      if (savingsRate > 0) {
-        final yearly = (curInc - curExp) * 12;
-        insights.add('At this pace you save '
-            '${_money(yearly, decimals: 0)} this year.');
+      final net = curInc - curExp;
+      if (net >= 0) {
+        if (now.day >= 15) {
+          final yearly = net * 12;
+          insights.add('At this pace you save '
+              '${_money(yearly, decimals: 0)} this year.');
+        }
       } else {
-        insights.add('You are spending more than you earn so far.');
+        insights.add('So far this month: spending is '
+            '${_money(-net, decimals: 0)} above income.');
       }
     }
 
-    // What-if on top category
-    if (curByCat.isNotEmpty) {
-      final sorted = curByCat.entries.toList()
-        ..sort((a, b) => b.value.compareTo(a.value));
-      final top = sorted.first;
-      const weeklyCut = 5.0;
+    // What-if on top variable category
+    const fixedCats = {
+      'Rent', 'Housing', 'Utilities', 'Power', 'Water',
+      'Internet', 'Phone', 'Healthcare', 'Other', 'General',
+    };
+    final varEntries = curByCat.entries
+        .where((e) => !fixedCats.contains(e.key))
+        .toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    if (varEntries.isNotEmpty) {
+      final top = varEntries.first;
+      final daysInMonth = DateTime(now.year, now.month + 1, 0).day;
+      final monthly = top.value / now.day * daysInMonth;
+      final cutMonthly = monthly * 0.10;
+      final weeklyCut = cutMonthly * 7 / 30;
       final yearlySave = weeklyCut * 52;
       insights.add('Cut ${_money(weeklyCut, decimals: 0)}/week from '
           '${top.key} -> ${_money(yearlySave, decimals: 0)}/year back.');
@@ -470,7 +499,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
       for (final budget in relevant) {
         final spent = curByCat[budget.category] ?? 0;
         final percent = budget.limit > 0
-            ? (spent / budget.limit * 100).clamp(0, 100)
+            ? (spent / budget.limit * 100)
             : 0;
         if (percent >= 80) {
           insights.add('${budget.category} budget is at '
@@ -1319,9 +1348,10 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                  .where((t) =>!t.isIncome && t.category == budget.category)
                  .fold(0.0, (s, t) => s + t.amount);
               final left = budget.limit - spent;
-              final percent = budget.limit > 0
-                 ? (spent / budget.limit * 100).clamp(0, 100)
+              final rawPercent = budget.limit > 0
+                 ? (spent / budget.limit * 100)
                   : 0;
+              final percent = rawPercent.clamp(0, 100);
               return Container(
                   margin: const EdgeInsets.symmetric(vertical: 4),
                   padding: const EdgeInsets.all(12),
@@ -1350,7 +1380,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                             value: percent / 100,
                             backgroundColor: Colors.grey[800],
                             color:
-                                percent > 80? Colors.red : Colors.tealAccent),
+                                rawPercent > 80? Colors.red : Colors.tealAccent),
                         const SizedBox(height: 4),
                         Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1364,9 +1394,9 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                                           left < 0? Colors.red : Colors.grey))
                             ]),
                         Text(
-                            '${percent.toStringAsFixed(0)}% used • ${left >= 0? "${((left / budget.limit) * 100).toStringAsFixed(0)}% remaining" : "Over budget"}',
+                            '${rawPercent.toStringAsFixed(0)}% used • ${left >= 0? "${((left / budget.limit) * 100).toStringAsFixed(0)}% remaining" : "Over budget"}',
                             style: TextStyle(
-                                color: percent > 80? Colors.red : Colors.grey,
+                                color: rawPercent > 80? Colors.red : Colors.grey,
                                 fontSize: 11)),
                       ]));
             }),
