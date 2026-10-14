@@ -562,6 +562,13 @@ class AppState extends ChangeNotifier {
   }
 
   void addGigIncome(GigIncome income) {
+    // Dedup: skip if a Transaction already exists for this gig
+    if (_transactions.any((t) => t.gigIncomeId == income.id)) {
+      _gigIncomes.add(income);
+      _saveData();
+      notifyListeners();
+      return;
+    }
     _gigIncomes.add(income);
     // Bridge to Finances: create linked income Transaction
     final txId = income.transactionId.isNotEmpty
