@@ -570,26 +570,7 @@ class AppState extends ChangeNotifier {
     income.transactionId = txId;
     final tx = Transaction(
       id: txId,
-      description: ' Gig Income',
-      date: income.date,
-      amount: income.totalAmount,
-      isIncome: true,
-      category: 'Gig Income',
-      userId: income.userId,
-      householdId: income.householdId,
-      gigIncomeId: income.id,
-      notes: income.notes,
-    );
-    _transactions.add(tx);
-    _recordCategoryMemory(tx);
-    _saveData();
-    notifyListeners();
-  }
-        : DateTime.now().millisecondsSinceEpoch.toString();
-    income.transactionId = txId;
-    final tx = Transaction(
-      id: txId,
-      description: ' Gig Income',
+      description: ${income.platformName} Gig Income,
       date: income.date,
       amount: income.totalAmount,
       isIncome: true,
