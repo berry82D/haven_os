@@ -1,3 +1,17 @@
+## 2026-10-14 -- PENDING -- feat(transaction-form): compact searchable category picker
+
+**Status:** PENDING push
+**Steps:** added _showCategoryPicker helper (bottom sheet, search bar on top, frequency-sorted list, constrained to 320px height) -> Add Transaction dropdown replaced with GestureDetector that opens the picker
+**Files:**
+- lib/features/haven_central/haven_central_screen.dart -- category selection now uses a compact searchable sheet instead of a full-page dropdown
+- WIP.md -- checkboxes
+- DEV_LOG.md -- this entry
+
+**Why:** Full-page category list was too tall and required scrolling to find categories. Compact sheet with search matches user's mental model ("type 'tra' -> Transport").
+**Not touched:** budget dropdown (still uses old DropdownButtonFormField for now), toggle, form fields
+**Next:** push -> cloud build -> install -> verify search + compact + frequency sort
+
+---
 ## 2026-10-13 -- PENDING -- fix(transaction-form): keyboard no longer covers fields
 
 **Status:** PENDING push

@@ -1846,30 +1846,35 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                                       borderSide:
                                           BorderSide(color: Colors.grey)))),
                           const SizedBox(height: 12),
-                          DropdownButtonFormField<String>(
-                              initialValue: selectedCategory,
-                              style: const TextStyle(color: Colors.white),
-                              dropdownColor: const Color(0xFF2C2C2C),
-                              decoration: const InputDecoration(
-                                  labelText: 'Category *',
-                                  labelStyle: TextStyle(color: Colors.grey),
-                                  border: OutlineInputBorder(),
-                                  enabledBorder: OutlineInputBorder(
-                                      borderSide:
-                                          BorderSide(color: Colors.grey))),
-                              items: _sortedCategoriesByUse(isIncome ? incomeCategories : expenseCategories).map((String cat) {
-                                return DropdownMenuItem<String>(
-                                    value: cat,
-                                    child: Text(cat,
-                                        style: const TextStyle(
-                                            color: Colors.white)));
-                              }).toList(),
-                              onChanged: (newValue) {
-                                if (newValue!= null) {
-                                  selectedCategory = newValue;
-                                  setState(() {});
-                                }
-                              }),
+                          GestureDetector(
+    onTap: () async {
+      final picked = await _showCategoryPicker(
+          current: selectedCategory, isIncome: isIncome);
+      if (picked != null) {
+        setState(() => selectedCategory = picked);
+      }
+    },
+    child: Container(
+        padding:
+            const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+        decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey[600]!),
+            borderRadius: BorderRadius.circular(8)),
+        child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Category *',
+                        style: TextStyle(
+                            color: Colors.grey, fontSize: 12)),
+                    const SizedBox(height: 2),
+                    Text(selectedCategory,
+                        style: const TextStyle(color: Colors.white)),
+                  ]),
+              const Icon(Icons.arrow_drop_down, color: Colors.grey),
+            ]))),
                           const SizedBox(height: 12),
                           TextField(
                               controller: controllerAmount,
@@ -1973,6 +1978,101 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
           }));
   }
 
+  Future<String?> _showCategoryPicker({
+    required String current,
+    required bool isIncome,
+  }) async {
+    final base = isIncome ? incomeCategories : expenseCategories;
+    final all = _sortedCategoriesByUse(base);
+    final searchCtrl = TextEditingController();
+    var query = '';
+    return showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: const Color(0xFF1E1E1E),
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) => Padding(
+        padding:
+            EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
+        child: StatefulBuilder(
+          builder: (ctx2, setSheet) {
+            final filtered = query.isEmpty
+                ? all
+                : all
+                    .where((c) =>
+                        c.toLowerCase().contains(query.toLowerCase()))
+                    .toList();
+            return SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+                child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Pick a category',
+                          style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white)),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: searchCtrl,
+                        autofocus: true,
+                        style: const TextStyle(color: Colors.white),
+                        onChanged: (v) => setSheet(() => query = v),
+                        decoration: const InputDecoration(
+                          hintText: 'Search categories...',
+                          hintStyle: TextStyle(color: Colors.grey),
+                          prefixIcon:
+                              Icon(Icons.search, color: Colors.grey),
+                          border: OutlineInputBorder(),
+                          enabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide(color: Colors.grey)),
+                          isDense: true,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      ConstrainedBox(
+                        constraints:
+                            const BoxConstraints(maxHeight: 320),
+                        child: filtered.isEmpty
+                            ? const Padding(
+                                padding: EdgeInsets.all(16),
+                                child: Text('No matches',
+                                    style: TextStyle(color: Colors.grey)),
+                              )
+                            : ListView.builder(
+                                shrinkWrap: true,
+                                itemCount: filtered.length,
+                                itemBuilder: (_, i) {
+                                  final cat = filtered[i];
+                                  final selected = cat == current;
+                                  return ListTile(
+                                    dense: true,
+                                    title: Text(cat,
+                                        style: TextStyle(
+                                          color: selected
+                                              ? Colors.tealAccent
+                                              : Colors.white,
+                                          fontWeight: selected
+                                              ? FontWeight.bold
+                                              : FontWeight.normal,
+                                        )),
+                                    onTap: () =>
+                                        Navigator.pop(ctx2, cat),
+                                  );
+                                },
+                              ),
+                      ),
+                    ]),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
   void _showLoanForm({Loan? existingLoan}) {
     final isEditing = existingLoan!= null;
     if (isEditing) {
