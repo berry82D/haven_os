@@ -577,7 +577,7 @@ class AppState extends ChangeNotifier {
     income.transactionId = txId;
     final tx = Transaction(
       id: txId,
-      description: ${income.platformName} Gig Income,
+      description: '${income.platformName} Gig Income',
       date: income.date,
       amount: income.totalAmount,
       isIncome: true,
