@@ -1,4 +1,4 @@
-﻿// lib/services/app_state.dart
+// lib/services/app_state.dart
 import 'package:flutter/material.dart';
 import 'package:haven_os/core/storage/storage_service.dart';
 import 'package:haven_os/domain/services/finance_service.dart';
@@ -563,12 +563,33 @@ class AppState extends ChangeNotifier {
 
   void addGigIncome(GigIncome income) {
     _gigIncomes.add(income);
+    // Bridge to Finances: create linked income Transaction
+    final txId = income.transactionId.isNotEmpty
+        ? income.transactionId
+        : DateTime.now().millisecondsSinceEpoch.toString();
+    income.transactionId = txId;
+    final tx = Transaction(
+      id: txId,
+      description: ' Gig Income',
+      date: income.date,
+      amount: income.totalAmount,
+      isIncome: true,
+      category: 'Gig Income',
+      userId: income.userId,
+      householdId: income.householdId,
+      gigIncomeId: income.id,
+      notes: income.notes,
+    );
+    _transactions.add(tx);
+    _recordCategoryMemory(tx);
     _saveData();
     notifyListeners();
   }
 
   void deleteGigIncome(String id) {
     _gigIncomes.removeWhere((g) => g.id == id);
+    // Remove linked Transaction
+    _transactions.removeWhere((t) => t.gigIncomeId == id);
     _saveData();
     notifyListeners();
   }
@@ -577,6 +598,14 @@ class AppState extends ChangeNotifier {
     final i = _gigIncomes.indexWhere((g) => g.id == updated.id);
     if (i != -1) {
       _gigIncomes[i] = updated;
+      // Update linked Transaction
+      final txIdx =
+          _transactions.indexWhere((t) => t.gigIncomeId == updated.id);
+      if (txIdx != -1) {
+        _transactions[txIdx].amount = updated.totalAmount;
+        _transactions[txIdx].date = updated.date;
+        _transactions[txIdx].notes = updated.notes;
+      }
       _saveData();
       notifyListeners();
     }
