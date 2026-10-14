@@ -1,4 +1,18 @@
-## 2026-10-14 -- PENDING -- fix(insights): remove duplicate what-if block from patch 9
+## 2026-10-14 -- 804e4eb -- fix(gig): bridge + import gig income to Finances
+
+**Status:** Build #82 pending (pushed, awaiting green)
+**Steps:** (1) 4bc212a: addGigIncome/updateGigIncome/deleteGigIncome now create/update/remove a linked income Transaction (category "Gig Income") so Finances counts gig money. (2) d76db68: corrupt duplicate run, reverted. (3) f71ec34/d966cb8/be2d216: fixed dropped quotes on description string, added dedup guard (skip if Transaction with same gigIncomeId exists). (4) 804e4eb: _importGigJobs runs on startup, pulls gig_jobs from Firebase, creates Transactions for jobs with net > 0 that lack one (dedup by gigIncomeId).
+**Files:**
+- lib/services/app_state.dart -- gig bridge + dedup guard
+- lib/features/haven_central/haven_central_screen.dart -- _importGigJobs + initState call
+- DEV_LOG.md -- this entry
+
+**Why:** GigIncome saved only to local gig list, never created a Transaction, so Finances never counted it. Firebase gig_jobs (July, 17+ entries incl. $218.21 DoorDash) sat unused because nothing subscribed to the stream. Import pulls them into Transactions.
+**Not touched:** GigJob model; FirestoreService gig_jobs methods (already existed); DST fix (still deferred)
+**Next:** #82 green -> install -> verify July gig earnings appear in Finances income; verify new gig entry adds to income without duplicate
+**Caveat:** Gig entries saved before the bridge have no Transactions until re-saved or imported.
+
+---## 2026-10-14 -- PENDING -- fix(insights): remove duplicate what-if block from patch 9
 
 **Status:** PENDING push
 **Steps:** Patch 9's brace counter stopped at the `};` of the fixedCats set (a set literal inside a comment-anchored block), replacing only 5 lines. The old unguarded block remained below, leaving two `final varEntries` declarations in one scope. Build b72 red with `'varEntries' is already defined`. Patch 10 deletes the duplicate block.
