@@ -309,6 +309,10 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                     final home = _homeComparativeInsight(transactions);
                     final filtered =
                         insights.where((i) => i != home).toList();
+                        if (filtered.isEmpty) {
+                          filtered.add('Nothing new yet. '
+                              'More insights appear as the month goes on.');
+                        }
                     _showInsightsSheet(filtered).then((_) {
                       _insightsOpen = false;
                     });
@@ -472,6 +476,24 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
       }
     }
 
+    // Budget status (80%+)
+    if (budgets.isNotEmpty) {
+      final monthKey = DateFormat('yyyy-MM').format(now);
+      final relevant = budgets.where((b) => b.month == monthKey).toList();
+      for (final budget in relevant) {
+        final spent = curByCat[budget.category] ?? 0;
+        final percent = budget.limit > 0
+            ? (spent / budget.limit * 100)
+            : 0;
+        if (percent >= 80) {
+          insights.add('${budget.category} budget is at '
+              '${percent.toStringAsFixed(0)}% '
+              '(${_money(spent, decimals: 0)} of '
+              '${_money(budget.limit, decimals: 0)}).');
+        }
+      }
+    }
+
     // What-if on top variable category
     const fixedCats = {
       'Rent', 'Housing', 'Utilities', 'Power', 'Water',
@@ -492,24 +514,6 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
       if (weeklyCut >= 1.0) {
         insights.add('Cut ${_money(weeklyCut, decimals: 0)}/week from '
             '${top.key} -> ${_money(yearlySave, decimals: 0)}/year back.');
-      }
-    }
-
-    // Budget status (80%+)
-    if (budgets.isNotEmpty) {
-      final monthKey = DateFormat('yyyy-MM').format(now);
-      final relevant = budgets.where((b) => b.month == monthKey).toList();
-      for (final budget in relevant) {
-        final spent = curByCat[budget.category] ?? 0;
-        final percent = budget.limit > 0
-            ? (spent / budget.limit * 100)
-            : 0;
-        if (percent >= 80) {
-          insights.add('${budget.category} budget is at '
-              '${percent.toStringAsFixed(0)}% '
-              '(${_money(spent, decimals: 0)} of '
-              '${_money(budget.limit, decimals: 0)}).');
-        }
       }
     }
 
