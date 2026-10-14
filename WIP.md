@@ -4,7 +4,7 @@
 **Active task:** Insights accuracy fix (5 bugs, 8 patches)
 **Driver:** DeepSeek (via David's PC)
 **Branch:** main
-**HEAD:** 49edb36 (push pending)
+**HEAD:** 371e7bb (b72); patch 9 pending
 
 ## Status: IN PROGRESS
 
@@ -21,6 +21,8 @@
 - [x] Patch 6: What-if - fixed-cat skip + 10% extrapolated
 - [x] Patch 7: Engine budget text unclamped
 - [x] Patch 8: Budgets screen - text/color unclamped, bar clamped
+- [x] Patch 9: What-if guards (day >= 10, cut >= - [x] Patch 8: Budgets screen - text/color unclamped, bar clamped
+, Equipment skipped)
 - [ ] Commit + push
 - [ ] Cloud build green
 - [ ] Install on phone, tap-test:

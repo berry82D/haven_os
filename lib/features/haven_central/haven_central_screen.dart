@@ -476,7 +476,24 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
     const fixedCats = {
       'Rent', 'Housing', 'Utilities', 'Power', 'Water',
       'Internet', 'Phone', 'Healthcare', 'Other', 'General',
+      'Equipment',
     };
+    final varEntries = curByCat.entries
+        .where((e) => !fixedCats.contains(e.key))
+        .toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    if (varEntries.isNotEmpty && now.day >= 10) {
+      final top = varEntries.first;
+      final daysInMonth = DateTime(now.year, now.month + 1, 0).day;
+      final monthly = top.value / now.day * daysInMonth;
+      final cutMonthly = monthly * 0.10;
+      final weeklyCut = cutMonthly * 7 / 30;
+      final yearlySave = weeklyCut * 52;
+      if (weeklyCut >= 1.0) {
+        insights.add('Cut ${_money(weeklyCut, decimals: 0)}/week from '
+            '${top.key} -> ${_money(yearlySave, decimals: 0)}/year back.');
+      }
+    }
     final varEntries = curByCat.entries
         .where((e) => !fixedCats.contains(e.key))
         .toList()

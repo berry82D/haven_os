@@ -1,4 +1,4 @@
-## 2026-10-14 -- PENDING -- fix(insights): accuracy pass - partial months, tone, what-if, clamp
+## 2026-10-14 -- 371e7bb -- b72 -- fix(insights): accuracy pass - partial months, tone, what-if, clamp
 
 **Status:** PENDING push
 **Steps:** 8 patches. Added _spendWindow (day-aligned windows) + _comparativeSentenceFromTotals (shared formatter). Home card and engine comparative now call the same helper, so L287 dedup matches by construction. Engine seed loop day-aligned. Projection gated on now.day >= 15. Tone softened. What-if skips fixed categories; cut = ~10% of extrapolated month. Budget percent unclamped for text and >80 color, clamped only for the bar (engine + budgets screen).
