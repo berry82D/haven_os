@@ -1,4 +1,22 @@
-## 2026-10-14 -- 804e4eb -- fix(gig): bridge + import gig income to Finances
+## 2026-10-15 -- VERIFIED -- b84 (a85fb09) installed on R3GL40HW72K
+
+**Status:** VERIFIED on phone
+**Build:** b84, commit a85fb09, 93.9 MB APK
+**Steps:** Extracted b84 zip, `adb -s R3GL40HW72K install -r` succeeded. First attempt with b81 (be2d216) failed VERSION_DOWNGRADE (phone had 82, APK was 81) - no uninstall performed, switched to b84.
+**Files:** none (verification only)
+**Why:** Close out the category-picker + keyboard WIP and record the install path.
+**Verified on phone:**
+- Category picker: no autofocus on open, single back-out (a85fb09) - PASS
+**Still to verify (pending David):**
+- Home comparative line day-aligned
+- AI Insights dedup (comparative line not repeated in sheet)
+- Budget line shows real percent when overspent
+- Keyboard never covers active field
+- Gig income reaches Finances (bridge suspected broken - see next)
+**Not touched:** code
+**Next:** smoke test remaining items; if gig income missing from Finances, write patch 13 (Firestore bridge)
+
+---## 2026-10-14 -- 804e4eb -- fix(gig): bridge + import gig income to Finances
 
 **Status:** Build #82 pending (pushed, awaiting green)
 **Steps:** (1) 4bc212a: addGigIncome/updateGigIncome/deleteGigIncome now create/update/remove a linked income Transaction (category "Gig Income") so Finances counts gig money. (2) d76db68: corrupt duplicate run, reverted. (3) f71ec34/d966cb8/be2d216: fixed dropped quotes on description string, added dedup guard (skip if Transaction with same gigIncomeId exists). (4) 804e4eb: _importGigJobs runs on startup, pulls gig_jobs from Firebase, creates Transactions for jobs with net > 0 that lack one (dedup by gigIncomeId).
