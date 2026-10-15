@@ -58,7 +58,7 @@ class AppState extends ChangeNotifier {
 
   bool _pinVerifiedForUserId = false;
   String? _verifiedUserId;
-  DateTime? _sessionStartTime;
+  DateTime? _backgroundedAt;
   bool get pinVerified =>
       _pinVerifiedForUserId && _verifiedUserId == _currentUser?.id;
   bool get isPinVerified => pinVerified;
@@ -67,11 +67,10 @@ class AppState extends ChangeNotifier {
     if (verified) {
       _pinVerifiedForUserId = true;
       _verifiedUserId = _currentUser?.id;
-      _sessionStartTime = DateTime.now();
+      _backgroundedAt = null;
     } else {
       _pinVerifiedForUserId = false;
       _verifiedUserId = null;
-      _sessionStartTime = null;
     }
     notifyListeners();
   }
@@ -79,28 +78,27 @@ class AppState extends ChangeNotifier {
   void lockApp() {
     _pinVerifiedForUserId = false;
     _verifiedUserId = null;
-    _sessionStartTime = null;
     notifyListeners();
+  }
+
+  void markBackgrounded() {
+    _backgroundedAt = DateTime.now();
+  }
+
+  void clearBackgrounded() {
+    _backgroundedAt = null;
   }
 
   bool needsPinReentry() {
     if (_currentUser == null) return false;
     if (!isPinEnabled) return false;
-    if (pinVerified) {
-      if (_sessionStartTime != null) {
-        final elapsed = DateTime.now().difference(_sessionStartTime!);
-        if (elapsed > const Duration(minutes: 5)) return true;
-      }
-      return false;
-    }
-    return true;
+    if (_backgroundedAt == null) return false;
+    return DateTime.now().difference(_backgroundedAt!) > const Duration(minutes: 5);
   }
-
   void setCurrentUser(UserAccount user) {
     _currentUser = user;
     _pinVerifiedForUserId = false;
     _verifiedUserId = null;
-    _sessionStartTime = null;
     _migrateLegacyData();
     _refreshPinStatus();
     loadHouseholdsAndRequests();
@@ -109,10 +107,10 @@ class AppState extends ChangeNotifier {
 
   void signIn(UserAccount user) {
     setCurrentUser(user);
+    setPinVerified(true);
 
   }
 
-  void unlockApp() => setPinVerified(true);
 
   Future<bool> verifyPinAndUnlock(String pin) async {
     if (_currentUser == null) return false;
@@ -143,7 +141,6 @@ class AppState extends ChangeNotifier {
     _currentUser = null;
     _pinVerifiedForUserId = false;
     _verifiedUserId = null;
-    _sessionStartTime = null;
     _currentUserHasPin = false;
     _joinRequests = [];
     _households = [];
@@ -664,7 +661,6 @@ class AppState extends ChangeNotifier {
     if (u != null) _currentUser = u;
     _pinVerifiedForUserId = false;
     _verifiedUserId = null;
-    _sessionStartTime = null;
     _refreshPinStatus();
     _saveData();
     notifyListeners();
@@ -677,7 +673,6 @@ class AppState extends ChangeNotifier {
     if (u != null) _currentUser = u;
     _pinVerifiedForUserId = false;
     _verifiedUserId = null;
-    _sessionStartTime = null;
     _refreshPinStatus();
     _saveData();
     notifyListeners();

@@ -6,8 +6,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../../services/app_state.dart';
 import '../../../services/firebase_auth_service.dart';
-import '../../../services/auth_service.dart';
-import 'pin_entry_screen.dart';
 import '../../../models/user_account.dart';
 import '../../../models/household.dart';
 import '../../../services/household_cloud_service.dart';
@@ -216,23 +214,12 @@ class _SignInScreenState extends State<SignInScreen> {
 
     setState(() => _isLoading = false);
 
-    final hasPin = await AuthService.hasPin(u.id);
-    if (!mounted) return;
-    if (hasPin) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (_) => PinEntryScreen(username: displayUsername),
-        ),
-      );
-    } else {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (_) => HavenCentralScreen(username: displayUsername),
-        ),
-      );
-    }
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (_) => HavenCentralScreen(username: displayUsername),
+      ),
+    );
   }
 
   Future<void> _signIn() async {

@@ -1,3 +1,15 @@
+## 2026-10-15 -- PROJECTION + PIN RE-ENTRY -- fix(projection): current-month pace; fix(auth): PIN only on re-entry after 5-min background
+**Steps:** Projection uses MTD pace (day >= 15) else last complete month. PIN gate moved from after-login to app-resume-after-5-min-background. signIn marks session verified. PinEntryScreen pops back to Home. Home observes lifecycle, pushes PIN screen on resume when needsPinReentry. PopScope back-button block attempted then reverted (broke parse).
+**Files:** haven_central_screen.dart (projection + lifecycle observer), app_state.dart (background tracking, needsPinReentry rewrite, unlockApp deleted, _sessionStartTime removed), sign_in_screen.dart (straight to Home), pin_entry_screen.dart (pop on success).
+**Why:** Projection was $30k fantasy (Aug outlier + partial Oct in average). PIN-after-login was an extra step; PIN's real job is locking on return. Password proves identity at login; PIN locks when you walk away.
+**Not touched:** PIN setup UI, biometric unlock, Insights projection.
+**Next:** Phone verify PIN re-entry + projection. Then next audit item.
+## 2026-10-15 -- PROJECTION + PIN RE-ENTRY -- fix(projection): current-month pace; fix(auth): PIN only on re-entry after 5-min background
+**Steps:** Projection uses MTD pace (day >= 15) else last complete month. PIN gate moved from after-login to app-resume-after-5-min-background. signIn marks session verified. PinEntryScreen pops back to Home, back button blocked. Home observes lifecycle, pushes PIN screen on resume when needsPinReentry.
+**Files:** haven_central_screen.dart (projection + lifecycle observer), app_state.dart (background tracking, needsPinReentry rewrite, unlockApp deleted), sign_in_screen.dart (straight to Home), pin_entry_screen.dart (pop + PopScope).
+**Why:** Projection was $30k fantasy (Aug outlier + partial Oct in average). PIN-after-login was an extra step; PIN's real job is locking on return. Password proves identity at login; PIN locks when you walk away.
+**Not touched:** PIN setup UI, biometric unlock, Insights projection.
+**Next:** Phone verify PIN re-entry + projection. Then next audit item.
 ## 2026-10-15 -- P0-1c -- verify: PIN paths traced, unlockApp bypass still present
 
 **Status:** Verified on origin; unlockApp deletion pending

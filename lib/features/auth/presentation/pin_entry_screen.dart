@@ -26,15 +26,18 @@ class _PinEntryScreenState extends State<PinEntryScreen> {
   }
 
   void _goHome() {
-    final username = widget.username ?? context.read<AppState>().currentUser?.name ?? '';
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (_) => HavenCentralScreen(username: username),
-      ),
-    );
+    if (Navigator.canPop(context)) {
+      Navigator.pop(context);
+    } else {
+      final username = widget.username ?? context.read<AppState>().currentUser?.name ?? '';
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => HavenCentralScreen(username: username),
+        ),
+      );
+    }
   }
-
   Future<void> _submitPin() async {
     final pin = _pinCtrl.text.trim();
     if (pin.isEmpty) {

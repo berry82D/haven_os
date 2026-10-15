@@ -1,4 +1,5 @@
 import 'dart:async';
+import '../auth/presentation/pin_entry_screen.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -69,7 +70,7 @@ class HavenCentralScreen extends StatefulWidget {
   State<HavenCentralScreen> createState() => _HavenCentralScreenState();
 }
 
-class _HavenCentralScreenState extends State<HavenCentralScreen> {
+class _HavenCentralScreenState extends State<HavenCentralScreen> with WidgetsBindingObserver {
   int _currentIndex = 0;
   bool _showCumulativeLine = false;
   String _financesPeriod = 'month';
@@ -77,6 +78,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
   int? _financesWeekIdx;
   final TextEditingController _txSearchCtrl = TextEditingController();
   bool _insightsOpen = false;
+  bool _pinScreenOpen = false;
   bool _showRecentActivity = true;
   final FirestoreService _firestore = FirestoreService();
   final TextEditingController _loanNameController = TextEditingController();
@@ -99,9 +101,28 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
 
   @override
   void initState() {
+    WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) { if (mounted) RequireEmailDialog.checkAndPrompt(context); _importGigJobs(); });
 
     super.initState();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused) {
+      context.read<AppState>().markBackgrounded();
+    } else if (state == AppLifecycleState.resumed) {
+      final appState = context.read<AppState>();
+      if (!_pinScreenOpen && appState.needsPinReentry()) {
+        _pinScreenOpen = true;
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const PinEntryScreen()),
+        ).then((_) {
+          _pinScreenOpen = false;
+        });
+      }
+    }
   }
 
   // One-time import: pull gig_jobs from Firebase into Transactions.
@@ -140,6 +161,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _loanNameController.dispose();
     _loanPrincipalController.dispose();
     _loanRateController.dispose();
@@ -843,7 +865,26 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
     final avgSavings = validMonths.isNotEmpty
         ? validMonths.fold(0.0, (s, m) => s + (m['net'] as double)) / validMonths.length
         : 0.0;
-    final projectedNet = allTimeNet + avgSavings * 12;
+    // Projection: current-month pace (day >= 15), else last complete month.
+    // Historical average is skewed by outliers and partial months.
+    final nowProj = DateTime.now();
+    final daysInProjMonth = DateTime(nowProj.year, nowProj.month + 1, 0).day;
+    double monthlyPace;
+    if (nowProj.day >= 15) {
+      final projMonthStart = DateTime(nowProj.year, nowProj.month, 1);
+      final mtdTxs = transactions.where((t) => !t.date.isBefore(projMonthStart) && !t.date.isAfter(nowProj));
+      final mtdInc = mtdTxs.where((t) => t.isIncome).fold(0.0, (s, t) => s + t.amount);
+      final mtdExp = mtdTxs.where((t) => !t.isIncome).fold(0.0, (s, t) => s + t.amount);
+      monthlyPace = (mtdInc - mtdExp) / nowProj.day * daysInProjMonth;
+    } else {
+      final lastStart = DateTime(nowProj.year, nowProj.month - 1, 1);
+      final lastEnd = DateTime(nowProj.year, nowProj.month, 1);
+      final lastTxs = transactions.where((t) => !t.date.isBefore(lastStart) && t.date.isBefore(lastEnd));
+      final lastInc = lastTxs.where((t) => t.isIncome).fold(0.0, (s, t) => s + t.amount);
+      final lastExp = lastTxs.where((t) => !t.isIncome).fold(0.0, (s, t) => s + t.amount);
+      monthlyPace = lastTxs.isNotEmpty ? (lastInc - lastExp) : avgSavings;
+    }
+    final projectedNet = allTimeNet + monthlyPace * 12;
     double maxVal = 0;
     for (var data in monthlyData) {
       final inc = data['income'] as double;
