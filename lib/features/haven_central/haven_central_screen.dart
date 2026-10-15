@@ -1349,9 +1349,12 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
 
   Widget _buildBudgetTab(List<Budget> budgets, List<Transaction> transactions) {
     final monthKey = DateFormat('yyyy-MM').format(DateTime.now());
+    final nowForBudget = DateTime.now();
+    final monthStart = DateTime(nowForBudget.year, nowForBudget.month, 1);
+    final monthEnd = DateTime(nowForBudget.year, nowForBudget.month + 1, 1);
     final monthBudgets = budgets.where((b) => b.month == monthKey).toList();
     final incomes =
-        transactions.where((t) => t.isIncome).fold(0.0, (s, t) => s + t.amount);
+        transactions.where((t) => t.isIncome && !t.date.isBefore(monthStart) && t.date.isBefore(monthEnd)).fold(0.0, (s, t) => s + t.amount);
     return Container(
         color: const Color(0xFF121212),
         child: ListView(padding: const EdgeInsets.all(16), children: [
@@ -1386,7 +1389,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
           else
            ...monthBudgets.map((budget) {
               final spent = transactions
-                 .where((t) =>!t.isIncome && t.category == budget.category)
+                 .where((t) => !t.isIncome && t.category == budget.category && !t.date.isBefore(monthStart) && t.date.isBefore(monthEnd))
                  .fold(0.0, (s, t) => s + t.amount);
               final left = budget.limit - spent;
               final rawPercent = budget.limit > 0
