@@ -1,4 +1,13 @@
-## 2026-10-15 -- P0-1b -- fix(auth): PIN setup UI in Settings (was missing)
+## 2026-10-15 -- P0-1c -- verify: PIN paths traced, unlockApp bypass still present
+
+**Status:** Verified on origin; unlockApp deletion pending
+**Steps:** Traced all PIN paths against origin/main after e70abe4: (1) login -> hasPin check -> PIN screen or Home - PASS (2) correct PIN -> Home - PASS (3) biometrics -> Home - PASS (4) forgot PIN -> Sign In - PASS (5) signIn no longer auto-verifies - PASS (6) no demo button, no /home route - PASS. Found: unlockApp() still exists (app_state.dart:115), dead code that still sets pinVerified=true with no check. PIN setup UI (e70abe4) landed on origin AFTER the trace - trace "local only" note is stale.
+**Files:** none (verification only)
+**Why:** Verify P0-1 end-to-end before phone test. unlockApp() is a loaded gun - if future code calls it, the bypass returns. Delete it.
+**Not touched:** code (deletion script given, not yet run)
+**Next:** Delete unlockApp() -> push -> build green -> phone verify PIN gate + setup.
+
+---## 2026-10-15 -- P0-1b -- fix(auth): PIN setup UI in Settings (was missing)
 
 **Status:** Pushed, awaiting build + phone verification
 **Steps:** Added PIN Lock tile to live Settings dialog (_showSettings) + _showPinSetup dialog (new PIN + confirm, min 4 digits, Remove PIN when set). P0-1 built the gate but no UI existed to set a PIN — Settings had no PIN option at all.
