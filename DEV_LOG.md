@@ -1,4 +1,20 @@
-## 2026-10-15 -- e3206da + fb7fc93 -- fix(math audit): Budgets month filter + chart off-by-one
+## 2026-10-15 -- P0-1 -- fix(auth): real PIN gate + biometric unlock
+
+**Status:** Pushed, awaiting build + phone verification
+**Steps:** (1) app_state.dart: signIn no longer auto-verifies PIN; added verifyPinAndUnlock() + unlockWithBiometrics() (local_auth). (2) pin_entry_screen.dart: full rewrite - real PIN field, biometric button, forgot-PIN back to sign-in; demo button deleted; /home route fixed to MaterialPageRoute. (3) sign_in_screen.dart: after login, routes to PIN screen when PIN is set, else straight to Home. (4) pubspec.yaml: local_auth ^2.3.0. (5) AndroidManifest: USE_BIOMETRIC permission. (6) WIP.md: P0-1 as active ticket.
+**Files:**
+- lib/services/app_state.dart -- PIN/biometric unlock methods, signIn fix
+- lib/features/auth/presentation/pin_entry_screen.dart -- full rewrite
+- lib/features/auth/presentation/sign_in_screen.dart -- PIN routing
+- pubspec.yaml -- local_auth
+- android/app/src/main/AndroidManifest.xml -- USE_BIOMETRIC
+- WIP.md + DEV_LOG.md -- this entry
+
+**Why:** P0-1 - PIN "Unlock (demo)" button bypassed PIN entirely; signIn() set pinVerified=true; login went straight to Home with no PIN gate. PIN is a shortcut password (4-6 digits) for quick unlock; biometrics (fingerprint/face) is an alternate unlock. Forgot-PIN path goes back to sign-in so no lockout.
+**Not touched:** P0-2..P0-25, Insights #4, #6 Left - queued. Audit reports on GitHub (bdb5504).
+**Next:** Build green -> install -> phone verify per WIP checklist (correct PIN, wrong PIN, fingerprint, no-PIN straight to Home).
+
+---## 2026-10-15 -- e3206da + fb7fc93 -- fix(math audit): Budgets month filter + chart off-by-one
 
 **Status:** Pushed, awaiting build + phone verification
 **Steps:** (1) e3206da: Budgets tab filtered `incomes` + `spent` to current month (added monthStart/monthEnd). (2) fb7fc93: monthly chart buckets use `!isBefore(monthStart)` instead of `isAfter(monthStart - 1 day)` — last day of prev month no longer counted twice.

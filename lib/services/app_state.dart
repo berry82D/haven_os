@@ -1,5 +1,6 @@
 // lib/services/app_state.dart
 import 'package:flutter/material.dart';
+import 'package:local_auth/local_auth.dart';
 import 'package:haven_os/core/storage/storage_service.dart';
 import 'package:haven_os/domain/services/finance_service.dart';
 import 'package:haven_os/domain/services/farm_service.dart';
@@ -108,10 +109,34 @@ class AppState extends ChangeNotifier {
 
   void signIn(UserAccount user) {
     setCurrentUser(user);
-    setPinVerified(true);
+
   }
 
   void unlockApp() => setPinVerified(true);
+
+  Future<bool> verifyPinAndUnlock(String pin) async {
+    if (_currentUser == null) return false;
+    final ok = await AuthService.verifyPin(_currentUser!.id, pin);
+    if (ok) setPinVerified(true);
+    return ok;
+  }
+
+  Future<bool> unlockWithBiometrics() async {
+    if (_currentUser == null) return false;
+    try {
+      final auth = LocalAuthentication();
+      final available = await auth.getAvailableBiometrics();
+      if (available.isEmpty) return false;
+      final didAuth = await auth.authenticate(
+        localizedReason: 'Unlock Haven OS',
+        options: const AuthenticationOptions(biometricOnly: true),
+      );
+      if (didAuth) setPinVerified(true);
+      return didAuth;
+    } catch (_) {
+      return false;
+    }
+  }
 
   void logout() async {
     await AuthService.logout();

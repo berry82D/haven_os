@@ -1,39 +1,39 @@
 # WORK IN PROGRESS
 
-**Last touched:** 2026-10-14
-**Active task:** Insights accuracy fix (5 bugs, 8 patches)
-**Driver:** DeepSeek (via David's PC)
+**Last touched:** 2026-10-15
+**Active task:** P0-1 PIN bypass + biometrics
+**Driver:** Rocky (design) / David (PC)
 **Branch:** main
-**HEAD:** b80bcfd (b72 red); patch 10 fixes
+**HEAD:** bdb5504 (audits on GitHub)
 
 ## Status: IN PROGRESS
 
-### Prior tasks (still awaiting phone verify)
-- [x] Compact searchable category picker (b71 green)
-- [x] Keyboard fix (b70/b71 green)
+### Done (awaiting phone verify)
+- [x] Budgets month filter (e3206da) — spent + income filtered to current month
+- [x] Chart off-by-one (fb7fc93) — inclusive month start
+- [x] DEV_LOG entry for both fixes (5f72071)
+- [x] Audit files on GitHub (bdb5504)
 
-### Insights accuracy fix
-- [x] Patch 1: _spendWindow + _comparativeSentenceFromTotals helpers
-- [x] Patch 2: _homeComparativeInsight uses helpers
-- [x] Patch 3: Engine seed loop day-aligned
-- [x] Patch 4: Engine comparative uses shared helper (fixes dedup)
-- [x] Patch 5: Projection gate (day >= 15) + tone fix
-- [x] Patch 6: What-if - fixed-cat skip + 10% extrapolated
-- [x] Patch 7: Engine budget text unclamped
-- [x] Patch 8: Budgets screen - text/color unclamped, bar clamped
-- [x] Patch 9: What-if guards (day >= 10, cut >= - [x] Patch 8: Budgets screen - text/color unclamped, bar clamped
-- [x] Patch 10: delete duplicate what-if block (b72 fix)
-- [x] Patch 10: delete duplicate what-if block (b72 fix)
-, Equipment skipped)
-- [ ] Commit + push
+### P0-1 PIN bypass + biometrics
+- [x] WIP updated (this file)
+- [ ] pubspec.yaml: add local_auth
+- [ ] AndroidManifest: add USE_BIOMETRIC permission
+- [ ] app_state.dart: signIn stops auto-verifying PIN; add unlockWithBiometrics()
+- [ ] pin_entry_screen.dart: real PIN field + biometric button, remove demo button, fix /home route
+- [ ] sign_in_screen.dart: route through PIN screen when PIN enabled
 - [ ] Cloud build green
-- [ ] Install on phone, tap-test:
-  - [ ] Compact picker: type "tra" -> Transport
-  - [ ] Keyboard never covers active field
-  - [ ] Comparative uses same-days window (not all of last month)
-  - [ ] What-if does NOT fire on Housing/Utilities
-  - [ ] 150% budget shows 150%, not 100%
-  - [ ] Tone: "So far this month: spending is $X above income"
+- [ ] Phone verify:
+  - [ ] Login with PIN set -> PIN screen appears (not straight to Home)
+  - [ ] Correct PIN -> Home
+  - [ ] Wrong PIN -> error, stays locked
+  - [ ] Fingerprint -> Home (if enrolled)
+  - [ ] No PIN set -> straight to Home (no PIN screen)
+
+### Queued next (from audits)
+- [ ] Insights #4 projection extrapolation
+- [ ] #6 Left / bills double-count
+- [ ] P0-8 / P0-9 / P0-15 (load guards, budget doc IDs, amount validation)
+- [ ] Dead-path sign bugs (#10-14)
 
 ## Rule (Law 18)
 WIP.md deleted ONLY after install + real-phone verification.
