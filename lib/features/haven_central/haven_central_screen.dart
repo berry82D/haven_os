@@ -2792,7 +2792,6 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                           style: TextStyle(color: Colors.grey)))
                 ]));
   }
-}
 
   void _showPinSetup() {
     final appState = context.read<AppState>();
@@ -2866,6 +2865,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
             ));
   }
 
+}
 class _LegendItem extends StatelessWidget {
   final Color color;
   final String label;
