@@ -1683,7 +1683,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
         TextEditingController(text: existingTransaction?.notes?? '');
     DateTime selectedDate = existingTransaction?.date?? DateTime.now();
     bool isIncome = existingTransaction?.isIncome?? false;
-    String selectedCategory = existingTransaction?.category?? 'General';
+    String selectedCategory = existingTransaction?.category?? (isIncome ? 'Salary' : 'Gas');
     bool _isScanning = false;
 
     void _parseReceiptTextForForm(String text, TextEditingController descCtrl,
