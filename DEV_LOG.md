@@ -1,4 +1,27 @@
-## 2026-10-15 -- VERIFIED -- b84 (a85fb09) installed on R3GL40HW72K
+## 2026-10-15 -- e3206da + fb7fc93 -- fix(math audit): Budgets month filter + chart off-by-one
+
+**Status:** Pushed, awaiting build + phone verification
+**Steps:** (1) e3206da: Budgets tab filtered `incomes` + `spent` to current month (added monthStart/monthEnd). (2) fb7fc93: monthly chart buckets use `!isBefore(monthStart)` instead of `isAfter(monthStart - 1 day)` — last day of prev month no longer counted twice.
+**Files:**
+- lib/features/haven_central/haven_central_screen.dart -- both fixes
+- DEV_LOG.md -- this entry
+
+**Why:** Full math audit (Oct 15) found Budgets tab compared ALL-TIME spend/income vs this month's budget (Groceries $500 budget showed $8,000 spent). Chart off-by-one counted Sep 30 expense in BOTH Sep and Oct, corrupting chart + projection.
+**Not touched:** Insights projection (#4), Left bills double-count (#6), PIN bypass (P0-1) — queued next. Audit reports prepared for Claude review before audit DEV_LOG entry.
+**Next:** Build green -> install -> verify Budgets tab shows October-only numbers; verify Sep 30 transaction appears in September only.
+
+---## 2026-10-15 -- a85fb09 -- phone verify: Add Transaction form working
+
+**Status:** VERIFIED on phone (David, Oct 15)
+**Steps:** Category picker: 1 open, 1 close (PASS — earlier "double-layer" read was a misread; same sheet, keyboard open vs closed). Income/Expense toggle: Expense stays selected when Description tapped (PASS). Keyboard: active field visible above keyboard (PASS).
+**Files:**
+- lib/features/haven_central/haven_central_screen.dart -- autofocus false on category search
+- DEV_LOG.md -- this entry
+**Why:** Category picker autofocus opened keyboard on sheet open, expanding it to full-screen. Removing autofocus keeps the sheet compact.
+**Not touched:** General default category (still open, minor); gig doubles (Candice review pending)
+**Next:** Loan insight (NEXT #1) — Records -> Loans form, live affordability what-if
+
+---## 2026-10-15 -- VERIFIED -- b84 (a85fb09) installed on R3GL40HW72K
 
 **Status:** VERIFIED on phone
 **Build:** b84, commit a85fb09, 93.9 MB APK
