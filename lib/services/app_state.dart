@@ -59,6 +59,7 @@ class AppState extends ChangeNotifier {
   bool _pinVerifiedForUserId = false;
   String? _verifiedUserId;
   DateTime? _backgroundedAt;
+  String? lastBiometricError;
   bool get pinVerified =>
       _pinVerifiedForUserId && _verifiedUserId == _currentUser?.id;
   bool get isPinVerified => pinVerified;
@@ -124,14 +125,15 @@ class AppState extends ChangeNotifier {
     try {
       final auth = LocalAuthentication();
       final available = await auth.getAvailableBiometrics();
-      if (available.isEmpty) return false;
+      if (available.isEmpty) { lastBiometricError = "No biometrics available"; return false; }
       final didAuth = await auth.authenticate(
         localizedReason: 'Unlock Haven OS',
         options: const AuthenticationOptions(biometricOnly: true),
       );
       if (didAuth) setPinVerified(true);
       return didAuth;
-    } catch (_) {
+    } catch (e) {
+      lastBiometricError = e.toString();
       return false;
     }
   }

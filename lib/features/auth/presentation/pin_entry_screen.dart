@@ -63,7 +63,8 @@ class _PinEntryScreenState extends State<PinEntryScreen> {
     if (ok) {
       _goHome();
     } else {
-      setState(() => _error = 'Biometric unlock failed - enter your PIN');
+      final bioErr = context.read<AppState>().lastBiometricError;
+      setState(() => _error = bioErr != null ? 'Biometric failed: ' + bioErr : 'Biometric unlock failed - enter your PIN');
     }
   }
 
