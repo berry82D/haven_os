@@ -1,4 +1,16 @@
-## 2026-10-15 -- P0-1 -- fix(auth): real PIN gate + biometric unlock
+## 2026-10-15 -- P0-1b -- fix(auth): PIN setup UI in Settings (was missing)
+
+**Status:** Pushed, awaiting build + phone verification
+**Steps:** Added PIN Lock tile to live Settings dialog (_showSettings) + _showPinSetup dialog (new PIN + confirm, min 4 digits, Remove PIN when set). P0-1 built the gate but no UI existed to set a PIN — Settings had no PIN option at all.
+**Files:**
+- lib/features/haven_central/haven_central_screen.dart -- PIN tile + _showPinSetup
+- DEV_LOG.md -- this entry
+
+**Why:** b90 installed, David reported "no pin / not in settings" — the gate works but users had no way to create a PIN. Now: Settings -> PIN Lock -> set PIN -> sign out/in -> PIN screen appears.
+**Not touched:** Insights #4, #6 Left, P0-2..P0-25 — queued.
+**Next:** Build green -> install -> Settings -> PIN Lock -> set PIN -> sign out/in -> verify PIN gate + fingerprint.
+
+---## 2026-10-15 -- P0-1 -- fix(auth): real PIN gate + biometric unlock
 
 **Status:** Pushed, awaiting build + phone verification
 **Steps:** (1) app_state.dart: signIn no longer auto-verifies PIN; added verifyPinAndUnlock() + unlockWithBiometrics() (local_auth). (2) pin_entry_screen.dart: full rewrite - real PIN field, biometric button, forgot-PIN back to sign-in; demo button deleted; /home route fixed to MaterialPageRoute. (3) sign_in_screen.dart: after login, routes to PIN screen when PIN is set, else straight to Home. (4) pubspec.yaml: local_auth ^2.3.0. (5) AndroidManifest: USE_BIOMETRIC permission. (6) WIP.md: P0-1 as active ticket.

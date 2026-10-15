@@ -2749,6 +2749,18 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                             content: Text('Reports coming soon'),
                             backgroundColor: Colors.grey));
                       }),),
+                  Material(type: MaterialType.transparency, child: ListTile(
+                      title: const Text('PIN Lock',
+                          style: TextStyle(color: Colors.white)),
+                      subtitle: Text(
+                          context.read<AppState>().isPinEnabled ? 'PIN is set' : 'No PIN set',
+                          style: const TextStyle(color: Colors.grey)),
+                      leading: const Icon(Icons.lock_outline,
+                          color: Colors.tealAccent),
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        _showPinSetup();
+                      }),),
                   const Divider(color: Colors.grey),const Divider(color: Colors.grey),
                   Material(type: MaterialType.transparency, child: ListTile(
                       title: const Text('Logout',
@@ -2781,6 +2793,78 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                 ]));
   }
 }
+
+  void _showPinSetup() {
+    final appState = context.read<AppState>();
+    final pinCtrl = TextEditingController();
+    final confirmCtrl = TextEditingController();
+    String? error;
+    showDialog(
+        context: context,
+        builder: (ctx) => StatefulBuilder(
+              builder: (ctx, setDialogState) => AlertDialog(
+                    backgroundColor: const Color(0xFF1E1E1E),
+                    title: const Text('PIN Lock', style: TextStyle(color: Colors.white)),
+                    content: Column(mainAxisSize: MainAxisSize.min, children: [
+                      Text(
+                        appState.isPinEnabled ? 'PIN is set' : 'No PIN set',
+                        style: const TextStyle(color: Colors.grey),
+                      ),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: pinCtrl,
+                        obscureText: true,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(labelText: 'New PIN', border: OutlineInputBorder()),
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: confirmCtrl,
+                        obscureText: true,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(labelText: 'Confirm PIN', border: OutlineInputBorder()),
+                      ),
+                      if (error != null) ...[
+                        const SizedBox(height: 12),
+                        Text(error!, style: const TextStyle(color: Colors.red)),
+                      ],
+                    ]),
+                    actions: [
+                      if (appState.isPinEnabled)
+                        TextButton(
+                          onPressed: () async {
+                            await appState.disablePin();
+                            if (!mounted) return;
+                            Navigator.pop(ctx);
+                          },
+                          child: const Text('Remove PIN', style: TextStyle(color: Colors.red)),
+                        ),
+                      TextButton(
+                        onPressed: () => Navigator.pop(ctx),
+                        child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+                      ),
+                      ElevatedButton(
+                        onPressed: () async {
+                          final pin = pinCtrl.text.trim();
+                          final confirm = confirmCtrl.text.trim();
+                          if (pin.length < 4) {
+                            setDialogState(() => error = 'PIN must be at least 4 digits');
+                            return;
+                          }
+                          if (pin != confirm) {
+                            setDialogState(() => error = 'PINs do not match');
+                            return;
+                          }
+                          await appState.enablePin(pin);
+                          if (!mounted) return;
+                          Navigator.pop(ctx);
+                        },
+                        child: const Text('Save'),
+                      ),
+                    ],
+                  ),
+            ));
+  }
 
 class _LegendItem extends StatelessWidget {
   final Color color;
