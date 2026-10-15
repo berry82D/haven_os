@@ -2089,7 +2089,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
                       const SizedBox(height: 12),
                       TextField(
                         controller: searchCtrl,
-                        autofocus: true,
+                        autofocus: false,
                         style: const TextStyle(color: Colors.white),
                         onChanged: (v) => setSheet(() => query = v),
                         decoration: const InputDecoration(
