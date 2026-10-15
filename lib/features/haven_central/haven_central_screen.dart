@@ -826,7 +826,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> {
       final monthStart = DateTime(month.year, month.month, 1);
       final monthEnd = DateTime(month.year, month.month + 1, 1);
       final monthTxs = transactions.where((t) =>
-          t.date.isAfter(monthStart.subtract(const Duration(days: 1))) &&
+          !t.date.isBefore(monthStart) &&
           t.date.isBefore(monthEnd));
       final inc = monthTxs.where((t) => t.isIncome).fold(0.0, (s, t) => s + t.amount);
       final exp = monthTxs.where((t) => !t.isIncome).fold(0.0, (s, t) => s + t.amount);
