@@ -1,3 +1,22 @@
+## 2026-10-16 -- PLAN -- Single entry point for all transactions (1 entry point)
+**Status:** PLANNED, not yet built. Log first, build after (Law 16).
+**Problem:** 4 entry paths create the same kind of income in different shapes, and neither the Gig tab nor Finances sees the full picture. Proof: Gig tab shows only $25.92 (Oct 14, Gig form); Finances search "spark" shows only Trip #9308 $50.22 (Oct 5, Scan Receipt). Same income type, two silos.
+**Entry paths today:**
+1. Gig form -> GigIncome (+ linked Transaction via bridge)
+2. Finances Add Transaction -> Transaction only
+3. Scan Receipt (Gallery/Camera) -> Transaction only
+4. Import (gig_jobs) -> Transaction only
+**Plan -- 1 entry point:**
+- One "+" opens the Add Transaction sheet. That sheet is the ONLY user entry point.
+- Gig tab "+" routes to the same sheet, pre-set to Gig (platform + miles fields appear).
+- Scan Receipt fills the same sheet (user reviews, then saves). It never saves directly.
+- Import stays background sync (not a user entry point). It creates both Transaction + GigIncome.
+- One save path: Income + gig -> creates Transaction + GigIncome together. Everything else -> just Transaction.
+- Gig tab reads GigIncome + gig Transactions, deduped by link, grouped by platform. Finances counts Transactions.
+- Scan rule: one Transaction per TRIP (not per stop/order). Amount = Estimated Total (Base + Tips + Boost). Trip # is the dedup key. Tips are estimated (adjustable 24h) -- use final amount when possible.
+**Source data:** 6 Spark trips (Aug 23 - Oct 5): #6162 $18.16, #4970 $14.00, #9914 $18.07, #5553 $36.42, #3797 $30.86, #9308 $50.22. Total $167.73. (Backlog vs already-in-Haven TBD.)
+**Not touched:** Biometric diagnostic (#96), Insights #4, budget doc IDs, Firestore rules versioning.
+**Next:** Build after David approves this plan.
 ## 2026-10-15 -- PROJECTION + PIN RE-ENTRY -- fix(projection): current-month pace; fix(auth): PIN only on re-entry after 5-min background
 **Steps:** Projection uses MTD pace (day >= 15) else last complete month. PIN gate moved from after-login to app-resume-after-5-min-background. signIn marks session verified. PinEntryScreen pops back to Home. Home observes lifecycle, pushes PIN screen on resume when needsPinReentry. PopScope back-button block attempted then reverted (broke parse).
 **Files:** haven_central_screen.dart (projection + lifecycle observer), app_state.dart (background tracking, needsPinReentry rewrite, unlockApp deleted, _sessionStartTime removed), sign_in_screen.dart (straight to Home), pin_entry_screen.dart (pop on success).
