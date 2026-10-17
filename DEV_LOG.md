@@ -1,3 +1,9 @@
+## 2026-10-17 -- PENDING -- feat(reports): read-only Data Check screen (Settings > Reports)
+**Steps:** New screen reads Firestore transactions + gig_jobs (same source as Finances) and prints monthly income/expense/net/running total, duplicate suspects (same gigIncomeId, same date+amount+description), top 15 income rows, income by category, gig jobs with no transaction. Copy summary / Copy all rows (CSV) buttons for pasting into chat.
+**Files:** lib/features/reports/data_check_screen.dart (new), lib/features/haven_central/haven_central_screen.dart (import + Reports row opens the screen), DEV_LOG.md, ROADMAP.md
+**Why:** Net worth and Jul/Aug income need fact-checking against real data without guessing.
+**Not touched:** No writes anywhere (read-only). Net Worth label/starting balance, gig form to Firestore (patch 14), duplicate cleanup.
+**Next:** Green build, open Settings > Reports on phone, paste the summary into chat.
 ## 2026-10-17 -- PENDING -- fix(gig-import): dedup against Firestore, deterministic id, proper-case description
 **Steps:** _importGigJobs now reads existing Firestore transactions and skips any job whose gigIncomeId already exists. New rows use id 'gig_<jobId>' so re-runs overwrite instead of duplicating. Description is '<Platform> Gig Job' (no leading space). Early return on no jobs; mounted check before context use. Repaired two mangled userId/householdId lines.
 **Files:** lib/features/haven_central/haven_central_screen.dart (one function), WIP.md, DEV_LOG.md, ROADMAP.md

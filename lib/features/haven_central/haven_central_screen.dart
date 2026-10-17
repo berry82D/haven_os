@@ -18,6 +18,7 @@ import '../../models/transaction.dart';
 import '../../models/budget.dart';
 import '../../services/firestore_service.dart';
 import '../../screens/gig_income/gig_income_screen.dart';
+import '../reports/data_check_screen.dart';
 
 const List<String> incomeCategories = [
   'Salary',
@@ -2790,15 +2791,13 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> with WidgetsBin
                                     const HouseholdManagementScreen()));
                       }),),
                   Material(type: MaterialType.transparency, child: ListTile(
-                      title: const Text('Reports',
+                      title: const Text('Reports & Data Check',
                           style: TextStyle(color: Colors.white)),
                       leading: const Icon(Icons.description_outlined,
                           color: Colors.tealAccent),
                       onTap: () {
                         Navigator.pop(ctx);
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                            content: Text('Reports coming soon'),
-                            backgroundColor: Colors.grey));
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => const DataCheckScreen()));
                       }),),
                   Material(type: MaterialType.transparency, child: ListTile(
                       title: const Text('PIN Lock',
