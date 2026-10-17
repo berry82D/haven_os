@@ -1,3 +1,9 @@
+## 2026-10-17 -- PENDING -- fix(gig-import): dedup against Firestore, deterministic id, proper-case description
+**Steps:** _importGigJobs now reads existing Firestore transactions and skips any job whose gigIncomeId already exists. New rows use id 'gig_<jobId>' so re-runs overwrite instead of duplicating. Description is '<Platform> Gig Job' (no leading space). Early return on no jobs; mounted check before context use. Repaired two mangled userId/householdId lines.
+**Files:** lib/features/haven_central/haven_central_screen.dart (one function), WIP.md, DEV_LOG.md, ROADMAP.md
+**Why:** Old import deduped against the local list only, so a second phone could re-import the same jobs as duplicates.
+**Not touched:** Existing duplicate rows in Firestore (report first, delete only with approval). Gig form still writes locally only (patch 14).
+**Next:** Green build, phone verify, then patch 14 (gig form writes to Firestore).
 ## 2026-10-16 -- PLAN -- Single entry point for all transactions (1 entry point)
 **Status:** PLANNED, not yet built. Log first, build after (Law 16).
 **Problem:** 4 entry paths create the same kind of income in different shapes, and neither the Gig tab nor Finances sees the full picture. Proof: Gig tab shows only $25.92 (Oct 14, Gig form); Finances search "spark" shows only Trip #9308 $50.22 (Oct 5, Scan Receipt). Same income type, two silos.

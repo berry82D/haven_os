@@ -29,6 +29,7 @@
 - Insights accuracy fix: day-aligned comparisons, honest budget %, warmer tone, category-aware what-if - b72, phone verify pending
 
 ## NOW
+- Gig import dedup against Firestore (patch 13) - pushed 2026-10-17, awaiting build + phone verify. Next: patch 14 (gig form to Firestore).
 1. Phone verify: keyboard fix (b70/b71) — keyboard never covers active field
 2. Phone verify: compact searchable category picker (type "tra" -> Transport)
 3. Close WIP.md (delete) once all above pass

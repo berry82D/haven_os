@@ -125,34 +125,44 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> with WidgetsBin
     }
   }
 
-  // One-time import: pull gig_jobs from Firebase into Transactions.
-  // Dedup by gigIncomeId so re-runs never double-count.
+  // Import: pull gig_jobs from Firebase into Transactions.
+  // Idempotent: deterministic id 'gig_<jobId>' means re-runs overwrite
+  // instead of duplicating (local dedup alone can't catch cross-phone re-imports).
   Future<void> _importGigJobs() async {
     try {
       final jobs = await _firestore.streamGigJobs().first;
+      if (jobs.isEmpty) return;
+      final existingTx = await _firestore.streamTransactions().first;
+      final existingGigIds = existingTx
+          .map((t) => t.gigIncomeId)
+          .where((id) => id != null && id.isNotEmpty)
+          .cast<String>()
+          .toSet();
+      if (!mounted) return;
       final appState = context.read<AppState>();
       for (final job in jobs) {
         if (job.net <= 0) continue;
-        final exists = appState.myTransactions
-            .any((t) => t.gigIncomeId == job.id);
-        if (exists) continue;
+        if (existingGigIds.contains(job.id)) continue;
+        final raw = job.platform.trim();
+        final platform =
+            raw.isEmpty ? '' : (raw[0].toUpperCase() + raw.substring(1));
+        final description =
+            platform.isEmpty ? 'Gig Job' : (platform + ' Gig Job');
         final tx = Transaction(
-          description: ' Gig Job',
+          id: 'gig_' + job.id,
+          description: description,
           date: job.date,
           amount: job.net,
           isIncome: true,
           category: 'Gig Income',
-          userId: appState.currentUser?.id ?? 
-''
-,
-          householdId: appState.currentUser?.householdId ?? 
-''
-,
+          userId: appState.currentUser?.id ?? '',
+          householdId: appState.currentUser?.householdId ?? '',
           gigIncomeId: job.id,
           notes: job.notes,
         );
         appState.addTransaction(tx);
         await _firestore.saveTransaction(tx);
+        existingGigIds.add(job.id);
       }
     } catch (e) {
       debugPrint('Gig import failed: ' + e.toString());

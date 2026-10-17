@@ -1,10 +1,10 @@
 # WORK IN PROGRESS
 
 **Last touched:** 2026-10-15
-**Active task:** P0-1 PIN bypass + biometrics
+**Active task:** P0-1 PIN bypass + biometrics (code done, awaiting phone verify)
 **Driver:** Rocky (design) / David (PC)
 **Branch:** main
-**HEAD:** bdb5504 (audits on GitHub)
+**HEAD:** 3699973 (brace fix for _showPinSetup)
 
 ## Status: IN PROGRESS
 
@@ -15,25 +15,33 @@
 - [x] Audit files on GitHub (bdb5504)
 
 ### P0-1 PIN bypass + biometrics
-- [x] WIP updated (this file)
-- [ ] pubspec.yaml: add local_auth
-- [ ] AndroidManifest: add USE_BIOMETRIC permission
-- [ ] app_state.dart: signIn stops auto-verifying PIN; add unlockWithBiometrics()
-- [ ] pin_entry_screen.dart: real PIN field + biometric button, remove demo button, fix /home route
-- [ ] sign_in_screen.dart: route through PIN screen when PIN enabled
-- [ ] Cloud build green
+- [x] WIP updated
+- [x] pubspec.yaml: local_auth added
+- [x] AndroidManifest: USE_BIOMETRIC permission added
+- [x] app_state.dart: signIn stops auto-verifying PIN; verifyPinAndUnlock + unlockWithBiometrics added
+- [x] pin_entry_screen.dart: real PIN field + biometric button, demo button removed, /home route fixed
+- [x] sign_in_screen.dart: route through PIN screen when PIN enabled
+- [x] PIN setup UI in Settings (e70abe4) + brace fix (3699973, build #91 failed on top-level method)
+- [x] DEV_LOG entries (f105d05, e70abe4, f586870 trace)
+- [ ] Delete unlockApp() dead-code bypass (script given, not yet run)
+- [ ] Cloud build green (#93)
 - [ ] Phone verify:
-  - [ ] Login with PIN set -> PIN screen appears (not straight to Home)
-  - [ ] Correct PIN -> Home
+  - [ ] No PIN: sign in -> straight Home
+  - [ ] Settings -> PIN Lock -> set 4+ digit PIN -> confirm
+  - [ ] Sign out -> sign in -> PIN screen (not Home)
   - [ ] Wrong PIN -> error, stays locked
-  - [ ] Fingerprint -> Home (if enrolled)
-  - [ ] No PIN set -> straight to Home (no PIN screen)
+  - [ ] Correct PIN -> Home
+  - [ ] Fingerprint/face (if enrolled) -> Home
+  - [ ] Remove PIN -> sign in -> Home with no PIN screen
+  - [ ] Budgets tab shows October only
+  - [ ] Sep 30 transaction in September only
 
 ### Queued next (from audits)
-- [ ] Insights #4 projection extrapolation
-- [ ] #6 Left / bills double-count
+- [ ] Insights #4 projection extrapolation (two formulas: Insights MTD x12 + Finances complete-months avg)
+- [ ] #6 Left / bills double-count (skip paid bills)
 - [ ] P0-8 / P0-9 / P0-15 (load guards, budget doc IDs, amount validation)
 - [ ] Dead-path sign bugs (#10-14)
+- [ ] needsPinReentry session gate (5-min re-lock after Home — currently unenforced)
 
 ## Rule (Law 18)
 WIP.md deleted ONLY after install + real-phone verification.
