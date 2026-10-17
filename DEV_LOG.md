@@ -1,3 +1,14 @@
+## 2026-10-17 -- findings 1-3 (Claude inspection) -- idempotent gig import + gig Firestore write + description fix
+
+**Steps:** Fixed _importGigJobs to use deterministic id ('gig_' + job.id) so re-runs overwrite instead of duplicating across phones; fixed description to use platform name (empty-safe fallback); added Firestore write to gig screen save/delete (sync/delete linked Transaction).
+
+**Files:** lib/features/haven_central/haven_central_screen.dart (_importGigJobs); lib/screens/gig_income/gig_income_screen.dart (sync/delete helpers + import).
+
+**Why:** Claude fresh-pull inspection found: (1) import deduped locally only but saved to shared Firestore with random ids -> re-import on second phone duplicated all 17 gig jobs; (2) addGigIncome never wrote to Firestore so gig-form entries never reached Finances; (3) description lost platform name + PowerShell-mangled lines.
+
+**Not touched:** Duplicates button (next), patch 14 ($25.92 backfill), 1-entry-point plan build, Insights #4, budget doc ids, Firestore rules.
+
+**Next:** Remove duplicates button on DataCheckScreen (19 deletions approved), patch 14.
 ## 2026-10-17 -- PENDING -- feat(reports): read-only Data Check screen (Settings > Reports)
 **Steps:** New screen reads Firestore transactions + gig_jobs (same source as Finances) and prints monthly income/expense/net/running total, duplicate suspects (same gigIncomeId, same date+amount+description), top 15 income rows, income by category, gig jobs with no transaction. Copy summary / Copy all rows (CSV) buttons for pasting into chat.
 **Files:** lib/features/reports/data_check_screen.dart (new), lib/features/haven_central/haven_central_screen.dart (import + Reports row opens the screen), DEV_LOG.md, ROADMAP.md
