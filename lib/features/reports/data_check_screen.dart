@@ -17,6 +17,8 @@ class _DataCheckScreenState extends State<DataCheckScreen> {
   String? _summary;
   String? _csv;
   String? _error;
+  List<Transaction> _toDelete = [];
+  bool _deleting = false;
 
   @override
   void initState() {
@@ -33,6 +35,7 @@ class _DataCheckScreenState extends State<DataCheckScreen> {
       setState(() {
         _summary = _buildSummary(txs, jobs);
         _csv = _buildCsv(txs);
+        _toDelete = _findDuplicates(txs);
       });
     } catch (e) {
       if (!mounted) return;
@@ -220,6 +223,88 @@ class _DataCheckScreenState extends State<DataCheckScreen> {
         SnackBar(content: Text(label + ' copied - paste it into the chat')));
   }
 
+  static List<Transaction> _findDuplicates(List<Transaction> txs) {
+    final byKey = <String, List<Transaction>>{};
+    for (final t in txs) {
+      final key = _d(t.date) +
+          '|' +
+          _m(t.amount) +
+          '|' +
+          (t.isIncome ? 'in' : 'out') +
+          '|' +
+          t.description.trim().toLowerCase();
+      byKey.putIfAbsent(key, () => []).add(t);
+    }
+    final toDelete = <Transaction>[];
+    byKey.forEach((k, list) {
+      if (list.length > 1) {
+        list.sort((a, b) => a.id.compareTo(b.id));
+        toDelete.addAll(list.sublist(1));
+      }
+    });
+    return toDelete;
+  }
+
+  Future<void> _confirmDelete() async {
+    final toDelete = _toDelete;
+    if (toDelete.isEmpty) return;
+    final total = toDelete.fold<double>(0, (s, t) => s + t.amount);
+    final lines = toDelete
+        .map((t) =>
+            _d(t.date) + ' | ' + _m(t.amount) + ' | ' + t.description.trim())
+        .join('\n');
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('Delete ${toDelete.length} duplicates?'),
+        content: SingleChildScrollView(
+          child: Text(
+            'These will be permanently deleted from Firestore:\n\n' +
+                lines +
+                '\n\nTotal: \$' +
+                _m(total),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) await _deleteDuplicates();
+  }
+
+  Future<void> _deleteDuplicates() async {
+    final toDelete = List<Transaction>.from(_toDelete);
+    if (toDelete.isEmpty) return;
+    setState(() => _deleting = true);
+    try {
+      final fs = FirestoreService();
+      for (final t in toDelete) {
+        await fs.deleteTransaction(t.id);
+      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Deleted ${toDelete.length} duplicates')),
+      );
+      await _load();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Delete failed: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _deleting = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final summary = _summary;
@@ -251,6 +336,22 @@ class _DataCheckScreenState extends State<DataCheckScreen> {
                               label: const Text('Copy all rows'))),
                     ]),
                   ),
+                  if (_toDelete.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          onPressed: _deleting ? null : _confirmDelete,
+                          icon: const Icon(Icons.delete_forever),
+                          label: Text(_deleting
+                              ? 'Deleting...'
+                              : 'Remove duplicates (${_toDelete.length})'),
+                          style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red),
+                        ),
+                      ),
+                    ),
                   Expanded(
                     child: SingleChildScrollView(
                       padding: const EdgeInsets.all(12),

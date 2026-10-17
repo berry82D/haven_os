@@ -1,3 +1,14 @@
+## 2026-10-17 -- Remove duplicates button (DataCheckScreen) -- lists 18, confirms, deletes
+
+**Steps:** Added Remove duplicates button to Reports & Data Check. Groups by date+amount+type+lowercase description, keeps earliest ID, lists all to-delete (date/amount/description + total), asks confirm, deletes via FirestoreService only on confirm. David already manually deleted 1 (Sep 06 $418.13).
+
+**Files:** lib/features/reports/data_check_screen.dart.
+
+**Why:** Data Check showed 133 transactions, net $7,621.50, inflated by duplicates: 17 gig pairs ($4,229.19) + Aug 27 salary dup ($1,635.85) + Aug 09 double-entry ($428.10). David confirmed: only 1 pay on Aug 27, Aug 09 was a double entry for a week of work. Corrected net after all 19: ~$1,328.
+
+**Not touched:** Patch 14 ($25.92 backfill), 1-entry-point plan build, Insights #4, budget doc ids, Firestore rules.
+
+**Next:** Patch 14 ($25.92 to Finances), then 1-entry-point plan.
 ## 2026-10-17 -- findings 1-3 (Claude inspection) -- idempotent gig import + gig Firestore write + description fix
 
 **Steps:** Fixed _importGigJobs to use deterministic id ('gig_' + job.id) so re-runs overwrite instead of duplicating across phones; fixed description to use platform name (empty-safe fallback); added Firestore write to gig screen save/delete (sync/delete linked Transaction).
