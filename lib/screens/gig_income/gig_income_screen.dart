@@ -215,7 +215,7 @@ class _GigIncomeScreenState extends State<GigIncomeScreen> {
     }
     final gig = periodRows.fold<double>(0, (s, r) => s + r.amount);
     double inc = 0, exp = 0;
-    for (final t in appState.myTransactions) {
+    for (final t in appState.transactions) {
       bool inPeriod;
       if (isYear) {
         inPeriod = t.date.year.toString() == selYear;
@@ -582,7 +582,7 @@ class _GigIncomeScreenState extends State<GigIncomeScreen> {
 
   Future<void> _syncGigTx(GigIncome g) async {
     final appState = context.read<AppState>();
-    for (final t in appState.myTransactions) {
+    for (final t in appState.transactions) {
       if (t.gigIncomeId == g.id) {
         await FirestoreService().saveTransaction(t);
         break;
@@ -593,7 +593,7 @@ class _GigIncomeScreenState extends State<GigIncomeScreen> {
   Future<void> _deleteGigTx(String gigId) async {
     final appState = context.read<AppState>();
     String? txId;
-    for (final t in appState.myTransactions) {
+    for (final t in appState.transactions) {
       if (t.gigIncomeId == gigId) {
         txId = t.id;
         break;

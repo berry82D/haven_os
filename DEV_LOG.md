@@ -877,3 +877,7 @@ Use `flutter run` NOT `adb uninstall` to preserve SharedPreferences for testing.
 
 ## 2026-10-18 -- b110 -- fix(gig): insert Trends+Impact section, dedupe Year labels
 - Section was missing (helpers unused); inserted before list. Fixed duplicate 'Year 2026' labels (hide period total when Full year selected).
+
+## 2026-10-18 -- b111 -- fix(gig): Impact uses all transactions (not household-filtered)
+- _impactText was using myTransactions (household-filtered), missing RHB paycheck (different householdId).
+- Changed to appState.transactions (unfiltered). _buildRows still uses myTransactions (correct).
