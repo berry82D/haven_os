@@ -40,3 +40,5 @@ Rule 22 (ONE PHONE PER BLOCK): David has one USB connection to the PC. Give phon
 - Location context: Olivia, NC / NMB hotspot - connection can be flaky, --verbose helps diagnose push issues
 
 All AIs assisting on this project must follow Rules 1-22 above and read DEV_LOG.md first.
+## SEE ALSO
+- ROCKY.md - Rocky's standing procedures (coordinator/verifier role). CLAUDE.md is the rotation-wide law; ROCKY.md is how Rocky implements it. Other AIs follow CLAUDE.md.

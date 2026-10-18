@@ -12,4 +12,6 @@ Branch: main
 
 Rules 18 (WIP.md), 19 (HANDOFF block on every reply), 20 (ROADMAP update on every push), 21 (say WAITING after every build push), 22 (one phone per install block) are mandatory.
 
+Rule files: read YOUR OWN first (ROCKY.md if you are Rocky), then CLAUDE.md (shared rotation law for everyone). DeepSeek/Grok: no own-file yet, CLAUDE.md is your base.
+
 Any AI that starts coding without reading those four files is violating Law 17 (READ BEFORE ASSIST).
