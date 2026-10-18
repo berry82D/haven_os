@@ -35,7 +35,7 @@ class _GigRow {
 
 class _GigIncomeScreenState extends State<GigIncomeScreen> {
   Map<String, GigJob> _jobs = {};
-  String? _month; // 'yyyy-MM', 'all', or null = current month
+  String? _month; // 'yyyy-MM', 'y:yyyy' (full year), or null = current month
 
   @override
   void initState() {
@@ -130,33 +130,42 @@ class _GigIncomeScreenState extends State<GigIncomeScreen> {
           keySet.add(keyOf(r.date));
         }
         final keys = keySet.toList()..sort((a, b) => b.compareTo(a));
-        final sel = (_month != null && (_month == 'all' || keySet.contains(_month)))
+        final years = keySet.map((k) => k.substring(0, 4)).toSet().toList()
+          ..sort((a, b) => b.compareTo(a));
+        final validSel = <String>{...keys, ...years.map((y) => 'y:' + y)};
+        final sel = (_month != null && validSel.contains(_month))
             ? _month!
             : keyOf(now);
-        final rows = sel == 'all'
-            ? allRows
+        final isYear = sel.startsWith('y:');
+        final selYear = isYear ? sel.substring(2) : sel.substring(0, 4);
+        final rows = isYear
+            ? allRows.where((r) => r.date.year.toString() == selYear).toList()
             : allRows.where((r) => keyOf(r.date) == sel).toList();
         final totalMonth = rows.fold<double>(0, (s, r) => s + r.amount);
-        final totalAll = allRows.fold<double>(0, (s, r) => s + r.amount);
+        final totalYear = allRows
+            .where((r) => r.date.year.toString() == selYear)
+            .fold<double>(0, (s, r) => s + r.amount);
         final totalMiles = rows.fold<double>(0, (s, r) => s + r.miles);
         final avg = totalMiles > 0 ? totalMonth / totalMiles : 0.0;
-        String label(String k) => k == 'all'
-            ? 'All months'
+        String label(String k) => k.startsWith('y:')
+            ? ('Year ' + k.substring(2))
             : (k.substring(5) + '/' + k.substring(0, 4));
         return Column(children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
             child: Row(children: [
-              const Text('Month: ', style: TextStyle(color: Colors.grey)),
+              const Text('Show: ', style: TextStyle(color: Colors.grey)),
               const SizedBox(width: 8),
               DropdownButton<String>(
                 value: sel,
                 dropdownColor: const Color(0xFF1E1E1E),
                 items: [
-                  for (final k in keys)
-                    DropdownMenuItem(value: k, child: Text(label(k))),
-                  const DropdownMenuItem(
-                      value: 'all', child: Text('All months')),
+                  for (final y in years) ...[
+                    DropdownMenuItem(
+                        value: 'y:' + y, child: Text('Full year ' + y)),
+                    for (final k in keys.where((k) => k.startsWith(y)))
+                      DropdownMenuItem(value: k, child: Text(label(k))),
+                  ],
                 ],
                 onChanged: (v) {
                   if (v != null) setState(() => _month = v);
@@ -175,7 +184,7 @@ class _GigIncomeScreenState extends State<GigIncomeScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     _sum(label(sel), '\$${totalMonth.toStringAsFixed(2)}'),
-                    _sum('All time', '\$${totalAll.toStringAsFixed(2)}'),
+                    _sum('Year ' + selYear, '\$${totalYear.toStringAsFixed(2)}'),
                     _sum('Miles', totalMiles.toStringAsFixed(1)),
                     _sum('Avg/mi', '\$${avg.toStringAsFixed(2)}'),
                   ],

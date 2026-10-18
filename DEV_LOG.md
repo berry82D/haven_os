@@ -1,3 +1,9 @@
+## 2026-10-18 -- PENDING -- feat(gig): picker groups by year; Year total replaces All time (on top of a25efe4)
+**Steps:** Dropdown groups by year: "Full year yyyy" then its months (MM/YYYY), newest first. Default = current month. List and top card follow the selection; second box is the total for the selected year, so old years never pile into one number.
+**Files:** lib/screens/gig_income/gig_income_screen.dart, DEV_LOG.md, ROADMAP.md
+**Why:** David wants clean past-month views and no ever-growing all-time number.
+**Not touched:** Finances tab, gig form Firestore bridge (patch 14b), Trip #9308 category. No data deleted.
+**Next:** Green build, check dropdown on phone (skip the a25efe4 build). Then patch 14b.
 ## 2026-10-18 -- PENDING -- feat(gig): month picker (MM/YYYY) + All months on the Gig tab
 **Steps:** Dropdown lists every month with gig data plus the current month (newest first) and "All months". Default = current month. List and top card follow the selection (selected total, miles, avg/mi); All time stays the full total.
 **Files:** lib/screens/gig_income/gig_income_screen.dart, DEV_LOG.md, ROADMAP.md
