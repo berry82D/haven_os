@@ -1,3 +1,9 @@
+## 2026-10-18 -- PENDING -- feat(gig): month picker (MM/YYYY) + All months on the Gig tab
+**Steps:** Dropdown lists every month with gig data plus the current month (newest first) and "All months". Default = current month. List and top card follow the selection (selected total, miles, avg/mi); All time stays the full total.
+**Files:** lib/screens/gig_income/gig_income_screen.dart, DEV_LOG.md, ROADMAP.md
+**Why:** Gig tab only showed the current month; David needs to see past months cleanly as data grows.
+**Not touched:** Finances tab (has its own Week/Month view), gig form Firestore bridge (patch 14b), Trip #9308 category.
+**Next:** Green build, check dropdown on phone. Then patch 14b.
 ## 2026-10-18 -- PENDING -- fix(gig): Gig tab totals + labels + miles (display only)
 **Steps:** Top card now shows Month, All time, Miles (mo), Avg/mi (mo). Rows for imported jobs look up the gig job in Firestore for platform name and miles. Nothing is written.
 **Files:** lib/screens/gig_income/gig_income_screen.dart, DEV_LOG.md, ROADMAP.md

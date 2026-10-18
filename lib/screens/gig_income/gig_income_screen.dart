@@ -35,6 +35,7 @@ class _GigRow {
 
 class _GigIncomeScreenState extends State<GigIncomeScreen> {
   Map<String, GigJob> _jobs = {};
+  String? _month; // 'yyyy-MM', 'all', or null = current month
 
   @override
   void initState() {
@@ -117,21 +118,52 @@ class _GigIncomeScreenState extends State<GigIncomeScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Gig Income')),
       body: Consumer<AppState>(builder: (context, appState, _) {
-        final rows = _buildRows(appState);
-        if (rows.isEmpty) {
+        final allRows = _buildRows(appState);
+        if (allRows.isEmpty) {
           return const Center(child: Text('No gig income yet'));
         }
         final now = DateTime.now();
-        final monthRows = rows
-            .where(
-                (r) => r.date.month == now.month && r.date.year == now.year)
-            .toList();
-        final totalMonth =
-            monthRows.fold<double>(0, (s, r) => s + r.amount);
-        final totalAll = rows.fold<double>(0, (s, r) => s + r.amount);
-        final totalMiles = monthRows.fold<double>(0, (s, r) => s + r.miles);
+        String keyOf(DateTime d) =>
+            d.year.toString() + '-' + d.month.toString().padLeft(2, '0');
+        final keySet = <String>{keyOf(now)};
+        for (final r in allRows) {
+          keySet.add(keyOf(r.date));
+        }
+        final keys = keySet.toList()..sort((a, b) => b.compareTo(a));
+        final sel = (_month != null && (_month == 'all' || keySet.contains(_month)))
+            ? _month!
+            : keyOf(now);
+        final rows = sel == 'all'
+            ? allRows
+            : allRows.where((r) => keyOf(r.date) == sel).toList();
+        final totalMonth = rows.fold<double>(0, (s, r) => s + r.amount);
+        final totalAll = allRows.fold<double>(0, (s, r) => s + r.amount);
+        final totalMiles = rows.fold<double>(0, (s, r) => s + r.miles);
         final avg = totalMiles > 0 ? totalMonth / totalMiles : 0.0;
+        String label(String k) => k == 'all'
+            ? 'All months'
+            : (k.substring(5) + '/' + k.substring(0, 4));
         return Column(children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+            child: Row(children: [
+              const Text('Month: ', style: TextStyle(color: Colors.grey)),
+              const SizedBox(width: 8),
+              DropdownButton<String>(
+                value: sel,
+                dropdownColor: const Color(0xFF1E1E1E),
+                items: [
+                  for (final k in keys)
+                    DropdownMenuItem(value: k, child: Text(label(k))),
+                  const DropdownMenuItem(
+                      value: 'all', child: Text('All months')),
+                ],
+                onChanged: (v) {
+                  if (v != null) setState(() => _month = v);
+                },
+              ),
+            ]),
+          ),
           Padding(
             padding: const EdgeInsets.all(12),
             child: Material(
@@ -142,10 +174,10 @@ class _GigIncomeScreenState extends State<GigIncomeScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    _sum('Month', '\$${totalMonth.toStringAsFixed(2)}'),
+                    _sum(label(sel), '\$${totalMonth.toStringAsFixed(2)}'),
                     _sum('All time', '\$${totalAll.toStringAsFixed(2)}'),
-                    _sum('Miles (mo)', totalMiles.toStringAsFixed(1)),
-                    _sum('Avg/mi (mo)', '\$${avg.toStringAsFixed(2)}'),
+                    _sum('Miles', totalMiles.toStringAsFixed(1)),
+                    _sum('Avg/mi', '\$${avg.toStringAsFixed(2)}'),
                   ],
                 ),
               ),
