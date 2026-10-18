@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/gig_income.dart';
+import '../../models/gig_job.dart';
 import '../../models/transaction.dart';
 import '../../services/app_state.dart';
 import '../../services/firestore_service.dart';
@@ -18,6 +19,7 @@ class _GigRow {
   final double amount;
   final String title;
   final String subtitle;
+  final double miles;
   final GigIncome? gig;
   final Transaction? tx;
   _GigRow({
@@ -25,12 +27,38 @@ class _GigRow {
     required this.amount,
     required this.title,
     required this.subtitle,
+    this.miles = 0,
     this.gig,
     this.tx,
   });
 }
 
 class _GigIncomeScreenState extends State<GigIncomeScreen> {
+  Map<String, GigJob> _jobs = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _loadJobs();
+  }
+
+  Future<void> _loadJobs() async {
+    try {
+      final jobs = await FirestoreService().streamGigJobs().first;
+      if (!mounted) return;
+      setState(() {
+        _jobs = {for (final j in jobs) j.id: j};
+      });
+    } catch (e) {
+      debugPrint('Gig jobs load failed: ' + e.toString());
+    }
+  }
+
+  static String _cap(String s) {
+    final v = s.trim();
+    return v.isEmpty ? '' : (v[0].toUpperCase() + v.substring(1));
+  }
+
   /// All gigs: GigIncome entries + gig Transactions, deduped by link.
   List<_GigRow> _buildRows(AppState appState) {
     final rows = <_GigRow>[];
@@ -44,6 +72,7 @@ class _GigIncomeScreenState extends State<GigIncomeScreen> {
         subtitle:
             '${g.formattedDate} • ${g.miles.toStringAsFixed(1)} mi • \$${g.payPerMile.toStringAsFixed(2)}/mi',
         gig: g,
+        miles: g.miles,
       ));
     }
     for (final t in appState.myTransactions) {
@@ -52,14 +81,21 @@ class _GigIncomeScreenState extends State<GigIncomeScreen> {
           (t.gigIncomeId != null && t.gigIncomeId!.isNotEmpty);
       if (!isGig) continue;
       if (t.gigIncomeId != null && gigIds.contains(t.gigIncomeId)) continue;
-      final platform = _platformFromDescription(t.description);
+      final job = t.gigIncomeId == null ? null : _jobs[t.gigIncomeId];
+      final jp = job == null ? '' : _cap(job.platform);
+      final platform =
+          jp.isNotEmpty ? jp : _platformFromDescription(t.description);
+      final miles = job?.miles ?? 0.0;
+      final perMile = miles > 0 ? t.amount / miles : 0.0;
       rows.add(_GigRow(
         date: t.date,
         amount: t.amount,
         title: '$platform • \$${t.amount.toStringAsFixed(2)}',
-        subtitle:
-            '${t.date.month}/${t.date.day}/${t.date.year} • from ${t.category}',
+        subtitle: miles > 0
+            ? '${t.date.month}/${t.date.day}/${t.date.year} • ${miles.toStringAsFixed(1)} mi • \$${perMile.toStringAsFixed(2)}/mi'
+            : '${t.date.month}/${t.date.day}/${t.date.year} • from ${t.category}',
         tx: t,
+        miles: miles,
       ));
     }
     rows.sort((a, b) => b.date.compareTo(a.date));
@@ -92,10 +128,8 @@ class _GigIncomeScreenState extends State<GigIncomeScreen> {
             .toList();
         final totalMonth =
             monthRows.fold<double>(0, (s, r) => s + r.amount);
-        final totalMiles = appState.myGigIncomes
-            .where((g) =>
-                g.date.month == now.month && g.date.year == now.year)
-            .fold<double>(0, (s, g) => s + g.miles);
+        final totalAll = rows.fold<double>(0, (s, r) => s + r.amount);
+        final totalMiles = monthRows.fold<double>(0, (s, r) => s + r.miles);
         final avg = totalMiles > 0 ? totalMonth / totalMiles : 0.0;
         return Column(children: [
           Padding(
@@ -109,8 +143,9 @@ class _GigIncomeScreenState extends State<GigIncomeScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     _sum('Month', '\$${totalMonth.toStringAsFixed(2)}'),
-                    _sum('Miles', totalMiles.toStringAsFixed(1)),
-                    _sum('Avg/mi', '\$${avg.toStringAsFixed(2)}'),
+                    _sum('All time', '\$${totalAll.toStringAsFixed(2)}'),
+                    _sum('Miles (mo)', totalMiles.toStringAsFixed(1)),
+                    _sum('Avg/mi (mo)', '\$${avg.toStringAsFixed(2)}'),
                   ],
                 ),
               ),

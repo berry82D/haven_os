@@ -1,3 +1,9 @@
+## 2026-10-18 -- PENDING -- fix(gig): Gig tab totals + labels + miles (display only)
+**Steps:** Top card now shows Month, All time, Miles (mo), Avg/mi (mo). Rows for imported jobs look up the gig job in Firestore for platform name and miles. Nothing is written.
+**Files:** lib/screens/gig_income/gig_income_screen.dart, DEV_LOG.md, ROADMAP.md
+**Why:** Top showed October only ($25.92) while the list showed Jul-Oct; rows said "Gig" (old import left platform blank); miles were 0.0 because imported jobs' miles were never read.
+**Not touched:** Gig list still reads the phone's local copy. Gig form still saves locally only (the $25.92 Oct 14 entry is not in Finances). Trip #9308 stays under Salary until David recategorizes.
+**Next:** Green build, check Gig tab on phone. Then patch 14b: gig form writes to Firestore; list reads Firestore.
 ## 2026-10-18 -- PENDING -- fix(data-check): Remove duplicates only targets same-gigIncomeId copies
 **Steps:** _findDuplicates now groups by gigIncomeId and keeps the oldest id. Before: grouped by date+amount+description, which would also delete a real Aug 9 gig row and the second Aug 27 David RHB paycheck.
 **Files:** lib/features/reports/data_check_screen.dart, DEV_LOG.md

@@ -29,6 +29,7 @@
 - Insights accuracy fix: day-aligned comparisons, honest budget %, warmer tone, category-aware what-if - b72, phone verify pending
 
 ## NOW
+- Gig tab totals/labels/miles (patch 14a) - pushed 2026-10-18, awaiting build + phone verify. Next: patch 14b (gig form to Firestore).
 - Data Check screen (Settings > Reports): read-only Firestore report + copy for fact-checking - pushed 2026-10-17, awaiting build + phone verify.
 - Gig import dedup against Firestore (patch 13) - pushed 2026-10-17, awaiting build + phone verify. Next: patch 14 (gig form to Firestore).
 1. Phone verify: keyboard fix (b70/b71) — keyboard never covers active field
