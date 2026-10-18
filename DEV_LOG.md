@@ -1,3 +1,9 @@
+## 2026-10-18 -- PENDING -- fix(data-check): Remove duplicates only targets same-gigIncomeId copies
+**Steps:** _findDuplicates now groups by gigIncomeId and keeps the oldest id. Before: grouped by date+amount+description, which would also delete a real Aug 9 gig row and the second Aug 27 David RHB paycheck.
+**Files:** lib/features/reports/data_check_screen.dart, DEV_LOG.md
+**Why:** David approved deleting exactly the 17 import duplicates. Dedup rule: flag, never silently delete.
+**Not touched:** Aug 27 David RHB pair and Aug 9 pair of $428.10 jobs stay until David decides.
+**Next:** Green build, install, confirm the list says 17, then delete.
 ## 2026-10-18 -- Gig screen Phase 1 (unified list) -- all gigs from all entry points
 
 **Steps:** Rewrote gig_income_screen.dart (was minified) as clean formatted file. Gig list now aggregates GigIncome + gig Transactions (category Gig Income or gigIncomeId), deduped by link, sorted date-desc. GigIncome rows keep edit + miles detail; Transaction-only rows get tap-for-detail + delete (with confirm). Header Month/Miles/Avg from unified list.

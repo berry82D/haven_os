@@ -223,20 +223,18 @@ class _DataCheckScreenState extends State<DataCheckScreen> {
         SnackBar(content: Text(label + ' copied - paste it into the chat')));
   }
 
+  // Only flags extra copies that share a gigIncomeId (keeps the oldest id).
+  // Same date+amount+description alone is NOT enough: real repeats exist.
   static List<Transaction> _findDuplicates(List<Transaction> txs) {
-    final byKey = <String, List<Transaction>>{};
+    final byGig = <String, List<Transaction>>{};
     for (final t in txs) {
-      final key = _d(t.date) +
-          '|' +
-          _m(t.amount) +
-          '|' +
-          (t.isIncome ? 'in' : 'out') +
-          '|' +
-          t.description.trim().toLowerCase();
-      byKey.putIfAbsent(key, () => []).add(t);
+      final g = t.gigIncomeId;
+      if (g != null && g.isNotEmpty) {
+        byGig.putIfAbsent(g, () => []).add(t);
+      }
     }
     final toDelete = <Transaction>[];
-    byKey.forEach((k, list) {
+    byGig.forEach((g, list) {
       if (list.length > 1) {
         list.sort((a, b) => a.id.compareTo(b.id));
         toDelete.addAll(list.sublist(1));
