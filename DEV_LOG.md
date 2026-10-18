@@ -863,3 +863,10 @@ Use `flutter run` NOT `adb uninstall` to preserve SharedPreferences for testing.
 **Next:** wait for green build, install -r, verify Income/Expenses taps + frequency dropdown
 ---
 
+
+## 2026-10-18 — Gig tab default to full year
+- Changed gig_income_screen.dart: when no month selected, default is `y:YYYY` (Full year) instead of current month `keyOf(now)`.
+- Reason: Oct-only view hid Jul–Sep gigs; picker still allows single months.
+- Spark trips under Salary still not in Gig filter (separate task).
+- Analyze: run before push; Law 16 log with this commit.
+

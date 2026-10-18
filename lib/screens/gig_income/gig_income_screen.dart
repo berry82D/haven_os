@@ -135,7 +135,7 @@ class _GigIncomeScreenState extends State<GigIncomeScreen> {
         final validSel = <String>{...keys, ...years.map((y) => 'y:' + y)};
         final sel = (_month != null && validSel.contains(_month))
             ? _month!
-            : keyOf(now);
+            : 'y:' + now.year.toString();
         final isYear = sel.startsWith('y:');
         final selYear = isYear ? sel.substring(2) : sel.substring(0, 4);
         final rows = isYear
