@@ -870,3 +870,7 @@ Use `flutter run` NOT `adb uninstall` to preserve SharedPreferences for testing.
 - Spark trips under Salary still not in Gig filter (separate task).
 - Analyze: run before push; Law 16 log with this commit.
 
+
+## 2026-10-18 -- Phase 2+3 -- feat(gig): graphs and smart impact
+- Trends: monthly bars, platform breakdown. Impact: gig % of income, without-gig net, baseline to 0, save suggestion (20%).
+- Helpers: _monthlyBars, _platformRows, _impactText. Fixed save/year extrapolation bug.

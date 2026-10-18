@@ -103,6 +103,155 @@ class _GigIncomeScreenState extends State<GigIncomeScreen> {
     return rows;
   }
 
+  List<Widget> _monthlyBars(List<_GigRow> allRows, String year) {
+    final months = <int, double>{};
+    for (final r in allRows) {
+      if (r.date.year.toString() == year) {
+        months[r.date.month] = (months[r.date.month] ?? 0) + r.amount;
+      }
+    }
+    if (months.isEmpty) {
+      return [const Text('No data', style: TextStyle(color: Colors.grey))];
+    }
+    final maxVal = months.values.reduce((a, b) => a > b ? a : b);
+    const names = [
+      '', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    return [
+      for (var m = 1; m <= 12; m++)
+        if (months.containsKey(m))
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 3),
+            child: Row(children: [
+              SizedBox(
+                  width: 36,
+                  child: Text(names[m],
+                      style: const TextStyle(
+                          color: Colors.grey, fontSize: 12))),
+              Expanded(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: LinearProgressIndicator(
+                    value: maxVal > 0 ? months[m]! / maxVal : 0,
+                    minHeight: 10,
+                    backgroundColor: Colors.white10,
+                    valueColor: const AlwaysStoppedAnimation<Color>(
+                        Color(0xFF4DD0E1)),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              SizedBox(
+                width: 70,
+                child: Text('\$${months[m]!.toStringAsFixed(0)}',
+                    textAlign: TextAlign.right,
+                    style: const TextStyle(fontSize: 12)),
+              ),
+            ]),
+          ),
+    ];
+  }
+
+  List<Widget> _platformRows(List<_GigRow> allRows, String year) {
+    final byPlat = <String, double>{};
+    for (final r in allRows) {
+      if (r.date.year.toString() != year) continue;
+      final plat = r.title.split(' • ').first.trim();
+      byPlat[plat] = (byPlat[plat] ?? 0) + r.amount;
+    }
+    if (byPlat.isEmpty) {
+      return [const Text('No data', style: TextStyle(color: Colors.grey))];
+    }
+    final sorted = byPlat.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    final maxVal = sorted.first.value;
+    return [
+      for (final e in sorted)
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 3),
+          child: Row(children: [
+            SizedBox(
+                width: 80,
+                child:
+                    Text(e.key, style: const TextStyle(fontSize: 12))),
+            Expanded(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(4),
+                child: LinearProgressIndicator(
+                  value: maxVal > 0 ? e.value / maxVal : 0,
+                  minHeight: 10,
+                  backgroundColor: Colors.white10,
+                  valueColor: const AlwaysStoppedAnimation<Color>(
+                      Color(0xFF4DD0E1)),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            SizedBox(
+              width: 70,
+              child: Text('\$${e.value.toStringAsFixed(0)}',
+                  textAlign: TextAlign.right,
+                  style: const TextStyle(fontSize: 12)),
+            ),
+          ]),
+        ),
+    ];
+  }
+
+  Widget _impactText(
+      AppState appState, List<_GigRow> allRows, String sel, bool isYear, String selYear) {
+    List<_GigRow> periodRows;
+    if (isYear) {
+      periodRows = allRows
+          .where((r) => r.date.year.toString() == selYear)
+          .toList();
+    } else {
+      periodRows = allRows
+          .where((r) =>
+              '${r.date.year}-${r.date.month.toString().padLeft(2, '0')}' ==
+              sel)
+          .toList();
+    }
+    final gig = periodRows.fold<double>(0, (s, r) => s + r.amount);
+    double inc = 0, exp = 0;
+    for (final t in appState.myTransactions) {
+      bool inPeriod;
+      if (isYear) {
+        inPeriod = t.date.year.toString() == selYear;
+      } else {
+        inPeriod =
+            '${t.date.year}-${t.date.month.toString().padLeft(2, '0')}' ==
+                sel;
+      }
+      if (!inPeriod) continue;
+      if (t.isIncome) {
+        inc += t.amount;
+      } else {
+        exp += t.amount;
+      }
+    }
+    final net = inc - exp;
+    final netNoGig = net - gig;
+    final pct = inc > 0 ? (gig / inc * 100) : 0;
+    final lines = <String>[];
+    lines.add(
+        'Gig: \$${gig.toStringAsFixed(2)} (${pct.toStringAsFixed(1)}% of income)');
+    lines.add('Without gig, net would be \$${netNoGig.toStringAsFixed(2)}');
+    final saveAmt = gig * 0.2;
+    final savePerYear = isYear ? saveAmt : saveAmt * 12;
+    if (netNoGig < 0) {
+      lines.add(
+          'Gig keeps you above \$0 by \$${(-netNoGig).toStringAsFixed(2)}.');
+    } else {
+      lines.add('You would still be above \$0 without gig.');
+    }
+    lines.add(
+        'Suggestion: save 20% of gig (\$${saveAmt.toStringAsFixed(2)}) = \$${savePerYear.toStringAsFixed(0)}/year.');
+    return Text(lines.join('\n'),
+        style: const TextStyle(fontSize: 13, height: 1.5));
+  }
+
   String _platformFromDescription(String desc) {
     final d = desc.trim();
     if (d.isEmpty) return 'Gig';
