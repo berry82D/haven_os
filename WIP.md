@@ -45,3 +45,9 @@
 
 ## Rule (Law 18)
 WIP.md deleted ONLY after install + real-phone verification.
+## Tomorrow (2026-10-19)
+- [ ] Candice's phone: Allow USB debugging → adb -s R5CY2180YTH install -r 'C:\Users\corch\haven_os_zip_b111\haven_os-1.0.1-b111-1ee5321.apk'
+- [ ] Phone-verify Impact: Gig Income → X% of income (should NOT be 100%, RHB included)
+- [ ] WIP.md: update driver, mark gig Phase 2+3 done
+- [ ] ROADMAP.md: gig upgrade → DONE, pick next (zero-debt goal?)
+- [ ] Next build: zero-debt goal or David's pick
