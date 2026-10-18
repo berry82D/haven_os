@@ -1,3 +1,14 @@
+## 2026-10-18 -- Gig screen Phase 1 (unified list) -- all gigs from all entry points
+
+**Steps:** Rewrote gig_income_screen.dart (was minified) as clean formatted file. Gig list now aggregates GigIncome + gig Transactions (category Gig Income or gigIncomeId), deduped by link, sorted date-desc. GigIncome rows keep edit + miles detail; Transaction-only rows get tap-for-detail + delete (with confirm). Header Month/Miles/Avg from unified list.
+
+**Files:** lib/screens/gig_income/gig_income_screen.dart (full rewrite).
+
+**Why:** David: "tie it to the other entry and have it list all the gigs like that screen is showing." Gig tab only showed GigIncome (local); imported/scanned gig Transactions were invisible there.
+
+**Not touched:** Phase 2 (progress charts), Phase 3 (budget impact + expenses), patch 14 ($25.92 backfill), 1-entry-point plan build, Insights #4, budget doc ids, Firestore rules.
+
+**Next:** Build, install, phone-test unified list. Then Phase 2 charts.
 ## 2026-10-17 -- Remove duplicates button (DataCheckScreen) -- lists 18, confirms, deletes
 
 **Steps:** Added Remove duplicates button to Reports & Data Check. Groups by date+amount+type+lowercase description, keeps earliest ID, lists all to-delete (date/amount/description + total), asks confirm, deletes via FirestoreService only on confirm. David already manually deleted 1 (Sep 06 $418.13).
