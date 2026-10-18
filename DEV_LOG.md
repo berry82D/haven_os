@@ -874,3 +874,6 @@ Use `flutter run` NOT `adb uninstall` to preserve SharedPreferences for testing.
 ## 2026-10-18 -- Phase 2+3 -- feat(gig): graphs and smart impact
 - Trends: monthly bars, platform breakdown. Impact: gig % of income, without-gig net, baseline to 0, save suggestion (20%).
 - Helpers: _monthlyBars, _platformRows, _impactText. Fixed save/year extrapolation bug.
+
+## 2026-10-18 -- b110 -- fix(gig): insert Trends+Impact section, dedupe Year labels
+- Section was missing (helpers unused); inserted before list. Fixed duplicate 'Year 2026' labels (hide period total when Full year selected).

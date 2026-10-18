@@ -332,10 +332,44 @@ class _GigIncomeScreenState extends State<GigIncomeScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
+                    if (!isYear)
                     _sum(label(sel), '\$${totalMonth.toStringAsFixed(2)}'),
                     _sum('Year ' + selYear, '\$${totalYear.toStringAsFixed(2)}'),
                     _sum('Miles', totalMiles.toStringAsFixed(1)),
                     _sum('Avg/mi', '\$${avg.toStringAsFixed(2)}'),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          // Trends + Impact (Phase 2 & 3)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+            child: Material(
+              color: const Color(0xFF1E1E1E),
+              borderRadius: BorderRadius.circular(12),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Trends',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 16)),
+                    const SizedBox(height: 12),
+                    ..._monthlyBars(allRows, selYear),
+                    const SizedBox(height: 16),
+                    const Text('By platform',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 14)),
+                    const SizedBox(height: 8),
+                    ..._platformRows(allRows, selYear),
+                    const SizedBox(height: 16),
+                    const Text('Impact',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 16)),
+                    const SizedBox(height: 8),
+                    _impactText(appState, allRows, sel, isYear, selYear),
                   ],
                 ),
               ),
