@@ -18,6 +18,7 @@ import '../../models/transaction.dart';
 import '../../models/budget.dart';
 import '../../services/firestore_service.dart';
 import '../../screens/gig_income/gig_income_screen.dart';
+import '../../screens/debts/zero_debt_screen.dart';
 import '../reports/data_check_screen.dart';
 
 const List<String> incomeCategories = [
@@ -1366,6 +1367,14 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> with WidgetsBin
                       ]),
                     ]));
           }).toList(),
+          const SizedBox(height: 24),
+          const Text('Zero-Debt Goal', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
+          const SizedBox(height: 8),
+          ElevatedButton.icon(
+            onPressed: () { Navigator.push(context, MaterialPageRoute(builder: (c) => const ZeroDebtScreen())); },
+            icon: const Icon(Icons.track_changes, color: Colors.black),
+            label: const Text('Open Zero-Debt Tracker', style: TextStyle(color: Colors.black)),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.tealAccent[700])),
         ]));
   }
 

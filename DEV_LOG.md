@@ -952,3 +952,8 @@ Use `flutter run` NOT `adb uninstall` to preserve SharedPreferences for testing.
 - Debt model (lib/models/debt.dart): AI-approved version with originalBalance, status, settlementOffer, progress, copyWith.
 - FirestoreService: saveDebt, deleteDebt, streamDebts (household-scoped via _dataRoot, skips bad docs).
 - UI screen pending AI review.
+
+## 2026-10-19 -- zero-debt -- feat(debts): Zero-Debt UI wired into Records
+- ZeroDebtScreen (full, no TODOs): list with progress, add/edit form, mark payment, delete.
+- Navigation: 'Zero-Debt Goal' button in Records tab after loans list.
+- Import added. Analyze clean.
