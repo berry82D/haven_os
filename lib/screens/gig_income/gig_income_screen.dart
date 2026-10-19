@@ -34,7 +34,8 @@ class _GigRow {
 }
 
 class _GigIncomeScreenState extends State<GigIncomeScreen> {
-  Map<String, GigJob> _jobs = {};`n  List<Transaction> _allTx = [];
+  Map<String, GigJob> _jobs = {};
+  List<Transaction> _allTx = [];
   String? _month; // 'yyyy-MM', 'y:yyyy' (full year), or null = current month
 
   @override
@@ -43,7 +44,13 @@ class _GigIncomeScreenState extends State<GigIncomeScreen> {
     _loadJobs();
   }
 
-  Future<void> _loadJobs() async {`n    try {`n      final txs = await FirestoreService().streamTransactions().first;`n      if (mounted) setState(() { _allTx = txs; });`n    } catch (e) {`n      debugPrint('All tx load failed: ' + e.toString());`n    }
+  Future<void> _loadJobs() async {
+    try {
+      final txs = await FirestoreService().streamTransactions().first;
+      if (mounted) setState(() { _allTx = txs; });
+    } catch (e) {
+      debugPrint('All tx load failed: ' + e.toString());
+    }
     try {
       final jobs = await FirestoreService().streamGigJobs().first;
       if (!mounted) return;

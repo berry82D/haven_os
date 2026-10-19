@@ -886,3 +886,10 @@ Use `flutter run` NOT `adb uninstall` to preserve SharedPreferences for testing.
 - _impactText was using local appState.transactions (missing RHB paycheck).
 - Now loads via FirestoreService().streamTransactions().first in _loadJobs, stored in _allTx.
 - Falls back to local list if Firestore fails. _syncGigTx/_deleteGigTx stay on local.
+
+## 2026-10-19 -- b112/b113 -- fix(gig): Impact loads income from Firestore (RHB included)
+- Problem: Impact showed '100.0% of income' — RHB paycheck not counted. Root cause: _impactText used local appState.transactions (missing RHB); Finances/Data Check read directly from Firestore.
+- b112 (2adb7ab): Changed _impactText to load via FirestoreService().streamTransactions().first in _loadJobs, stored in _allTx. Falls back to local if Firestore fails.
+- b112 FAILED: PowerShell single-quoted string wrote literal ` 
+ ` instead of newlines (lines 37, 46). Dart parse errors.
+- b113: Repaired newline literals. No logic change from b112.
