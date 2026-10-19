@@ -893,3 +893,7 @@ Use `flutter run` NOT `adb uninstall` to preserve SharedPreferences for testing.
 - b112 FAILED: PowerShell single-quoted string wrote literal ` 
  ` instead of newlines (lines 37, 46). Dart parse errors.
 - b113: Repaired newline literals. No logic change from b112.
+
+## 2026-10-19 -- b114 -- feat(gig): collapse Trends+Impact + bump to 1.0.2
+- Trends+Impact wrapped in ExpansionTile (collapsed by default, tap to expand).
+- Version bumped: 1.0.1 → 1.0.2 (pubspec.yaml). Build number (b114) from GitHub run_number, cannot reset.

@@ -350,6 +350,16 @@ class _GigIncomeScreenState extends State<GigIncomeScreen> {
             ),
           ),
           // Trends + Impact (Phase 2 & 3)
+          ExpansionTile(
+            title: const Text('Trends & Impact',
+                style: TextStyle(fontWeight: FontWeight.bold)),
+            collapsedBackgroundColor: const Color(0xFF1E1E1E),
+            backgroundColor: const Color(0xFF1E1E1E),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12)),
+            collapsedShape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12)),
+            children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
             child: Material(
@@ -381,6 +391,8 @@ class _GigIncomeScreenState extends State<GigIncomeScreen> {
                 ),
               ),
             ),
+          ),
+            ],
           ),
           Expanded(
             child: ListView.builder(
