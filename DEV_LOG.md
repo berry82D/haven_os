@@ -901,3 +901,15 @@ Use `flutter run` NOT `adb uninstall` to preserve SharedPreferences for testing.
 ## 2026-10-19 -- b115 -- chore(gig): platform case merge + bump to 1.0.2
 - _displayPlatform normalizes case (spark/Spark → Spark, doordash → DoorDash, etc.).
 - Version bumped: 1.0.1+1 → 1.0.2 (pubspec.yaml).
+
+## 2026-10-19 -- PLAN -- feat(zero-debt): zero-debt goal tracker
+- Location: Records tab, new 'Zero-Debt Goal' section (alongside Loans).
+- Debts (exclude One Main - gap-covered):
+  - Verizon (Credit Control) ~$488 (settlement offer $269)
+  - First Premier ~$1,161 (charged off Mar 2026)
+  - Cape Fear Valley (Candice) $1,543 ($100/mo x 16)
+  - Santander vehicle - 2 months behind (balance TBD)
+- Manual add: form for new debts (creditor, balance, monthly payment, due date, notes) - for debts acquired/found later.
+- Display: total owed, progress bar to $0, debt list with balances, mark payment.
+- Data: Firestore (shared household, both phones).
+- Code approval: requires another AI review before David receives code.
