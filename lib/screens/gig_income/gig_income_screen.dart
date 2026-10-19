@@ -34,7 +34,7 @@ class _GigRow {
 }
 
 class _GigIncomeScreenState extends State<GigIncomeScreen> {
-  Map<String, GigJob> _jobs = {};
+  Map<String, GigJob> _jobs = {};`n  List<Transaction> _allTx = [];
   String? _month; // 'yyyy-MM', 'y:yyyy' (full year), or null = current month
 
   @override
@@ -43,7 +43,7 @@ class _GigIncomeScreenState extends State<GigIncomeScreen> {
     _loadJobs();
   }
 
-  Future<void> _loadJobs() async {
+  Future<void> _loadJobs() async {`n    try {`n      final txs = await FirestoreService().streamTransactions().first;`n      if (mounted) setState(() { _allTx = txs; });`n    } catch (e) {`n      debugPrint('All tx load failed: ' + e.toString());`n    }
     try {
       final jobs = await FirestoreService().streamGigJobs().first;
       if (!mounted) return;
@@ -215,7 +215,7 @@ class _GigIncomeScreenState extends State<GigIncomeScreen> {
     }
     final gig = periodRows.fold<double>(0, (s, r) => s + r.amount);
     double inc = 0, exp = 0;
-    for (final t in appState.transactions) {
+    for (final t in (_allTx.isNotEmpty ? _allTx : appState.transactions)) {
       bool inPeriod;
       if (isYear) {
         inPeriod = t.date.year.toString() == selYear;

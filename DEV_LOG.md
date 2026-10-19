@@ -881,3 +881,8 @@ Use `flutter run` NOT `adb uninstall` to preserve SharedPreferences for testing.
 ## 2026-10-18 -- b111 -- fix(gig): Impact uses all transactions (not household-filtered)
 - _impactText was using myTransactions (household-filtered), missing RHB paycheck (different householdId).
 - Changed to appState.transactions (unfiltered). _buildRows still uses myTransactions (correct).
+
+## 2026-10-19 -- b112 -- fix(gig): Impact loads income from Firestore
+- _impactText was using local appState.transactions (missing RHB paycheck).
+- Now loads via FirestoreService().streamTransactions().first in _loadJobs, stored in _allTx.
+- Falls back to local list if Firestore fails. _syncGigTx/_deleteGigTx stay on local.
