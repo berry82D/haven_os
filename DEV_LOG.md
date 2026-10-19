@@ -897,3 +897,7 @@ Use `flutter run` NOT `adb uninstall` to preserve SharedPreferences for testing.
 ## 2026-10-19 -- b114 -- feat(gig): collapse Trends+Impact + bump to 1.0.2
 - Trends+Impact wrapped in ExpansionTile (collapsed by default, tap to expand).
 - Version bumped: 1.0.1 → 1.0.2 (pubspec.yaml). Build number (b114) from GitHub run_number, cannot reset.
+
+## 2026-10-19 -- b115 -- chore(gig): platform case merge + bump to 1.0.2
+- _displayPlatform normalizes case (spark/Spark → Spark, doordash → DoorDash, etc.).
+- Version bumped: 1.0.1+1 → 1.0.2 (pubspec.yaml).

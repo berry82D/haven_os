@@ -160,11 +160,33 @@ class _GigIncomeScreenState extends State<GigIncomeScreen> {
     ];
   }
 
+  String _displayPlatform(String raw) {
+    final lower = raw.trim().toLowerCase();
+    switch (lower) {
+      case 'doordash':
+        return 'DoorDash';
+      case 'ubereats':
+        return 'Uber Eats';
+      case 'spark':
+        return 'Spark';
+      case 'instacart':
+        return 'Instacart';
+      case 'lyft':
+        return 'Lyft';
+      case 'uber':
+        return 'Uber';
+      default:
+        return lower.isEmpty
+            ? 'Gig'
+            : (lower[0].toUpperCase() + lower.substring(1));
+    }
+  }
+
   List<Widget> _platformRows(List<_GigRow> allRows, String year) {
     final byPlat = <String, double>{};
     for (final r in allRows) {
       if (r.date.year.toString() != year) continue;
-      final plat = r.title.split(' • ').first.trim();
+      final plat = _displayPlatform(r.title.split(' • ').first);
       byPlat[plat] = (byPlat[plat] ?? 0) + r.amount;
     }
     if (byPlat.isEmpty) {
@@ -672,3 +694,4 @@ class _GigIncomeScreenState extends State<GigIncomeScreen> {
     );
   }
 }
+
