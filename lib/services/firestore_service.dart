@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart' as firestore;
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../models/transaction.dart';
+import '../models/debt.dart';
 import '../models/budget.dart';
 import '../models/gig_job.dart';
 
@@ -206,6 +207,33 @@ class FirestoreService {
         .doc(txId)
         .delete();
   }
+
+// ---------- DEBTS ----------
+  Future<void> saveDebt(Debt debt) async {
+    final root = await _dataRoot();
+    await root.collection('debts').doc(debt.id).set(debt.toJson());
+  }
+
+  Future<void> deleteDebt(String debtId) async {
+    final root = await _dataRoot();
+    await root.collection('debts').doc(debtId).delete();
+  }
+
+  Stream<List<Debt>> streamDebts() async* {
+    final root = await _dataRoot();
+    yield* root.collection('debts').snapshots().map((snapshot) {
+      final out = <Debt>[];
+      for (final doc in snapshot.docs) {
+        try {
+          out.add(Debt.fromJson(doc.data()));
+        } catch (e) {
+          debugPrint('Skipping bad debt doc ' + doc.id + ': ' + e.toString());
+        }
+      }
+      return out;
+    });
+  }
+
 
   // ---------- BUDGETS ----------
   Future<void> saveBudget(Budget budget) async {

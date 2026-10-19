@@ -913,3 +913,42 @@ Use `flutter run` NOT `adb uninstall` to preserve SharedPreferences for testing.
 - Display: total owed, progress bar to $0, debt list with balances, mark payment.
 - Data: Firestore (shared household, both phones).
 - Code approval: requires another AI review before David receives code.
+
+## 2026-10-19 -- PLAN -- feat(zero-debt): zero-debt goal tracker (revised)
+- Location: Records tab, new 'Zero-Debt Goal' section.
+- Debts (exclude One Main):
+  - Verizon (Credit Control) ~$488 (offer $269)
+  - First Premier ~$1,161
+  - Cape Fear Valley (Candice) $1,543 ($100/mo x 16)
+  - Santander vehicle - 2 months behind (balance TBD)
+- Manual add: creditor, balance, APR, monthly payment, due date, notes.
+- Display: total owed, progress bar to $0, debt list, mark payment.
+- Path to debt-free (data only, no hardcoded numbers):
+  - Inputs: debt balances/APRs/minimums (from debt list) + monthly payment budget (from app income data or user-set).
+  - Calculates: payoff order (snowball: smallest first, or avalanche: highest APR first), months to debt-free, total interest paid.
+  - Shows: month-by-month payoff schedule, debt-free date.
+  - All numbers from real data, no estimates.
+- Data: Firestore (shared).
+- Code approval required before David receives code.
+
+## 2026-10-19 -- PLAN -- feat(zero-debt): zero-debt goal tracker (revised)
+- Location: Records tab, new 'Zero-Debt Goal' section.
+- Debts (exclude One Main):
+  - Verizon (Credit Control) ~$488 (offer $269)
+  - First Premier ~$1,161
+  - Cape Fear Valley (Candice) $1,543 ($100/mo x 16)
+  - Santander vehicle - 2 months behind (balance TBD)
+- Manual add: creditor, balance, APR, monthly payment, due date, notes.
+- Display: total owed, progress bar to $0, debt list, mark payment.
+- Path to debt-free (data only, no hardcoded numbers):
+  - Inputs: debt balances/APRs/minimums (from debt list) + monthly payment budget (from app income data or user-set).
+  - Calculates: payoff order (snowball: smallest first, or avalanche: highest APR first), months to debt-free, total interest paid.
+  - Shows: month-by-month payoff schedule, debt-free date.
+  - All numbers from real data, no estimates.
+- Data: Firestore (shared).
+- Code approval required before David receives code.
+
+## 2026-10-19 -- zero-debt -- feat(debts): Debt model + Firestore (AI-approved)
+- Debt model (lib/models/debt.dart): AI-approved version with originalBalance, status, settlementOffer, progress, copyWith.
+- FirestoreService: saveDebt, deleteDebt, streamDebts (household-scoped via _dataRoot, skips bad docs).
+- UI screen pending AI review.
