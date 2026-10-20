@@ -1,3 +1,13 @@
+## 2026-10-20 - Debts (DeepSeek, PENDING phone test)
+
+- Zero-Debt Goal: Add/Edit form accepts blank balance (saved as unknown). Only Creditor required.
+- Debt model: nullable balance + originalBalance, new lastVerified date, null-safe JSON, _dn helper for nullable numbers; _d unchanged.
+- Edit uses copyWith (preserves createdAt/householdId); originalBalance backfills from first non-null balance (including 0).
+- Mark payment also records a Finances expense (category 'Debts'); order is saveDebt -> saveTransaction -> addTransaction -> pop; double-tap guard on mark-payment, delete, and form save.
+- firestore_service.dart: added 'debts' to _syncCollections.
+- Repo: added DEEPSEEK.md, GROK.md, AI_HANDOFF.md (AI_HANDOFF.md replaces existing). Untracked .vs/.
+- Follow-up: 'Debts' not in the expense category picker (haven_central_screen.dart) - add later.
+- PENDING: phone test + Firestore rules for households/{hid}/debts.
 ## 2026-10-18 -- PENDING -- feat(gig): picker groups by year; Year total replaces All time (on top of a25efe4)
 **Steps:** Dropdown groups by year: "Full year yyyy" then its months (MM/YYYY), newest first. Default = current month. List and top card follow the selection; second box is the total for the selected year, so old years never pile into one number.
 **Files:** lib/screens/gig_income/gig_income_screen.dart, DEV_LOG.md, ROADMAP.md
@@ -905,9 +915,9 @@ Use `flutter run` NOT `adb uninstall` to preserve SharedPreferences for testing.
 ## 2026-10-19 -- PLAN -- feat(zero-debt): zero-debt goal tracker
 - Location: Records tab, new 'Zero-Debt Goal' section (alongside Loans).
 - Debts (exclude One Main - gap-covered):
-  - Verizon (Credit Control) ~$488 (settlement offer $269)
-  - First Premier ~$1,161 (charged off Mar 2026)
-  - Cape Fear Valley (Candice) $1,543 ($100/mo x 16)
+  - Verizon (Credit Control) (settlement offer available)
+  - First Premier  (charged off Mar 2026)
+  - Cape Fear Valley (Candice) (payment plan available)
   - Santander vehicle - 2 months behind (balance TBD)
 - Manual add: form for new debts (creditor, balance, monthly payment, due date, notes) - for debts acquired/found later.
 - Display: total owed, progress bar to $0, debt list with balances, mark payment.
@@ -917,9 +927,9 @@ Use `flutter run` NOT `adb uninstall` to preserve SharedPreferences for testing.
 ## 2026-10-19 -- PLAN -- feat(zero-debt): zero-debt goal tracker (revised)
 - Location: Records tab, new 'Zero-Debt Goal' section.
 - Debts (exclude One Main):
-  - Verizon (Credit Control) ~$488 (offer $269)
-  - First Premier ~$1,161
-  - Cape Fear Valley (Candice) $1,543 ($100/mo x 16)
+  - Verizon (Credit Control) ~ (offer )
+  - First Premier 
+  - Cape Fear Valley (Candice) (payment plan available)
   - Santander vehicle - 2 months behind (balance TBD)
 - Manual add: creditor, balance, APR, monthly payment, due date, notes.
 - Display: total owed, progress bar to $0, debt list, mark payment.
@@ -934,9 +944,9 @@ Use `flutter run` NOT `adb uninstall` to preserve SharedPreferences for testing.
 ## 2026-10-19 -- PLAN -- feat(zero-debt): zero-debt goal tracker (revised)
 - Location: Records tab, new 'Zero-Debt Goal' section.
 - Debts (exclude One Main):
-  - Verizon (Credit Control) ~$488 (offer $269)
-  - First Premier ~$1,161
-  - Cape Fear Valley (Candice) $1,543 ($100/mo x 16)
+  - Verizon (Credit Control) ~ (offer )
+  - First Premier 
+  - Cape Fear Valley (Candice) (payment plan available)
   - Santander vehicle - 2 months behind (balance TBD)
 - Manual add: creditor, balance, APR, monthly payment, due date, notes.
 - Display: total owed, progress bar to $0, debt list, mark payment.
@@ -957,3 +967,8 @@ Use `flutter run` NOT `adb uninstall` to preserve SharedPreferences for testing.
 - ZeroDebtScreen (full, no TODOs): list with progress, add/edit form, mark payment, delete.
 - Navigation: 'Zero-Debt Goal' button in Records tab after loans list.
 - Import added. Analyze clean.
+
+## 2026-10-20 -- feat(gig): edit button for imported/scanned gig rows
+- Transaction-only gig rows (import/scan) had detail + delete but no edit. Added an edit button opening a dialog (description, amount, date, notes).
+- Save writes Firestore first, then updates local state; a failed save shows an error and changes nothing on the phone.
+- GigIncome rows keep their existing form. File: lib/screens/gig_income/gig_income_screen.dart.

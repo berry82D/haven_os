@@ -1,4 +1,4 @@
-﻿# Miscellaneous
+# Miscellaneous
 *.class
 *.log
 *.pyc
@@ -51,3 +51,4 @@ app_state_full.txt
 
 *.hprof
 *.bak
+.vs/

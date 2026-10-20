@@ -106,6 +106,7 @@ class FirestoreService {
     'farmItems',
     'tasks',
     'gig_jobs',
+    'debts',
   ];
 
   String? _rootKey;
