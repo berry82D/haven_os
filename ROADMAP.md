@@ -74,6 +74,7 @@
 33. INSTALL.md vs folding into README.md - decide
 34. Firebase App Distribution (parked Oct 14: David group gets every build, Candice group gets verified builds only)
 35. D:\ flash-drive update once a stable build is confirmed (contents TBD - David provides `dir` listing)
+36. AI Insights futuristic redesign: full-screen intelligence view instead of the bottom sheet - teal aurora glow, ranked insight cards (headline + proving number + impact tag), hero top insight; presentation only, insight math unchanged (David, Oct 21)
 
 ## RULES FOR THIS FILE
 - Keep it short. One line per item.
