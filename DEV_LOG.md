@@ -1,10 +1,17 @@
-## 2026-10-21 - Delete confirmations (Rocky, PENDING phone test)
+## 2026-10-21 - ROADMAP and WIP catch-up (docs, Rocky)
+
+- ROADMAP rewritten current to 4a08be7 (b121): shipped gig patches and Data Check moved out of NOW into DONE, Oct 21 work marked phone-verified, backlog folded in (path-to-debt-free calculator, loan insight, single entry point, audit leftovers, data cleanup, Kitchen Aid).
+- The old NOW item to delete WIP.md is dropped - WIP stays, per Law 18.
+- WIP header refreshed and an Oct 21 verified section added; older WIP sections untouched.
+- Delete confirmations entry below marked phone-verified.
+
+## 2026-10-21 - Delete confirmations (Rocky, phone-verified Oct 21)
 
 - Rule (David): deleting must ask first and name the item, so there is no what-did-I-just-do moment.
 - Audit found three instant deletes: gig job delete (removed the job and its Finances entry with no ask), farm item delete, and task delete.
 - Gig job delete now confirms first, naming platform, amount and date, and warns that the Finances entry goes too. Farm item and task deletes now open a confirm dialog naming the item, same style as the transaction delete.
 - Already confirming before this fix: transactions, loans, budgets, debts, gig Transaction-only rows, Data Check remove-duplicates.
-- PENDING: phone test - tap delete on a gig job, a farm item and a task; each must ask first and name the item; Cancel must leave everything untouched.
+- Phone test PASSED Oct 21 (David): all three deletes ask first and name the item; Cancel leaves everything untouched.
 
 ## 2026-10-21 - Gig edit validation (Rocky, phone-verified Oct 21)
 

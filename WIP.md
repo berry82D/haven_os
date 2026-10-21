@@ -1,12 +1,26 @@
 # WORK IN PROGRESS
 
 **Last touched:** 2026-10-21
-**Active task:** Delete confirmations (this push, then phone verify); gig edit validation phone-verified Oct 21
+**Active task:** ROADMAP/WIP catch-up (this docs push); next: Candice installs b121 + enters real debts, then path-to-debt-free calculator or loan insight
 **Driver:** Rocky (design) / David (PC)
 **Branch:** main
-**HEAD:** 52520ba (debts fix b118, phone-verified Oct 21) - before the Oct 21 push
+**HEAD:** 4a08be7 (delete confirmations b121, phone-verified Oct 21)
 
 ## Status: IN PROGRESS
+
+### Oct 21 - verified on phone (David)
+- Zero-Debt (b118): test data cleared, tracker empty, ready for real debts
+- Top-layer form errors + gig edit button (b119)
+- Gig edit amount validation (b120)
+- Delete confirmations - gig job / farm item / task (b121)
+- Both phones sync confirmed
+
+### Oct 21 - verified on phone (David)
+- Zero-Debt (b118): test data cleared, tracker empty, ready for real debts
+- Top-layer form errors + gig edit button (b119)
+- Gig edit amount validation (b120)
+- Delete confirmations - gig job / farm item / task (b121)
+- Both phones sync confirmed
 
 ### Done (awaiting phone verify)
 - [x] Budgets month filter (e3206da) — spent + income filtered to current month

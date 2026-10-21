@@ -1,14 +1,14 @@
 # Haven OS - Roadmap
 
-**Updated:** 2026-10-21. **HEAD:** 52520ba (b118). Read with `AI_HANDOFF.md`, `WIP.md` (if present), `DEV_LOG.md`.
+**Updated:** 2026-10-21. **HEAD:** 4a08be7 (b121). Read with `AI_HANDOFF.md`, `WIP.md` (if present), `DEV_LOG.md`.
 
 ## DONE
 - Cloud build + signing (Flutter 3.44.8, fingerprint-verified, `install -r` only)
-- Version labeling: pubspec `1.0.1+1`, workflow extracts version + SHA into artifact name
+- Version labeling: pubspec `1.0.2`, workflow extracts version + SHA into artifact name
 - Auth: username resolution from Firestore profile, `auth_username` on every sign-in
 - Settings gear -> Household Management link (invite code + join UI)
 - Household cloud join: sign-in publishes household + invite index, Firestore rules for `households/{id}` + `household_invites/{code}`
-- Data sync: household data root + one-time non-destructive merge - both phones synced - VERIFIED
+- Data sync: household data root + one-time non-destructive merge - both phones synced - VERIFIED (re-confirmed Oct 21)
 - Finances Chunk #1: Week/Month toggle + "Left this period" hero
 - Finances Chunk #2: chart tap -> month anchor -> week stepper (chevrons + picker, faded edges), overshoot fix - VERIFIED on phone
 - Money format: comma thousands + sign-before-dollar across Finances - VERIFIED on phone
@@ -25,45 +25,55 @@
 - Keyboard fix: sheet expands, keyboard never covers active field - b70 green, phone verification pending
 - Compact searchable category picker (partial-match search) - b71 green, phone verification pending
 - Home bridge card: "Left this month" + Add expense + Finances button - VERIFIED on phone
-
 - Insights accuracy fix: day-aligned comparisons, honest budget %, warmer tone, category-aware what-if - b72, phone verify pending
-
+- Gig import: idempotent dedup (deterministic ids, Firestore write on save/delete) + Data Check screen + Remove Duplicates - b100/b101 - VERIFIED in the Oct 17-18 cleanup
 - Zero-Debt Goal: household debts in Records, unknown-balance support, verified dates, payment creates a 'Debts' expense - b118 - VERIFIED on phone Oct 21
 - Gig tab upgrade: unified list, year/month picker, Trends/Impact, platform case merge - b103-b115 - VERIFIED on phone
-- Gig edit button (Transaction-only rows) + top-layer form errors - phone verify pending
+- Top-layer form errors: validation shows on the open sheet/dialog, never buried - b119 - VERIFIED on phone Oct 21
+- Gig edit button for Transaction-only rows - b119 - VERIFIED on phone Oct 21
+- Gig edit amount validation (a bad amount is no longer silently dropped) - b120 - VERIFIED on phone Oct 21
+- Delete confirmations: gig job, farm item and task deletes ask first and name the item - b121 - VERIFIED on phone Oct 21
 
 ## NOW
-- Gig tab picker by year, Year total (patch 18) - pushed 2026-10-18, awaiting build + phone verify.
-- Gig tab month picker MM/YYYY (patch 17) - pushed 2026-10-18, awaiting build + phone verify.
-- Gig tab totals/labels/miles (patch 14a) - pushed 2026-10-18, awaiting build + phone verify. Next: patch 14b (gig form to Firestore).
-- Data Check screen (Settings > Reports): read-only Firestore report + copy for fact-checking - pushed 2026-10-17, awaiting build + phone verify.
-- Gig import dedup against Firestore (patch 13) - pushed 2026-10-17, awaiting build + phone verify. Next: patch 14 (gig form to Firestore).
-1. Phone verify: keyboard fix (b70/b71) — keyboard never covers active field
-2. Phone verify: compact searchable category picker (type "tra" -> Transport)
-3. Close WIP.md (delete) once all above pass
+1. Candice: install b121, then enter the real debts in Zero-Debt
+2. Phone verify: keyboard fix (b70/b71) - keyboard never covers active field
+3. Phone verify: compact searchable category picker (type "tra" -> Transport)
+4. Phone verify: PIN/biometric checklist in WIP.md (capture the fingerprint error text)
 
 ## NEXT
-5. Sharing permission model: clean new accounts (no inherited data), explicit linking, leveled invites (viewer/add/edit/admin, adjustable anytime), permanent (changeable/revocable) or temp (1 day min, 1 month max), 6-month check-ins
-6. Household sync: move bills / animals / gig income from per-phone local to household sync; retire the `pending_join` workaround
-7. Wire Settings Export/Import/Reset (buttons exist, methods are empty stubs; backup_service.exportBackup exists but uncalled)
-8. Budget dropdown -> tap-to-open field (deferred from category picker work, still old style)
-9. Finances - Formula Drawer (tap hero -> slide up "why this number" breakdown)
-10. Finances - Coaching Card (one plain-words insight per screen, no shame)
-11. Finances - Period Control Polish (tighten toggle + stepper UX per mockup)
-12. Placeholder screens: Farm service (returns empty data), Tasks, Routines, Homestead, Timeline (widget + screen), CFO Transactions tab + entry dialog, Health score (returns default)
-13. File split: haven_central_screen.dart is 2,592 lines (~1/6 of app) — split into Home / Finances / sheets before visual pass
-14. Monarch/Jarvis visual pass on dense screens ("fancy when it's complicated", dark theme stays, app teaches)
-15. Colorblind mode setting (Deuteranopia / Protanopia / Tritanopia palettes across all screens)
-16. Savings Rate: computed (Net/Income*100) - VERIFIED. $100 buffer is hardcoded (const rangeBuffer) - make user-adjustable if desired
-17. Dedicated all-transactions view (View All was removed as 4th Finances path; a real list view is still wanted)
+5. Path-to-debt-free calculator (snowball/avalanche, months to free, total interest - data only)
+6. Loan insight: affordability verdict in the loan form and on loan cards (restore lost feature)
+7. Single entry point: one Add Transaction sheet for everything; Gig tab + routes into it; Scan Receipt fills the sheet for review, never saves directly
+8. Sharing permission model: clean new accounts (no inherited data), explicit linking, leveled invites (viewer/add/edit/admin, adjustable anytime), permanent (changeable/revocable) or temp (1 day min, 1 month max), 6-month check-ins
+9. Household sync: move bills / animals / gig income from per-phone local to household sync; retire the `pending_join` workaround
+10. Wire Settings Export/Import/Reset (buttons exist, methods are stubs; backup_service.exportBackup exists but uncalled)
+11. 'Debts' into the expense category picker (debt payments use the category but it cannot be picked)
+12. Budget dropdown -> tap-to-open field (deferred from category picker work, still old style)
+13. Finances - Formula Drawer (tap hero -> slide up "why this number" breakdown)
+14. Finances - Coaching Card (one plain-words insight per screen, no shame)
+15. Finances - Period Control Polish (tighten toggle + stepper UX per mockup)
+16. Placeholder screens: Routines, Homestead, Timeline (widget + screen), CFO Transactions tab + entry dialog, Health score (returns default)
+17. File split: haven_central_screen.dart is ~3,000 lines (~1/6 of app) - split into Home / Finances / sheets before visual pass
+18. Monarch/Jarvis visual pass on dense screens ("fancy when it's complicated", dark theme stays, app teaches)
+19. Colorblind mode setting (Deuteranopia / Protanopia / Tritanopia palettes across all screens)
+20. Savings Rate: computed (Net/Income*100) - VERIFIED. $100 buffer is hardcoded (const rangeBuffer) - make user-adjustable if desired
+21. Dedicated all-transactions view (View All was removed as 4th Finances path; a real list view is still wanted)
+22. Gig form: one end-of-day Total Earnings entry for Candice (Spark, all-day gig work)
 
 ## LATER
-18. Kitchen Aid: real Recipes / Pantry / Shopping behind the placeholder tab
-19. Show an error (not endless loading) on Firestore PERMISSION_DENIED
-20. Forgotten-username hint on sign-in
-21. Clean up duplicate Firebase Auth accounts (2 each for David and Candice - review in console first)
-22. Package rename (`com.example.haven_os`) before any Play Store release
-23. D:\ flash-drive update once a stable build is confirmed (contents TBD - David provides `dir` listing)
+23. Kitchen Aid: real Recipes / Pantry / Shopping behind the placeholder tab (lost module)
+24. Insights projection fix (audit #4: monthly projection understated ~50%)
+25. Keyword income-override guard (audit #9: a category like 'Debt Payment' must not flip an expense to income)
+26. Budget doc ID -> month_category + migration (audit P0-9)
+27. Firestore rules file into the repo (today they live only in the Firebase console)
+28. Data cleanup with Candice: Aug 9 DoorDash duplicate, Trip #6162/#9308 recategorize Salary -> Gig Income, $25.92 Spark entry missing its Finances link
+29. Show an error (not endless loading) on Firestore PERMISSION_DENIED
+30. Forgotten-username hint on sign-in
+31. Clean up duplicate Firebase Auth accounts (2 each for David and Candice - review in console first)
+32. Package rename (`com.example.haven_os`) before any Play Store release
+33. INSTALL.md vs folding into README.md - decide
+34. Firebase App Distribution (parked Oct 14: David group gets every build, Candice group gets verified builds only)
+35. D:\ flash-drive update once a stable build is confirmed (contents TBD - David provides `dir` listing)
 
 ## RULES FOR THIS FILE
 - Keep it short. One line per item.
