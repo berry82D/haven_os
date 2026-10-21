@@ -1,6 +1,6 @@
 # Haven OS - Roadmap
 
-**Updated:** 2026-10-14. **HEAD:** 16b26da (b71). Read with `AI_HANDOFF.md`, `WIP.md` (if present), `DEV_LOG.md`.
+**Updated:** 2026-10-21. **HEAD:** 52520ba (b118). Read with `AI_HANDOFF.md`, `WIP.md` (if present), `DEV_LOG.md`.
 
 ## DONE
 - Cloud build + signing (Flutter 3.44.8, fingerprint-verified, `install -r` only)
@@ -27,6 +27,10 @@
 - Home bridge card: "Left this month" + Add expense + Finances button - VERIFIED on phone
 
 - Insights accuracy fix: day-aligned comparisons, honest budget %, warmer tone, category-aware what-if - b72, phone verify pending
+
+- Zero-Debt Goal: household debts in Records, unknown-balance support, verified dates, payment creates a 'Debts' expense - b118 - VERIFIED on phone Oct 21
+- Gig tab upgrade: unified list, year/month picker, Trends/Impact, platform case merge - b103-b115 - VERIFIED on phone
+- Gig edit button (Transaction-only rows) + top-layer form errors - phone verify pending
 
 ## NOW
 - Gig tab picker by year, Year total (patch 18) - pushed 2026-10-18, awaiting build + phone verify.

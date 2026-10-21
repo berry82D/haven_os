@@ -1,4 +1,14 @@
-## 2026-10-20 - Debts (DeepSeek, PENDING phone test)
+## 2026-10-21 - Top-layer errors (Rocky, PENDING phone test)
+
+- Rule (David): an error must appear on the layer he is looking at - the open sheet or dialog - never on the screen underneath it.
+- Audit found 12 SnackBar call sites that fire while a sheet or dialog is open above them (buried): Add Transaction sheet (4), loan form (1), budget dialog (1), Zero-Debt dialogs (6). Gig screen clean; the gig edit dialog error gets the same fix once its code is in the repo.
+- Add Transaction sheet: validation + receipt-scan status now render inline in the sheet (red errors, green scan success).
+- Loan form + budget dialog: validation now opens an error dialog on top (helper _showTopError).
+- Zero-Debt dialogs (debt form, mark payment, delete): errors render inline in red inside the dialog; mark payment with amount 0 now shows an error instead of silently doing nothing.
+- Also in this push: gig edit button for Transaction-only rows (logged Oct 20), debts marked phone-verified below, WIP/ROADMAP headers caught up.
+- PENDING: phone test - submit each form empty or invalid and confirm the message is visible without closing the form.
+
+## 2026-10-20 - Debts (DeepSeek, phone-verified Oct 21)
 
 - Zero-Debt Goal: Add/Edit form accepts blank balance (saved as unknown). Only Creditor required.
 - Debt model: nullable balance + originalBalance, new lastVerified date, null-safe JSON, _dn helper for nullable numbers; _d unchanged.
@@ -7,7 +17,7 @@
 - firestore_service.dart: added 'debts' to _syncCollections.
 - Repo: added DEEPSEEK.md, GROK.md, AI_HANDOFF.md (AI_HANDOFF.md replaces existing). Untracked .vs/.
 - Follow-up: 'Debts' not in the expense category picker (haven_central_screen.dart) - add later.
-- PENDING: phone test + Firestore rules for households/{hid}/debts.
+- Phone test PASSED Oct 21 (David): saves work (Firestore rules cover households/{hid}/debts), blank balance = unknown, originalBalance backfill, progress math, payment expense lands in Finances as an expense.
 ## 2026-10-18 -- PENDING -- feat(gig): picker groups by year; Year total replaces All time (on top of a25efe4)
 **Steps:** Dropdown groups by year: "Full year yyyy" then its months (MM/YYYY), newest first. Default = current month. List and top card follow the selection; second box is the total for the selected year, so old years never pile into one number.
 **Files:** lib/screens/gig_income/gig_income_screen.dart, DEV_LOG.md, ROADMAP.md

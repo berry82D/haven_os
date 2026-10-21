@@ -1783,6 +1783,20 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> with WidgetsBin
       }
     }
 
+    String? formStatus;
+    Color formStatusColor = Colors.red;
+    void Function(void Function())? sheetSetState;
+    void showFormStatus(String msg, Color color) {
+      formStatus = msg;
+      formStatusColor = color;
+      final s = sheetSetState;
+      if (s != null) {
+        try {
+          s(() {});
+        } catch (_) {}
+      }
+    }
+
     Future<void> _scanReceiptForForm() async {
       final ImageSource? source = await showDialog<ImageSource>(
           context: context,
@@ -1809,9 +1823,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> with WidgetsBin
         if (!status.isGranted) {
           status = await Permission.camera.request();
           if (!status.isGranted) {
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                content: Text('Camera permission denied'),
-                backgroundColor: Colors.red));
+            showFormStatus('Camera permission denied', Colors.red);
             return;
           }
         }
@@ -1828,12 +1840,10 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> with WidgetsBin
         String fullText = recognizedText.text;
         _parseReceiptTextForForm(
             fullText, controllerDescription, controllerAmount);
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text('✅ Receipt scanned! Check description and amount.'),
-            backgroundColor: Colors.green));
+        showFormStatus(
+            'Receipt scanned! Check description and amount.', Colors.green);
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text('Error scanning: $e'), backgroundColor: Colors.red));
+        showFormStatus('Error scanning: ' + e.toString(), Colors.red);
       } finally {
         setState(() => _isScanning = false);
       }
@@ -1845,6 +1855,7 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> with WidgetsBin
         backgroundColor: Colors.transparent,
         builder: (context) => StatefulBuilder(builder: (context, setSheetState) {
           void setState(VoidCallback fn) => setSheetState(fn);
+          sheetSetState = setSheetState;
           return DraggableScrollableSheet(
             initialChildSize: 0.9,
             maxChildSize: 1.0,
@@ -2067,6 +2078,13 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> with WidgetsBin
                                   enabledBorder: OutlineInputBorder(
                                       borderSide:
                                           BorderSide(color: Colors.grey)))),
+                          if (formStatus != null)
+                            Padding(
+                                padding: const EdgeInsets.only(bottom: 12),
+                                child: Text(formStatus!,
+                                    style: TextStyle(
+                                        color: formStatusColor,
+                                        fontWeight: FontWeight.bold))),
                           const SizedBox(height: 20),
                           SizedBox(
                               width: double.infinity,
@@ -2078,11 +2096,11 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> with WidgetsBin
                                     final amount = double.tryParse(
                                         controllerAmount.text.trim());
                                     if (desc.isEmpty || amount == null) {
-                                      ScaffoldMessenger.of(context)
-                                         .showSnackBar(const SnackBar(
-                                              content: Text(
-                                                  'Please fill in Description and valid Amount'),
-                                              backgroundColor: Colors.red));
+                                      setState(() {
+                                        formStatus =
+                                            'Please fill in Description and valid Amount';
+                                        formStatusColor = Colors.red;
+                                      });
                                       return;
                                     }
                                     final newTransaction = Transaction(
@@ -2208,6 +2226,23 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> with WidgetsBin
       ),
     );
   }
+  Future<void> _showTopError(String message) {
+    return showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+                backgroundColor: const Color(0xFF1E1E1E),
+                title: const Text('Check the form',
+                    style: TextStyle(color: Colors.white)),
+                content: Text(message,
+                    style: const TextStyle(color: Colors.white)),
+                actions: [
+                  TextButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      child: const Text('OK',
+                          style: TextStyle(color: Colors.tealAccent))),
+                ]));
+  }
+
   void _showLoanForm({Loan? existingLoan}) {
     final isEditing = existingLoan!= null;
     if (isEditing) {
@@ -2391,11 +2426,8 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> with WidgetsBin
                                         principal == null ||
                                         rate == null ||
                                         months == null) {
-                                      ScaffoldMessenger.of(context)
-                                         .showSnackBar(const SnackBar(
-                                              content: Text(
-                                                  'Please fill all required fields'),
-                                              backgroundColor: Colors.red));
+                                      await _showTopError(
+                                          'Please fill all required fields');
                                       return;
                                     }
                                     final loan = Loan(
@@ -2549,11 +2581,8 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> with WidgetsBin
                         final limit =
                             double.tryParse(_budgetLimitController.text.trim());
                         if (limit == null || limit <= 0) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content: Text(
-                                      'Please enter a valid budget amount'),
-                                  backgroundColor: Colors.red));
+                          await _showTopError(
+                              'Please enter a valid budget amount');
                           return;
                         }
                         final budget = Budget(

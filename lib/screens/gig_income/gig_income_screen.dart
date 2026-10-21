@@ -439,6 +439,12 @@ class _GigIncomeScreenState extends State<GigIncomeScreen> {
                               onPressed: () =>
                                   _show(context, existing: r.gig),
                             ),
+                          if (r.gig == null && r.tx != null)
+                            IconButton(
+                              icon: const Icon(Icons.edit),
+                              onPressed: () =>
+                                  _showTxEdit(context, r.tx!),
+                            ),
                           IconButton(
                             icon: const Icon(Icons.delete),
                             onPressed: () => r.gig != null
@@ -668,6 +674,73 @@ class _GigIncomeScreenState extends State<GigIncomeScreen> {
     final appState = context.read<AppState>();
     appState.deleteTransaction(txId);
     await FirestoreService().deleteTransaction(txId);
+  }
+
+  Future<void> _showTxEdit(BuildContext context, Transaction t) async {
+    final amountCtrl = TextEditingController(text: t.amount.toStringAsFixed(2));
+    final descCtrl = TextEditingController(text: t.description);
+    final notesCtrl = TextEditingController(text: t.notes);
+    DateTime pickedDate = t.date;
+    final saved = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Edit gig entry'),
+        content: StatefulBuilder(
+          builder: (ctx, setLocal) => Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(controller: descCtrl, decoration: const InputDecoration(labelText: 'Description')),
+              TextField(controller: amountCtrl, keyboardType: const TextInputType.numberWithOptions(decimal: true), decoration: const InputDecoration(labelText: 'Amount')),
+              TextField(controller: notesCtrl, decoration: const InputDecoration(labelText: 'Notes')),
+              const SizedBox(height: 8),
+              Row(children: [
+                Text('Date: ${pickedDate.month}/${pickedDate.day}/${pickedDate.year}'),
+                TextButton(
+                  onPressed: () async {
+                    final d = await showDatePicker(context: ctx, initialDate: pickedDate, firstDate: DateTime(2020), lastDate: DateTime(2100));
+                    if (d != null) setLocal(() => pickedDate = d);
+                  },
+                  child: const Text('Change'),
+                ),
+              ]),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          ElevatedButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Save')),
+        ],
+      ),
+    );
+    if (saved != true) return;
+    final amount = double.tryParse(amountCtrl.text.trim());
+    if (amount == null) return;
+    final updated = Transaction(
+      id: t.id,
+      description: descCtrl.text.trim(),
+      place: t.place,
+      date: pickedDate,
+      amount: amount,
+      notes: notesCtrl.text.trim(),
+      isIncome: t.isIncome,
+      category: t.category,
+      userId: t.userId,
+      account: t.account,
+      cleared: t.cleared,
+      householdId: t.householdId,
+      gigIncomeId: t.gigIncomeId,
+    );
+    if (!mounted) return;
+    final appState = context.read<AppState>();
+    try {
+      await FirestoreService().saveTransaction(updated);
+      appState.updateTransaction(updated);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not save the edit. Try again.')),
+      );
+    }
   }
 
   void _showTxDetail(BuildContext context, Transaction t) {

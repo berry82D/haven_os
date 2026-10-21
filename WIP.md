@@ -1,10 +1,10 @@
 # WORK IN PROGRESS
 
-**Last touched:** 2026-10-15
-**Active task:** P0-1 PIN bypass + biometrics (code done, awaiting phone verify)
+**Last touched:** 2026-10-21
+**Active task:** Top-layer errors fix + gig edit button (push Oct 21, then phone verify)
 **Driver:** Rocky (design) / David (PC)
 **Branch:** main
-**HEAD:** 3699973 (brace fix for _showPinSetup)
+**HEAD:** 52520ba (debts fix b118, phone-verified Oct 21) - before the Oct 21 push
 
 ## Status: IN PROGRESS
 

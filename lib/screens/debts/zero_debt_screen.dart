@@ -169,6 +169,7 @@ class _ZeroDebtScreenState extends State<ZeroDebtScreen> {
     DateTime? dueDate = existing?.dueDate;
     DateTime? lastVerified = existing?.lastVerified;
     bool saving = false;
+    String? formError;
 
     showDialog(
       context: context,
@@ -180,6 +181,12 @@ class _ZeroDebtScreenState extends State<ZeroDebtScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                if (formError != null)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Text(formError!,
+                        style: const TextStyle(color: Colors.red)),
+                  ),
                 TextField(
                     controller: creditorCtrl,
                     decoration:
@@ -255,9 +262,8 @@ class _ZeroDebtScreenState extends State<ZeroDebtScreen> {
                   : () async {
                       final creditor = creditorCtrl.text.trim();
                       if (creditor.isEmpty) {
-                        ScaffoldMessenger.of(ctx).showSnackBar(
-                            const SnackBar(
-                                content: Text('Creditor is required')));
+                        setState(
+                            () => formError = 'Creditor is required');
                         return;
                       }
                       final balanceText = balanceCtrl.text.trim();
@@ -265,15 +271,17 @@ class _ZeroDebtScreenState extends State<ZeroDebtScreen> {
                           ? null
                           : double.tryParse(balanceText);
                       if (balanceText.isNotEmpty && parsedBalance == null) {
-                        ScaffoldMessenger.of(ctx).showSnackBar(const SnackBar(
-                            content: Text(
-                                'Balance must be a number or blank')));
+                        setState(() => formError =
+                            'Balance must be a number or blank');
                         return;
                       }
                       double? finalBalance = parsedBalance;
                       if (status == 'paid') finalBalance = 0.0;
 
-                      setState(() => saving = true);
+                      setState(() {
+                        saving = true;
+                        formError = null;
+                      });
                       try {
                         if (existing == null) {
                           final newDebt = Debt(
@@ -316,10 +324,10 @@ class _ZeroDebtScreenState extends State<ZeroDebtScreen> {
                         if (ctx.mounted) Navigator.pop(ctx);
                       } catch (e) {
                         if (ctx.mounted) {
-                          ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
-                              content:
-                                  Text('Save failed: ' + e.toString())));
-                          setState(() => saving = false);
+                          setState(() {
+                            formError = 'Save failed: ' + e.toString();
+                            saving = false;
+                          });
                         }
                       }
                     },
@@ -335,17 +343,30 @@ class _ZeroDebtScreenState extends State<ZeroDebtScreen> {
     final appState = context.read<AppState>();
     final amtCtrl = TextEditingController();
     bool saving = false;
+    String? formError;
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setState) => AlertDialog(
           title: Text('Payment to ' + debt.creditor),
-          content: TextField(
-              controller: amtCtrl,
-              decoration: const InputDecoration(labelText: 'Amount paid'),
-              keyboardType: TextInputType.number,
-              autofocus: true),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                  controller: amtCtrl,
+                  decoration:
+                      const InputDecoration(labelText: 'Amount paid'),
+                  keyboardType: TextInputType.number,
+                  autofocus: true),
+              if (formError != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Text(formError!,
+                      style: const TextStyle(color: Colors.red)),
+                ),
+            ],
+          ),
           actions: [
             TextButton(
                 onPressed: saving ? null : () => Navigator.pop(ctx),
@@ -355,8 +376,15 @@ class _ZeroDebtScreenState extends State<ZeroDebtScreen> {
                   ? null
                   : () async {
                       final amt = double.tryParse(amtCtrl.text) ?? 0;
-                      if (amt <= 0) return;
-                      setState(() => saving = true);
+                      if (amt <= 0) {
+                        setState(() =>
+                            formError = 'Enter an amount above 0');
+                        return;
+                      }
+                      setState(() {
+                        saving = true;
+                        formError = null;
+                      });
 
                       double? newBalance;
                       if (debt.balance == null) {
@@ -378,11 +406,11 @@ class _ZeroDebtScreenState extends State<ZeroDebtScreen> {
                           await FirestoreService().saveDebt(updated);
                         } catch (e) {
                           if (ctx.mounted) {
-                            ScaffoldMessenger.of(ctx).showSnackBar(
-                                const SnackBar(
-                                    content: Text(
-                                        'Could not save payment. Try again.')));
-                            setState(() => saving = false);
+                            setState(() {
+                              formError =
+                                  'Could not save payment. Try again.';
+                              saving = false;
+                            });
                           }
                           return;
                         }
@@ -403,11 +431,11 @@ class _ZeroDebtScreenState extends State<ZeroDebtScreen> {
                         appState.addTransaction(tx);
                       } catch (e) {
                         if (ctx.mounted) {
-                          ScaffoldMessenger.of(ctx).showSnackBar(
-                              const SnackBar(
-                                  content: Text(
-                                      'Debt updated, but the expense was not recorded. Add it manually.')));
-                          setState(() => saving = false);
+                          setState(() {
+                            formError =
+                                'Debt updated, but the expense was not recorded. Add it manually.';
+                            saving = false;
+                          });
                         }
                         return;
                       }
@@ -424,15 +452,27 @@ class _ZeroDebtScreenState extends State<ZeroDebtScreen> {
 
   void _confirmDelete(BuildContext context, Debt debt) {
     bool saving = false;
+    String? formError;
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setState) => AlertDialog(
           title: const Text('Delete debt?'),
-          content: Text('Remove "' +
-              debt.creditor +
-              '"? This cannot be undone.'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Remove "' +
+                  debt.creditor +
+                  '"? This cannot be undone.'),
+              if (formError != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Text(formError!,
+                      style: const TextStyle(color: Colors.red)),
+                ),
+            ],
+          ),
           actions: [
             TextButton(
                 onPressed: saving ? null : () => Navigator.pop(ctx),
@@ -442,16 +482,19 @@ class _ZeroDebtScreenState extends State<ZeroDebtScreen> {
               onPressed: saving
                   ? null
                   : () async {
-                      setState(() => saving = true);
+                      setState(() {
+                        saving = true;
+                        formError = null;
+                      });
                       try {
                         await FirestoreService().deleteDebt(debt.id);
                         if (ctx.mounted) Navigator.pop(ctx);
                       } catch (e) {
                         if (ctx.mounted) {
-                          ScaffoldMessenger.of(ctx).showSnackBar(
-                              const SnackBar(
-                                  content: Text('Delete failed')));
-                          setState(() => saving = false);
+                          setState(() {
+                            formError = 'Delete failed';
+                            saving = false;
+                          });
                         }
                       }
                     },
