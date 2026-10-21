@@ -1,4 +1,8 @@
-﻿## 2026-10-21 — Payoff Plan (PENDING phone)
+﻿## 2026-10-21 â€” CI NDK preinstall (PENDING green run)
+- build.yml: install ndk;28.2.13676358 before flutter build apk (fixes ZipException on NDK install).
+- No app Dart change. Phone test PENDING after artifact.
+
+## 2026-10-21 — Payoff Plan (PENDING phone)
 - Added lib/services/debt_payoff.dart (minimums / snowball / avalanche; full set payments; free money only).
 - Added lib/screens/debts/debt_payoff_screen.dart (extra field, strategy chips, timeline).
 - Zero-Debt AppBar → Payoff Plan navigation.
@@ -1010,4 +1014,5 @@ Use `flutter run` NOT `adb uninstall` to preserve SharedPreferences for testing.
 - Transaction-only gig rows (import/scan) had detail + delete but no edit. Added an edit button opening a dialog (description, amount, date, notes).
 - Save writes Firestore first, then updates local state; a failed save shows an error and changes nothing on the phone.
 - GigIncome rows keep their existing form. File: lib/screens/gig_income/gig_income_screen.dart.
+
 
