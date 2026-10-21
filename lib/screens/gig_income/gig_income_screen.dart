@@ -708,7 +708,25 @@ class _GigIncomeScreenState extends State<GigIncomeScreen> {
         ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-          ElevatedButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Save')),
+          ElevatedButton(
+            onPressed: () async {
+              final amt = double.tryParse(amountCtrl.text.trim());
+              if (amt == null || amt <= 0) {
+                await showDialog(
+                  context: ctx,
+                  builder: (eCtx) => AlertDialog(
+                    title: const Text('Check the form'),
+                    content: const Text('Enter a valid amount above 0.'),
+                    actions: [
+                      TextButton(onPressed: () => Navigator.pop(eCtx), child: const Text('OK')),
+                    ],
+                  ),
+                );
+                return;
+              }
+              Navigator.pop(ctx, true);
+            },
+            child: const Text('Save')),
         ],
       ),
     );

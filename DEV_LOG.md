@@ -1,4 +1,10 @@
-## 2026-10-21 - Top-layer errors (Rocky, PENDING phone test)
+## 2026-10-21 - Gig edit validation (Rocky, PENDING phone test)
+
+- _showTxEdit: Save now validates the amount before the dialog closes. A blank, non-numeric or zero amount opens an error dialog on top and the edit stays open. Before this fix the dialog closed and the edit was silently dropped.
+- The save-failure SnackBar after the dialog is unchanged: it fires on the Gig screen, in the open.
+- Also in this push: the top-layer entry below is marked phone-verified.
+
+## 2026-10-21 - Top-layer errors (Rocky, phone-verified Oct 21)
 
 - Rule (David): an error must appear on the layer he is looking at - the open sheet or dialog - never on the screen underneath it.
 - Audit found 12 SnackBar call sites that fire while a sheet or dialog is open above them (buried): Add Transaction sheet (4), loan form (1), budget dialog (1), Zero-Debt dialogs (6). Gig screen clean; the gig edit dialog error gets the same fix once its code is in the repo.
@@ -6,7 +12,7 @@
 - Loan form + budget dialog: validation now opens an error dialog on top (helper _showTopError).
 - Zero-Debt dialogs (debt form, mark payment, delete): errors render inline in red inside the dialog; mark payment with amount 0 now shows an error instead of silently doing nothing.
 - Also in this push: gig edit button for Transaction-only rows (logged Oct 20), debts marked phone-verified below, WIP/ROADMAP headers caught up.
-- PENDING: phone test - submit each form empty or invalid and confirm the message is visible without closing the form.
+- Phone test PASSED Oct 21 (David): Add Transaction inline error, debt form error at the top of the form, loan and budget error dialog on top, gig edit button. All visible without closing the form.
 
 ## 2026-10-20 - Debts (DeepSeek, phone-verified Oct 21)
 
