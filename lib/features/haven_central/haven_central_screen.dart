@@ -684,6 +684,26 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> with WidgetsBin
                               icon: const Icon(Icons.delete,
                                   color: Colors.grey, size: 18),
                               onPressed: () async {
+                                final confirmed = await showDialog<bool>(
+                                    context: context,
+                                    builder: (ctx) => AlertDialog(
+                                            backgroundColor: const Color(0xFF1E1E1E),
+                                            title: const Text('Delete Farm Item?',
+                                                style: TextStyle(color: Colors.white)),
+                                            content: Text(
+                                                'Delete ' + item['name'].toString() + '?',
+                                                style: const TextStyle(color: Colors.grey)),
+                                            actions: [
+                                              TextButton(
+                                                  onPressed: () => Navigator.pop(ctx, false),
+                                                  child: const Text('Cancel',
+                                                      style: TextStyle(color: Colors.grey))),
+                                              TextButton(
+                                                  onPressed: () => Navigator.pop(ctx, true),
+                                                  child: const Text('Delete',
+                                                      style: TextStyle(color: Colors.red))),
+                                            ]));
+                                if (confirmed != true) return;
                                 await _firestore.deleteFarmItem(item['id']);
                               }),
                         ]),
@@ -1564,6 +1584,25 @@ class _HavenCentralScreenState extends State<HavenCentralScreen> with WidgetsBin
           IconButton(
               icon: const Icon(Icons.delete, color: Colors.red, size: 18),
               onPressed: () async {
+                final confirmed = await showDialog<bool>(
+                    context: context,
+                    builder: (ctx) => AlertDialog(
+                            backgroundColor: const Color(0xFF1E1E1E),
+                            title: const Text('Delete Task?',
+                                style: TextStyle(color: Colors.white)),
+                            content: Text('Delete ' + task.title + '?',
+                                style: const TextStyle(color: Colors.grey)),
+                            actions: [
+                              TextButton(
+                                  onPressed: () => Navigator.pop(ctx, false),
+                                  child: const Text('Cancel',
+                                      style: TextStyle(color: Colors.grey))),
+                              TextButton(
+                                  onPressed: () => Navigator.pop(ctx, true),
+                                  child: const Text('Delete',
+                                      style: TextStyle(color: Colors.red))),
+                            ]));
+                if (confirmed != true) return;
                 await _firestore.deleteTask(task.id);
               }),
         ]));

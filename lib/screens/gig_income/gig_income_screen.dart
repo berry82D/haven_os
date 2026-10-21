@@ -448,7 +448,7 @@ class _GigIncomeScreenState extends State<GigIncomeScreen> {
                           IconButton(
                             icon: const Icon(Icons.delete),
                             onPressed: () => r.gig != null
-                                ? _deleteGigTx(r.gig!.id)
+                                ? _deleteGigTx(r.gig!)
                                 : _deleteTx(r.tx!.id),
                           ),
                         ],
@@ -637,16 +637,42 @@ class _GigIncomeScreenState extends State<GigIncomeScreen> {
     }
   }
 
-  Future<void> _deleteGigTx(String gigId) async {
+  Future<void> _deleteGigTx(GigIncome gig) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete this gig entry?'),
+        content: Text('Delete ' +
+            gig.platformName.substring(0, 1).toUpperCase() +
+            gig.platformName.substring(1) +
+            ' - ' +
+            gig.formattedTotal +
+            ' - ' +
+            gig.formattedDate +
+            '? The Finances entry for it is removed too.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
     final appState = context.read<AppState>();
     String? txId;
     for (final t in appState.transactions) {
-      if (t.gigIncomeId == gigId) {
+      if (t.gigIncomeId == gig.id) {
         txId = t.id;
         break;
       }
     }
-    appState.deleteGigIncome(gigId);
+    appState.deleteGigIncome(gig.id);
     if (txId != null) await FirestoreService().deleteTransaction(txId);
   }
 

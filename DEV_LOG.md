@@ -1,4 +1,12 @@
-## 2026-10-21 - Gig edit validation (Rocky, PENDING phone test)
+## 2026-10-21 - Delete confirmations (Rocky, PENDING phone test)
+
+- Rule (David): deleting must ask first and name the item, so there is no what-did-I-just-do moment.
+- Audit found three instant deletes: gig job delete (removed the job and its Finances entry with no ask), farm item delete, and task delete.
+- Gig job delete now confirms first, naming platform, amount and date, and warns that the Finances entry goes too. Farm item and task deletes now open a confirm dialog naming the item, same style as the transaction delete.
+- Already confirming before this fix: transactions, loans, budgets, debts, gig Transaction-only rows, Data Check remove-duplicates.
+- PENDING: phone test - tap delete on a gig job, a farm item and a task; each must ask first and name the item; Cancel must leave everything untouched.
+
+## 2026-10-21 - Gig edit validation (Rocky, phone-verified Oct 21)
 
 - _showTxEdit: Save now validates the amount before the dialog closes. A blank, non-numeric or zero amount opens an error dialog on top and the edit stays open. Before this fix the dialog closed and the edit was silently dropped.
 - The save-failure SnackBar after the dialog is unchanged: it fires on the Gig screen, in the open.

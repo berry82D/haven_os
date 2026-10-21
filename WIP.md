@@ -1,7 +1,7 @@
 # WORK IN PROGRESS
 
 **Last touched:** 2026-10-21
-**Active task:** Gig edit validation micro-fix (this push, then phone verify); top-layer errors and gig edit button phone-verified Oct 21
+**Active task:** Delete confirmations (this push, then phone verify); gig edit validation phone-verified Oct 21
 **Driver:** Rocky (design) / David (PC)
 **Branch:** main
 **HEAD:** 52520ba (debts fix b118, phone-verified Oct 21) - before the Oct 21 push
