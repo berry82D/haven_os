@@ -1,3 +1,10 @@
+﻿## 2026-10-21 — Payoff Plan (PENDING phone)
+- Added lib/services/debt_payoff.dart (minimums / snowball / avalanche; full set payments; free money only).
+- Added lib/screens/debts/debt_payoff_screen.dart (extra field, strategy chips, timeline).
+- Zero-Debt AppBar → Payoff Plan navigation.
+- flutter analyze: No issues found on the three files.
+- Phone test: PENDING.
+
 ## 2026-10-21 - ROADMAP and WIP catch-up (docs, Rocky)
 
 - ROADMAP rewritten current to 4a08be7 (b121): shipped gig patches and Data Check moved out of NOW into DONE, Oct 21 work marked phone-verified, backlog folded in (path-to-debt-free calculator, loan insight, single entry point, audit leftovers, data cleanup, Kitchen Aid).
@@ -151,13 +158,13 @@
 ---## 2026-10-15 -- P0-1b -- fix(auth): PIN setup UI in Settings (was missing)
 
 **Status:** Pushed, awaiting build + phone verification
-**Steps:** Added PIN Lock tile to live Settings dialog (_showSettings) + _showPinSetup dialog (new PIN + confirm, min 4 digits, Remove PIN when set). P0-1 built the gate but no UI existed to set a PIN — Settings had no PIN option at all.
+**Steps:** Added PIN Lock tile to live Settings dialog (_showSettings) + _showPinSetup dialog (new PIN + confirm, min 4 digits, Remove PIN when set). P0-1 built the gate but no UI existed to set a PIN â€” Settings had no PIN option at all.
 **Files:**
 - lib/features/haven_central/haven_central_screen.dart -- PIN tile + _showPinSetup
 - DEV_LOG.md -- this entry
 
-**Why:** b90 installed, David reported "no pin / not in settings" — the gate works but users had no way to create a PIN. Now: Settings -> PIN Lock -> set PIN -> sign out/in -> PIN screen appears.
-**Not touched:** Insights #4, #6 Left, P0-2..P0-25 — queued.
+**Why:** b90 installed, David reported "no pin / not in settings" â€” the gate works but users had no way to create a PIN. Now: Settings -> PIN Lock -> set PIN -> sign out/in -> PIN screen appears.
+**Not touched:** Insights #4, #6 Left, P0-2..P0-25 â€” queued.
 **Next:** Build green -> install -> Settings -> PIN Lock -> set PIN -> sign out/in -> verify PIN gate + fingerprint.
 
 ---## 2026-10-15 -- P0-1 -- fix(auth): real PIN gate + biometric unlock
@@ -179,25 +186,25 @@
 ---## 2026-10-15 -- e3206da + fb7fc93 -- fix(math audit): Budgets month filter + chart off-by-one
 
 **Status:** Pushed, awaiting build + phone verification
-**Steps:** (1) e3206da: Budgets tab filtered `incomes` + `spent` to current month (added monthStart/monthEnd). (2) fb7fc93: monthly chart buckets use `!isBefore(monthStart)` instead of `isAfter(monthStart - 1 day)` — last day of prev month no longer counted twice.
+**Steps:** (1) e3206da: Budgets tab filtered `incomes` + `spent` to current month (added monthStart/monthEnd). (2) fb7fc93: monthly chart buckets use `!isBefore(monthStart)` instead of `isAfter(monthStart - 1 day)` â€” last day of prev month no longer counted twice.
 **Files:**
 - lib/features/haven_central/haven_central_screen.dart -- both fixes
 - DEV_LOG.md -- this entry
 
 **Why:** Full math audit (Oct 15) found Budgets tab compared ALL-TIME spend/income vs this month's budget (Groceries $500 budget showed $8,000 spent). Chart off-by-one counted Sep 30 expense in BOTH Sep and Oct, corrupting chart + projection.
-**Not touched:** Insights projection (#4), Left bills double-count (#6), PIN bypass (P0-1) — queued next. Audit reports prepared for Claude review before audit DEV_LOG entry.
+**Not touched:** Insights projection (#4), Left bills double-count (#6), PIN bypass (P0-1) â€” queued next. Audit reports prepared for Claude review before audit DEV_LOG entry.
 **Next:** Build green -> install -> verify Budgets tab shows October-only numbers; verify Sep 30 transaction appears in September only.
 
 ---## 2026-10-15 -- a85fb09 -- phone verify: Add Transaction form working
 
 **Status:** VERIFIED on phone (David, Oct 15)
-**Steps:** Category picker: 1 open, 1 close (PASS — earlier "double-layer" read was a misread; same sheet, keyboard open vs closed). Income/Expense toggle: Expense stays selected when Description tapped (PASS). Keyboard: active field visible above keyboard (PASS).
+**Steps:** Category picker: 1 open, 1 close (PASS â€” earlier "double-layer" read was a misread; same sheet, keyboard open vs closed). Income/Expense toggle: Expense stays selected when Description tapped (PASS). Keyboard: active field visible above keyboard (PASS).
 **Files:**
 - lib/features/haven_central/haven_central_screen.dart -- autofocus false on category search
 - DEV_LOG.md -- this entry
 **Why:** Category picker autofocus opened keyboard on sheet open, expanding it to full-screen. Removing autofocus keeps the sheet compact.
 **Not touched:** General default category (still open, minor); gig doubles (Candice review pending)
-**Next:** Loan insight (NEXT #1) — Records -> Loans form, live affordability what-if
+**Next:** Loan insight (NEXT #1) â€” Records -> Loans form, live affordability what-if
 
 ---## 2026-10-15 -- VERIFIED -- b84 (a85fb09) installed on R3GL40HW72K
 
@@ -735,8 +742,8 @@
 **Files:** lib/domain/services/household_service.dart (createHouseholdRecord), lib/features/auth/presentation/create_account_screen.dart
 **Note:** the household record is LOCAL only. See CURRENT STATE.
 ---
-# Haven OS — DEV LOG
-Live log — LAW 16 + LAW 17 ENFORCED
+# Haven OS â€” DEV LOG
+Live log â€” LAW 16 + LAW 17 ENFORCED
 LAW 16: Every AI must keep this log up-to-date. No push without a log entry.
 LAW 17: Every AI must READ DEV_LOG.md + CLAUDE.md BEFORE assisting.
 
@@ -754,20 +761,20 @@ LAW 17: Every AI must READ DEV_LOG.md + CLAUDE.md BEFORE assisting.
 **analyze:** No issues found! (user_account.dart, 0.6s)
 **Push:** done
 **Next:** File 2 -- lib/models/invite.dart (NEW)
-## 2026-09-19 — 19a8295 — feat: Phase 3b nav wiring verified — COMPLETE
-**Status:** VERIFIED — origin/feature/haven-central-fixes up to date, flutter analyze No issues found! 22.5s
-**Change:** Verified haven_central_screen.dart Phase 3b wiring complete — Line 1 import gig_income_screen.dart, Line 1978 const GigIncomeScreen() in IndexedStack, Bottom nav 7 items Home/Batches/Finances/Records/Schedule/Budgets/Gig, AppBar titles 7 entries including '💼 Gig Income' — No code change needed, already wired by previous AI
+## 2026-09-19 â€” 19a8295 â€” feat: Phase 3b nav wiring verified â€” COMPLETE
+**Status:** VERIFIED â€” origin/feature/haven-central-fixes up to date, flutter analyze No issues found! 22.5s
+**Change:** Verified haven_central_screen.dart Phase 3b wiring complete â€” Line 1 import gig_income_screen.dart, Line 1978 const GigIncomeScreen() in IndexedStack, Bottom nav 7 items Home/Batches/Finances/Records/Schedule/Budgets/Gig, AppBar titles 7 entries including 'ðŸ’¼ Gig Income' â€” No code change needed, already wired by previous AI
 **Files:**
-- lib/features/haven_central/haven_central_screen.dart — 103089 bytes — 7 tabs wired
-- lib/screens/gig_income/gig_income_screen.dart — 5756 bytes — exists
-- DEV_LOG.md — this update
-**Why:** David brain fog check — Phase 3b was thought incomplete but Select-String showed GigIncomeScreen already in nav — Law 5, 16, 17 compliance, Noob Mode reassurance
+- lib/features/haven_central/haven_central_screen.dart â€” 103089 bytes â€” 7 tabs wired
+- lib/screens/gig_income/gig_income_screen.dart â€” 5756 bytes â€” exists
+- DEV_LOG.md â€” this update
+**Why:** David brain fog check â€” Phase 3b was thought incomplete but Select-String showed GigIncomeScreen already in nav â€” Law 5, 16, 17 compliance, Noob Mode reassurance
 **analyze:** No issues found! (22.5s Sep 19 2026)
 **Push:** 86df4e2..19a8295 verified via GitHub branches page Sep 19 2026
 **Next:** Phase 4 forgot-password
 
-## 2026-05-13 — 86df4e2 — docs: full history preserved - add fbca4ed handoff + detailed 949d358-4dc39f9
-**Status:** PUSHED — origin/feature/haven-central-fixes up to date
+## 2026-05-13 â€” 86df4e2 â€” docs: full history preserved - add fbca4ed handoff + detailed 949d358-4dc39f9
+**Status:** PUSHED â€” origin/feature/haven-central-fixes up to date
 **Change:** Added fbca4ed handoff entry + detailed 949d358 fix, e034289 UI, 60170b5, 4dc39f9 env details, system info, workflow notes - 60+ ins, 21 del - No info removed
 **Why:** David requested full replacement, ensure everything included
 **analyze:** No issues - docs only
@@ -775,8 +782,8 @@ LAW 17: Every AI must READ DEV_LOG.md + CLAUDE.md BEFORE assisting.
 
 ---
 
-## 2026-05-13 — c4a82ee — docs: Law16 91c5075 full history preserved + memory + biweekly
-**Status:** PUSHED — origin/feature/haven-central-fixes up to date
+## 2026-05-13 â€” c4a82ee â€” docs: Law16 91c5075 full history preserved + memory + biweekly
+**Status:** PUSHED â€” origin/feature/haven-central-fixes up to date
 **Change:** Fixed binary UTF-16 corruption (Binary files differ -> text diff) via Get-Content | Set-Content utf8, preserved full history, no data loss, added EOF newline
 **Files:** DEV_LOG.md only
 **Why:** Notepad saved UTF-16 with spaced chars 2 0 2 6, git saw binary - Law 16 docs push, David flagged info removal concern
@@ -785,13 +792,13 @@ LAW 17: Every AI must READ DEV_LOG.md + CLAUDE.md BEFORE assisting.
 
 ---
 
-## 2026-05-13 — 91c5075 — fix: restore haven_central_screen after local syntax break
-**Status:** PUSHED — origin/feature/haven-central-fixes up to date
+## 2026-05-13 â€” 91c5075 â€” fix: restore haven_central_screen after local syntax break
+**Status:** PUSHED â€” origin/feature/haven-central-fixes up to date
 **Change:** Restored after syntax break line 294 Expected ';' - fixed else... spread, withOpacity->withValues(alpha:), value->initialValue
 **Files:**
-- haven_central_screen.dart — fixed collection if else... -> else ...map() — removed 2 nested Scaffold, 4 nested AppBar violations
-- app_state.dart — retains _recordCategoryMemory, _rebuildMemoryFromHistory, getLearnedIsIncome, householdId scope
-- category_memory_service.dart — condensed 400->150 lines + expandable logic, biweekly pattern 12-16d avg detection, nextBiweeklyDate +14d, confidence scoring
+- haven_central_screen.dart â€” fixed collection if else... -> else ...map() â€” removed 2 nested Scaffold, 4 nested AppBar violations
+- app_state.dart â€” retains _recordCategoryMemory, _rebuildMemoryFromHistory, getLearnedIsIncome, householdId scope
+- category_memory_service.dart â€” condensed 400->150 lines + expandable logic, biweekly pattern 12-16d avg detection, nextBiweeklyDate +14d, confidence scoring
 **Why:** David Berry Sr. request: salary/paycheck biweekly + remember my entries if used alot - No hardcoded rhbarringer list, learning from usage
 **analyze:** No issues found! 24.4s at 2026-05-13
 **Push:** 4dc39f9..91c5075
@@ -799,8 +806,8 @@ LAW 17: Every AI must READ DEV_LOG.md + CLAUDE.md BEFORE assisting.
 
 ---
 
-## 2026-05-13 — 4dc39f9 — fix: disk full - move gradle/pub to D:
-**Status:** PUSHED — origin/feature/haven-central-fixes
+## 2026-05-13 â€” 4dc39f9 â€” fix: disk full - move gradle/pub to D:
+**Status:** PUSHED â€” origin/feature/haven-central-fixes
 **Change:** C: drive full 11.67GB free - Moved GRADLE_USER_HOME to D:\gradle_cache (was C:\Users\corch\.gradle), PUB_CACHE to D:\pub_cache (was C:\Users\corch\AppData\Local\Pub\Cache), deleted .gradle\build-cache, .gradle\caches\build-cache-1, D:\ deleted build folder, freed C: to 14.08GB (+2.4GB)
 **Files:** Environment vars, gradle wrapper, pub cache
 **Why:** Build failed mergeDebugNativeLibs - Out of disk space, LAW 5 bill tracker unblocked e61ac07 needs build
@@ -810,17 +817,17 @@ LAW 17: Every AI must READ DEV_LOG.md + CLAUDE.md BEFORE assisting.
 
 ---
 
-## 2026-09-06 — 60170b5 — docs: Law16 log e034289
-**Status:** PUSHED — origin/feature/haven-central-fixes
+## 2026-09-06 â€” 60170b5 â€” docs: Law16 log e034289
+**Status:** PUSHED â€” origin/feature/haven-central-fixes
 **Change:** Log update for e034289 GigIncome screen
 **analyze:** No issues
 **Push:** e034289..60170b5
 
 ---
 
-## 2026-09-06 — e034289 — feat: Phase 3 GigIncome screen
-**Status:** PUSHED — handoff proven via Grok using AI_HANDOFF.md @ fbca4ed (Grok read log, verified fbca4ed, implemented feature)
-**File:** lib/screens/gig_income/gig_income_screen.dart — 350 lines
+## 2026-09-06 â€” e034289 â€” feat: Phase 3 GigIncome screen
+**Status:** PUSHED â€” handoff proven via Grok using AI_HANDOFF.md @ fbca4ed (Grok read log, verified fbca4ed, implemented feature)
+**File:** lib/screens/gig_income/gig_income_screen.dart â€” 350 lines
 **UI:** Summary card total gig income month, ListTile with gig name + amount + date, edit/delete swipe, FAB add dialog with amount controller, householdId filter, app_state integration
 **Why:** Phase 3 budget tracking - gig income separate from salary
 **analyze:** No issues found!
@@ -829,22 +836,22 @@ LAW 17: Every AI must READ DEV_LOG.md + CLAUDE.md BEFORE assisting.
 
 ---
 
-## 2026-09-06 — fbca4ed — feat: AI_HANDOFF.md + Law 16/17 enforcement
-**Status:** PUSHED — Handoff system created, tested with Grok success
-**File:** AI_HANDOFF.md — instructions for any AI to read DEV_LOG.md + CLAUDE.md before assisting, log template, branch info
+## 2026-09-06 â€” fbca4ed â€” feat: AI_HANDOFF.md + Law 16/17 enforcement
+**Status:** PUSHED â€” Handoff system created, tested with Grok success
+**File:** AI_HANDOFF.md â€” instructions for any AI to read DEV_LOG.md + CLAUDE.md before assisting, log template, branch info
 **Why:** David NOOB MODE needs any AI (ChatGPT, Grok, Claude, Meta) to continue without losing context
 **analyze:** No issues
 **Push:** 949d358..fbca4ed
 
 ---
 
-## 2026-09-06 — 949d358 — fix: household-scope models + Transaction bug
-**Status:** PUSHED — origin/feature/haven-central-fixes
+## 2026-09-06 â€” 949d358 â€” fix: household-scope models + Transaction bug
+**Status:** PUSHED â€” origin/feature/haven-central-fixes
 **Change:** Transaction model had late field bug - amount null crash, budget spent calc wrong, householdId missing from some models
 **Files:**
-- transaction.dart — fixed late initialization, amount double? -> double with default 0.0
-- budget.dart — fixed spent calc household scope
-- app_state.dart — added householdId to all queries
+- transaction.dart â€” fixed late initialization, amount double? -> double with default 0.0
+- budget.dart â€” fixed spent calc household scope
+- app_state.dart â€” added householdId to all queries
 **Why:** Bills showing wrong amounts, crash on null amount, LAW 5 household scoping
 **analyze:** No issues found! (91.1s)
 **Push:** previous..949d358
@@ -852,16 +859,16 @@ LAW 17: Every AI must READ DEV_LOG.md + CLAUDE.md BEFORE assisting.
 ---
 
 ## TEMPLATE FOR FUTURE ENTRIES
-## YYYY-MM-DD — HASH — short description
+## YYYY-MM-DD â€” HASH â€” short description
 **Status:** **File(s):** **Change:** **Why:** **analyze:** **Push:** **Next:**
 Keep chronologically newest on top, after CURRENT STATE. No spaced UTF-16, always UTF-8.
 
 ---
 
 ## NOTES
-- David Berry Sr. — NOOB MODE — Olivia, NC — 28326
-- Haven OS — Household finance, Law 5 bills, Gig income, Category memory
-- Laws 1-17 enforced — Read Before Assist mandatory
+- David Berry Sr. â€” NOOB MODE â€” Olivia, NC â€” 28326
+- Haven OS â€” Household finance, Law 5 bills, Gig income, Category memory
+- Laws 1-17 enforced â€” Read Before Assist mandatory
 - Branch workflow: feature/haven-central-fixes -> main via PR, Law 16 docs commit before every push
 - System: Windows 11, Flutter 3.x, C: 14GB free, D: gradle_cache + pub_cache
 
@@ -905,9 +912,9 @@ Use `flutter run` NOT `adb uninstall` to preserve SharedPreferences for testing.
 ---
 
 
-## 2026-10-18 — Gig tab default to full year
+## 2026-10-18 â€” Gig tab default to full year
 - Changed gig_income_screen.dart: when no month selected, default is `y:YYYY` (Full year) instead of current month `keyOf(now)`.
-- Reason: Oct-only view hid Jul–Sep gigs; picker still allows single months.
+- Reason: Oct-only view hid Julâ€“Sep gigs; picker still allows single months.
 - Spark trips under Salary still not in Gig filter (separate task).
 - Analyze: run before push; Law 16 log with this commit.
 
@@ -929,7 +936,7 @@ Use `flutter run` NOT `adb uninstall` to preserve SharedPreferences for testing.
 - Falls back to local list if Firestore fails. _syncGigTx/_deleteGigTx stay on local.
 
 ## 2026-10-19 -- b112/b113 -- fix(gig): Impact loads income from Firestore (RHB included)
-- Problem: Impact showed '100.0% of income' — RHB paycheck not counted. Root cause: _impactText used local appState.transactions (missing RHB); Finances/Data Check read directly from Firestore.
+- Problem: Impact showed '100.0% of income' â€” RHB paycheck not counted. Root cause: _impactText used local appState.transactions (missing RHB); Finances/Data Check read directly from Firestore.
 - b112 (2adb7ab): Changed _impactText to load via FirestoreService().streamTransactions().first in _loadJobs, stored in _allTx. Falls back to local if Firestore fails.
 - b112 FAILED: PowerShell single-quoted string wrote literal ` 
  ` instead of newlines (lines 37, 46). Dart parse errors.
@@ -937,11 +944,11 @@ Use `flutter run` NOT `adb uninstall` to preserve SharedPreferences for testing.
 
 ## 2026-10-19 -- b114 -- feat(gig): collapse Trends+Impact + bump to 1.0.2
 - Trends+Impact wrapped in ExpansionTile (collapsed by default, tap to expand).
-- Version bumped: 1.0.1 → 1.0.2 (pubspec.yaml). Build number (b114) from GitHub run_number, cannot reset.
+- Version bumped: 1.0.1 â†’ 1.0.2 (pubspec.yaml). Build number (b114) from GitHub run_number, cannot reset.
 
 ## 2026-10-19 -- b115 -- chore(gig): platform case merge + bump to 1.0.2
-- _displayPlatform normalizes case (spark/Spark → Spark, doordash → DoorDash, etc.).
-- Version bumped: 1.0.1+1 → 1.0.2 (pubspec.yaml).
+- _displayPlatform normalizes case (spark/Spark â†’ Spark, doordash â†’ DoorDash, etc.).
+- Version bumped: 1.0.1+1 â†’ 1.0.2 (pubspec.yaml).
 
 ## 2026-10-19 -- PLAN -- feat(zero-debt): zero-debt goal tracker
 - Location: Records tab, new 'Zero-Debt Goal' section (alongside Loans).
@@ -1003,3 +1010,4 @@ Use `flutter run` NOT `adb uninstall` to preserve SharedPreferences for testing.
 - Transaction-only gig rows (import/scan) had detail + delete but no edit. Added an edit button opening a dialog (description, amount, date, notes).
 - Save writes Firestore first, then updates local state; a failed save shows an error and changes nothing on the phone.
 - GigIncome rows keep their existing form. File: lib/screens/gig_income/gig_income_screen.dart.
+

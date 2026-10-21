@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'debt_payoff_screen.dart';
 import 'package:provider/provider.dart';
 import '../../models/debt.dart';
 import '../../models/transaction.dart';
@@ -15,7 +16,20 @@ class _ZeroDebtScreenState extends State<ZeroDebtScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Zero-Debt Goal')),
+      appBar: AppBar(
+        title: const Text('Zero-Debt Goal'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const DebtPayoffScreen()),
+              );
+            },
+            child: const Text('Payoff Plan'),
+          ),
+        ],
+      ),
       body: StreamBuilder<List<Debt>>(
         stream: FirestoreService().streamDebts(),
         builder: (context, snap) {
