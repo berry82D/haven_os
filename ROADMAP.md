@@ -78,6 +78,7 @@
 37. Gig Trends fix: monthly bars + By platform ignore the month picker (year-scoped) - scope Trends to the selected period (month pick shows weekly bars); Impact already correct (David, Oct 21)
 38. Suggested Budgets setup: suggestion cards from real spending (per category, last 3 months) with Tight / Typical / Roomy options and one-tap Add budget via the existing save path; expenses only, needs spend in 2 of the last 3 months (David, Oct 21)
 39. Remove the Schedule tab: move the full task list + Add Task into Home at the Upcoming Tasks card, bottom bar 7 tabs to 6, drop the card tap-to-tab jump (David, Oct 21)
+40. Page plan: every tab must earn its place with real content - Records becomes the vault (loans + debts + household paperwork), placeholders (Routines/Homestead/Timeline/CFO/Health score) stay off the nav until they have real content; end state 6 tabs: Home, Batches, Finances, Records, Budgets, Gig (David, Oct 21)
 
 ## RULES FOR THIS FILE
 - Keep it short. One line per item.
