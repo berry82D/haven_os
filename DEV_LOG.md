@@ -1,4 +1,11 @@
-﻿## 2026-10-21 â€” CI NDK preinstall (PENDING green run)
+## 2026-10-21 - PIN locks immediately (David rule, PENDING phone test)
+
+- David tested the PIN checklist Oct 21: the lock works after being away, but he ruled the 5-minute grace too loose - leaving the app should require the PIN on every return.
+- Change (one line, lib/services/app_state.dart needsPinReentry): background threshold from Duration(minutes: 5) to Duration.zero, so any pause makes the next resume a re-entry.
+- Safety check before shipping: the resume handler in haven_central_screen.dart already guards with _pinScreenOpen, so the PIN screen cannot stack on itself (for example during its own biometric prompt).
+- Biometrics remain open: there is no biometric toggle in Settings (David looked); fingerprint is offered on the PIN entry screen, and its error line is still to be captured.
+- PENDING phone test: open Haven, switch to another app for a few seconds, return - PIN must be asked. Fresh sign-in must still go straight to Home (unchanged path).
+## 2026-10-21 â€” CI NDK preinstall (PENDING green run)
 - build.yml: install ndk;28.2.13676358 before flutter build apk (fixes ZipException on NDK install).
 - No app Dart change. Phone test PENDING after artifact.
 

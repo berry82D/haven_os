@@ -94,7 +94,7 @@ class AppState extends ChangeNotifier {
     if (_currentUser == null) return false;
     if (!isPinEnabled) return false;
     if (_backgroundedAt == null) return false;
-    return DateTime.now().difference(_backgroundedAt!) > const Duration(minutes: 5);
+    return DateTime.now().difference(_backgroundedAt!) > Duration.zero;
   }
   void setCurrentUser(UserAccount user) {
     _currentUser = user;
