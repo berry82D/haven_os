@@ -75,6 +75,9 @@
 34. Firebase App Distribution (parked Oct 14: David group gets every build, Candice group gets verified builds only)
 35. D:\ flash-drive update once a stable build is confirmed (contents TBD - David provides `dir` listing)
 36. AI Insights futuristic redesign: full-screen intelligence view instead of the bottom sheet - teal aurora glow, ranked insight cards (headline + proving number + impact tag), hero top insight; presentation only, insight math unchanged (David, Oct 21)
+37. Gig Trends fix: monthly bars + By platform ignore the month picker (year-scoped) - scope Trends to the selected period (month pick shows weekly bars); Impact already correct (David, Oct 21)
+38. Suggested Budgets setup: suggestion cards from real spending (per category, last 3 months) with Tight / Typical / Roomy options and one-tap Add budget via the existing save path; expenses only, needs spend in 2 of the last 3 months (David, Oct 21)
+39. Remove the Schedule tab: move the full task list + Add Task into Home at the Upcoming Tasks card, bottom bar 7 tabs to 6, drop the card tap-to-tab jump (David, Oct 21)
 
 ## RULES FOR THIS FILE
 - Keep it short. One line per item.
