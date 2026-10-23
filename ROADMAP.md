@@ -59,6 +59,7 @@
 20. Savings Rate: computed (Net/Income*100) - VERIFIED. $100 buffer is hardcoded (const rangeBuffer) - make user-adjustable if desired
 21. Dedicated all-transactions view (View All was removed as 4th Finances path; a real list view is still wanted)
 22. Gig form: one end-of-day Total Earnings entry for Candice (Spark, all-day gig work)
+23. Missed payment logging on active loans/debts (pairs with #6 loan insight): a Missed payment action records date missed, amount missed, late fee, other fees (each labeled), notes; missed amount counts to past-due, fees add to owed but stay itemized, per-loan history kept; Payoff Plan math must use real past-due + fees and still never skip/short another bill. Use cases: Santander 2 months behind, One Main. Spec Oct 22 - awaiting build order, no code yet
 
 ## LATER
 23. Kitchen Aid: real Recipes / Pantry / Shopping behind the placeholder tab (lost module)

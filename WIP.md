@@ -8,6 +8,13 @@
 
 ## Status: IN PROGRESS
 
+### Oct 22 - spec logged (awaiting build order, no code)
+- Missed payment logging (David, via main chat Oct 22): on any active loan/debt, a Missed payment action with date missed, amount missed, late fee, other fees each with a label, and notes.
+- Money rules: missed amount counts toward past-due; fees add to what is owed but stay itemized separately so the balance math stays honest; a per-loan history of missed payments and fees is kept.
+- Payoff Plan must use the real numbers (past-due + fees included); the standing rule holds - never skip or short another bill to fund a debt.
+- Why now: Santander vehicle is 2 months behind (Sep + Oct) and the tracker cannot show past-due + fees today, only a balance; One Main also called Oct 21.
+- Logged as ROADMAP NEXT #23, alongside #6 loan insight. Build only on David order.
+
 ### Oct 21 - verified on phone (David)
 - Zero-Debt (b118): test data cleared, tracker empty, ready for real debts
 - Top-layer form errors + gig edit button (b119)
